@@ -7,13 +7,15 @@ setup(
     packages=['exline'],
     keywords=['d3m_primitive'],
     install_requires=[
-        'pandas>=0.23.4',
+        'scikit-learn==0.20.2',
+        'numpy==1.15.4',
+        'pandas==0.23.4',
+        'sklearn_pandas==1.8.0'
         'frozendict>=1.2',
-        'scikit-learn>=0.20.2',
-        'd3m==2019.4.4'
+        'd3m==2019.2.18'
     ],
     dependency_links=[
-        'git+https://gitlab.com/datadrivendiscovery/common-primitives.git#egg=common_primitives',
+        'git+https://gitlab.com/datadrivendiscovery/common-primitives.git@v0.3.0#egg=common_primitives',
     ],
     entry_points={
         'd3m.primitives': [
