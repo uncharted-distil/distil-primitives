@@ -1,10 +1,12 @@
 from distutils.core import setup
 
+from setuptools import find_packages
+
 setup(
     name='DistilPrimitives',
     version='0.1.0',
     description='Distil primitives as a single library (temporary)',
-    packages=['exline'],
+    packages=find_packages(),
     keywords=['d3m_primitive'],
     install_requires=[
         'scikit-learn==0.20.2',
