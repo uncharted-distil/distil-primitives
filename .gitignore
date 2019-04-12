@@ -1,0 +1,11 @@
+__pycache__/
+\.mypy_cache/
+\.vscode/
+\.history/
+venv
+datasets
+output
+static_resources
+TODO.md
+
+
