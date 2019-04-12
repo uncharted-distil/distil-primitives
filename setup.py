@@ -10,7 +10,7 @@ setup(
         'scikit-learn==0.20.2',
         'numpy==1.15.4',
         'pandas==0.23.4',
-        'sklearn_pandas==1.8.0'
+        'sklearn_pandas==1.8.0',
         'frozendict>=1.2',
         'd3m==2019.2.18'
     ],
