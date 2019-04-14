@@ -67,7 +67,7 @@ class MissingIndicatorPrimitive(unsupervised_learning.UnsupervisedLearnerPrimiti
     def __getstate__(self) -> dict:
         state = base.PrimitiveBase.__getstate__(self)
         state['models'] = self._missing_indicator
-        state['colums'] = self._cols
+        state['columns'] = self._cols
         return state
 
     def __setstate__(self, state: dict) -> None:

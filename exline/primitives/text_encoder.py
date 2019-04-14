@@ -67,7 +67,7 @@ class TextEncoderPrimitive(base.PrimitiveBase[container.DataFrame, container.Dat
     def __getstate__(self) -> dict:
         state = base.PrimitiveBase.__getstate__(self)
         state['models'] = self._encoders
-        state['colums'] = self._cols
+        state['columns'] = self._cols
         return state
 
     def __setstate__(self, state: dict) -> None:
