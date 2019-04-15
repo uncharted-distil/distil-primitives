@@ -77,8 +77,8 @@ class SimpleImputerPrimitive(transformer.TransformerPrimitiveBase[container.Data
         result = imputer.transform(numerical_inputs)
 
         outputs = inputs.copy()
-        for i, c in enumerate(cols):
-            outputs.iloc[:, c] = result[:,i]
+        for i in range(result.shape[1]):
+            outputs.iloc[:, cols[i]] = result[:,i]
 
         logger.debug(f'\n{outputs}')
 
