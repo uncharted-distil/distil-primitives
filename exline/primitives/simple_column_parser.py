@@ -57,16 +57,26 @@ class SimpleColumnParserPrimitive(transformer.TransformerPrimitiveBase[container
 
         num_cols = outputs.metadata.query((metadata_base.ALL_ELEMENTS,))['dimension']['length']
         remove_indices = []
+        target_idx = -1
+        suggested_target_idx = -1
         for i in range(num_cols):
             semantic_types = outputs.metadata.query((metadata_base.ALL_ELEMENTS,i))['semantic_types']
             # mark target + index for removal
             if 'https://metadata.datadrivendiscovery.org/types/Target' in semantic_types or \
                 'https://metadata.datadrivendiscovery.org/types/TrueTarget' in semantic_types or \
                 'https://metadata.datadrivendiscovery.org/types/PrimaryKey' in semantic_types:
+                target_idx = i
                 remove_indices.append(i)
+            elif 'https://metadata.datadrivendiscovery.org/types/Target' in semantic_types:
+                suggested_target_idx = i
 
             # update the structural / df type from the semantic type
             outputs = self._update_type_info(semantic_types, outputs, i)
+
+        # fallback on suggested target if no true target / target marked
+        if target_idx == -1:
+            target_idx = suggested_target_idx
+            remove_indices.append(target_idx)
 
         # flip the d3mIndex to be the df index as well
         outputs = outputs.set_index('d3mIndex', drop=False)
@@ -87,14 +97,20 @@ class SimpleColumnParserPrimitive(transformer.TransformerPrimitiveBase[container
         # find the target column and remove all others
         num_cols = outputs.metadata.query((metadata_base.ALL_ELEMENTS,))['dimension']['length']
         target_idx = -1
+        suggested_target_idx = -1
         for i in range(num_cols):
             semantic_types = outputs.metadata.query((metadata_base.ALL_ELEMENTS,i))['semantic_types']
             if 'https://metadata.datadrivendiscovery.org/types/Target' in semantic_types or \
                'https://metadata.datadrivendiscovery.org/types/TrueTarget' in semantic_types:
                 target_idx = i
                 outputs = self._update_type_info(semantic_types, outputs, i)
+            elif 'https://metadata.datadrivendiscovery.org/types/SuggestedTarget' in semantic_types:
+                suggested_target_idx = i
             elif 'https://metadata.datadrivendiscovery.org/types/PrimaryKey' in semantic_types:
                 outputs = self._update_type_info(semantic_types, outputs, i)
+        # fall back on suggested target
+        if target_idx == -1:
+            target_idx = suggested_target_idx
 
         # flip the d3mIndex to be the df index as well
         outputs = outputs.set_index('d3mIndex', drop=False)
