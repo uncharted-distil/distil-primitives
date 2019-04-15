@@ -29,6 +29,7 @@ setup(
             'data_transformation.data_cleaning.ExlineEnrichDates = exline.primitives.enrich_dates:EnrichDatesPrimitive',
             'learner.random_forest.ExlineEnsembleForest = exline.primitives.ensemble_forest:EnsembleForestPrimitive',
             'learner.random_forest.ExlineBertClassification = exline.primitives.bert_classification:BertClassificationPrimitive',
+            'learner.random_forest.ExlineCollaborativeFiltering = exlines.primitives.collaborative_filtering.CollaborativeFilteringPrimitive',
             'data_transformation.standard_scaler.ExlineStandardScaler = exline.primitives.standard_scaler:StandardScalerPrimitive',
             'data_transformation.one_hot_encoder.ExlineOneHotEncoder = exline.primitives.one_hot_encoder:OneHotEncoderPrimitive',
             'data_transformation.encoder.ExlineBinaryEncoder = exline.primitives.binary_encoder:BinaryEncoderPrimitive',
