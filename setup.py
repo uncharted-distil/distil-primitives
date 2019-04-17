@@ -16,13 +16,17 @@ setup(
         'pytorch-pretrained-bert==0.4.0',
         'sklearn_pandas==1.8.0',
         'frozendict>=1.2',
-        'd3m==2019.2.18'
+        'd3m==2019.2.18',
+        'sgm @ git+https://github.com/nowfred/sgm.git@v1.0.0#egg=sgm'
+
     ],
     dependency_links=[
         'git+https://gitlab.com/datadrivendiscovery/common-primitives.git@v0.3.0#egg=common_primitives',
     ],
     entry_points={
         'd3m.primitives': [
+            'data_transformation.seeded_graph_matcher.ExlineSeededGraphMatcher = exline.primitives.seeded_graph_matcher:ExlineSeededGraphMatchingPrimitive',
+            'data_transformation.load_graphs.ExlineGraphLoader = exline.primitives.load_graphs:ExlineGraphLoaderPrimitive',
             'data_transformation.imputer.ExlineSimpleImputer = exline.primitives.simple_imputer:SimpleImputerPrimitive',
             'data_transformation.data_cleaning.ExlineReplaceSingletons = exline.primitives.replace_singletons:ReplaceSingletonsPrimitive',
             'data_transformation.imputer.ExlineCategoricalImputer = exline.primitives.categorical_imputer:CategoricalImputerPrimitive',
