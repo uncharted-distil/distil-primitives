@@ -17,11 +17,10 @@ setup(
         'sklearn_pandas==1.8.0',
         'frozendict>=1.2',
         'd3m==2019.2.18',
-        'sgm @ git+https://github.com/nowfred/sgm.git#egg=sgm'
+        'cython==0.29.3',
+        'sgm @ git+https://github.com/nowfred/sgm.git#egg=sgm',
+        'common_primitives @ git+https://gitlab.com/datadrivendiscovery/common-primitives.git@v0.3.0#egg=common_primitives',
 
-    ],
-    dependency_links=[
-        'git+https://gitlab.com/datadrivendiscovery/common-primitives.git@v0.3.0#egg=common_primitives',
     ],
     entry_points={
         'd3m.primitives': [
