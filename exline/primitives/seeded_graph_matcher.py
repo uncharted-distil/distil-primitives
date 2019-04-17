@@ -29,7 +29,7 @@ class Hyperparams(hyperparams.Hyperparams):
 class Params(params.Params):
     pass
 
-class ExlineSeededGraphMatchingPrimitive(PrimitiveBase[container.DataFrame, container.DataFrame, Params, Hyperparams]):
+class ExlineSeededGraphMatchingPrimitive(PrimitiveBase[container.DataFrame, container.List, Params, Hyperparams]):
     """
     A primitive that matches seeded graphs.
     """
@@ -41,15 +41,15 @@ class ExlineSeededGraphMatchingPrimitive(PrimitiveBase[container.DataFrame, cont
             'python_path': 'd3m.primitives.data_transformation.seeded_graph_matcher.ExlineSeededGraphMatcher',
             'source': {
                 'name': 'exline',
-                'contact': 'mailto:cbethune@uncharted.software',
+                'contact': 'mailto:fred@qntfy.com',
                 'uris': [
-                    'https://github.com/cdbethune/d3m-exline/primitives/seeded_graph_matcher.py',
-                    'https://github.com/cdbethune/d3m-exline',
+                    'https://github.com/uncharted-distil/distil-primitives/seeded_graph_matcher.py',
+                    'https://github.com/uncharted-distil/distil-primitives',
                 ],
             },
             'installation': [{
                 'type': metadata_base.PrimitiveInstallationType.PIP,
-                'package_uri': 'git+https://github.com/cdbethune/d3m-exline.git@{git_commit}#egg=d3m-exline'.format(
+                'package_uri': 'git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=d3m-exline'.format(
                     git_commit=d3m_utils.current_git_commit(os.path.dirname(__file__)),
                 ),
             }],
@@ -80,7 +80,7 @@ class ExlineSeededGraphMatchingPrimitive(PrimitiveBase[container.DataFrame, cont
         PrimitiveBase.__setstate__(self, state)
         self._model = state['models']
 
-    def set_training_data(self, *, inputs: container.DataFrame, outputs: container.DataFrame) -> None:
+    def set_training_data(self, *, inputs: container.List, outputs: container.DataFrame) -> None:
         self._inputs = inputs
         self._outputs = outputs
 
@@ -149,7 +149,7 @@ class ExlineSeededGraphMatchingPrimitive(PrimitiveBase[container.DataFrame, cont
 
         return CallResult(None)
 
-    def produce(self, *, inputs: container.DataFrame, timeout: float = None, iterations: int = None) -> CallResult[container.DataFrame]:
+    def produce(self, *, inputs: container.List, timeout: float = None, iterations: int = None) -> CallResult[container.DataFrame]:
         logger.debug(f'Producing {__name__}')
 
         _, _, _, _, X_train, _, _, index = self._inputs
