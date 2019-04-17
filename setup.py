@@ -17,7 +17,7 @@ setup(
         'sklearn_pandas==1.8.0',
         'frozendict>=1.2',
         'd3m==2019.2.18',
-        'sgm @ git+https://github.com/nowfred/sgm.git@v1.0.0#egg=sgm'
+        'sgm @ git+https://github.com/nowfred/sgm.git@v1.0.1#egg=sgm'
 
     ],
     dependency_links=[
