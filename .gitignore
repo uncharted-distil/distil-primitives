@@ -5,6 +5,7 @@ __pycache__/
 venv
 datasets
 output
+outputs
 static_resources
 TODO.md
 DistilPrimitives.egg-info

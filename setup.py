@@ -40,7 +40,8 @@ setup(
             'data_transformation.encoder.ExlineTextEncoder = exline.primitives.text_encoder:TextEncoderPrimitive',
             'data_transformation.column_parser.ExlineSimpleColumnParser = exline.primitives.simple_column_parser:SimpleColumnParserPrimitive',
             'data_transformation.missing_indicator.ExlineMissingIndicator = exline.primitives.missing_indicator:MissingIndicatorPrimitive',
-            'data_transformation.data_cleaning.ExlineZeroColumnRemover = exline.primitives.zero_column_remover:ZeroColumnRemoverPrimitive'
+            'data_transformation.data_cleaning.ExlineZeroColumnRemover = exline.primitives.zero_column_remover:ZeroColumnRemoverPrimitive',
+            'data_transformation.data_cleaning.ExlineRaggedDatasetLoader = exline.primitives.ragged_dataset_loader:RaggedDatasetLoaderPrimitive'
         ],
     }
 )
