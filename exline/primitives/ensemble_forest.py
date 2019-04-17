@@ -45,13 +45,13 @@ class EnsembleForestPrimitive(PrimitiveBase[container.DataFrame, container.DataF
                 'name': 'exline',
                 'contact': 'mailto:cbethune@uncharted.software',
                 'uris': [
-                    'https://github.com/cdbethune/d3m-exline/primitives/ensemble_forest.py',
-                    'https://github.com/cdbethune/d3m-exline',
+                    'https://github.com/uncharted-distil/distil-primitives/primitives/ensemble_forest.py',
+                    'https://github.com/uncharted-distil/distil-primitives',
                 ],
             },
             'installation': [{
                 'type': metadata_base.PrimitiveInstallationType.PIP,
-                'package_uri': 'git+https://github.com/cdbethune/d3m-exline.git@{git_commit}#egg=d3m-exline'.format(
+                'package_uri': 'git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=d3m-exline'.format(
                     git_commit=d3m_utils.current_git_commit(os.path.dirname(__file__)),
                 ),
             }],
@@ -61,6 +61,11 @@ class EnsembleForestPrimitive(PrimitiveBase[container.DataFrame, container.DataF
             'primitive_family': metadata_base.PrimitiveFamily.DATA_TRANSFORMATION,
         },
     )
+
+    # threshold to test for num fits
+    _SMALL_DATASET_THRESH = 2000
+    _SMALL_DATASET_FITS = 5
+    _LARGE_DATASET_FITS = 1
 
     # number of rows to limit to when in fast mode
     _FAST_FIT_ROWS = 500
@@ -104,6 +109,7 @@ class EnsembleForestPrimitive(PrimitiveBase[container.DataFrame, container.DataF
     def set_training_data(self, *, inputs: container.DataFrame, outputs: container.DataFrame) -> None:
         self._inputs = inputs
         self._outputs = outputs
+        self._model.num_fits = self._LARGE_DATASET_FITS if self._inputs.shape[0] > self._SMALL_DATASET_THRESH else self._SMALL_DATASET_FITS
 
     def fit(self, *, timeout: float = None, iterations: int = None) -> CallResult[None]:
         logger.debug(f'Fitting {__name__}')

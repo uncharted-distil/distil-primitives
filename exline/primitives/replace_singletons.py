@@ -36,13 +36,13 @@ class ReplaceSingletonsPrimitive(transformer.TransformerPrimitiveBase[container.
                 'name': 'exline',
                 'contact': 'mailto:cbethune@uncharted.software',
                 'uris': [
-                    'https://github.com/cdbethune/d3m-exline/primitives/replace_singletons.py',
-                    'https://github.com/cdbethune/d3m-exline',
+                    'https://github.com/uncharted-distil/distil-primitives/primitives/replace_singletons.py',
+                    'https://github.com/uncharted-distil/distil-primitives',
                 ],
             },
             'installation': [{
                 'type': metadata_base.PrimitiveInstallationType.PIP,
-                'package_uri': 'git+https://github.com/cdbethune/d3m-exline.git@{git_commit}#egg=d3m-exline'.format(
+                'package_uri': 'git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=d3m-exline'.format(
                     git_commit=d3m_utils.current_git_commit(os.path.dirname(__file__)),
                 ),
             }],
