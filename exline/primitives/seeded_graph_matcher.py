@@ -29,7 +29,7 @@ class Hyperparams(hyperparams.Hyperparams):
 class Params(params.Params):
     pass
 
-class ExlineSeededGraphMatchingPrimitive(PrimitiveBase[container.DataFrame, container.List, Params, Hyperparams]):
+class ExlineSeededGraphMatchingPrimitive(PrimitiveBase[container.List, container.List, Params, Hyperparams]):
     """
     A primitive that matches seeded graphs.
     """
