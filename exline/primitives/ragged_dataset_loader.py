@@ -21,6 +21,11 @@ class Hyperparams(hyperparams.Hyperparams):
         default='timeseries',
         semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
         description='the type of collection to load')
+    sample = hyperparams.Hyperparameter[float](
+        default=1.0,
+        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
+        description='a value ranging from 0.0 to 1.0 indicating how much of the source data to load'
+    )
 
 
 class RaggedDatasetLoaderPrimitive(transformer.TransformerPrimitiveBase[container.Dataset, container.List, Hyperparams]):
@@ -61,6 +66,7 @@ class RaggedDatasetLoaderPrimitive(transformer.TransformerPrimitiveBase[containe
 
         # get the learning data (the dataset entry point)
         learning_id, learning_df = common_utils.get_tabular_resource(inputs, None, pick_entry_point=True)
+        learning_df = learning_df.head(int(learning_df.shape[0]*self.hyperparams['sample']))
         learning_df.metadata = self._update_metadata(inputs.metadata, learning_id, learning_df)
 
         logger.debug(f'\n{learning_df}')
@@ -73,6 +79,7 @@ class RaggedDatasetLoaderPrimitive(transformer.TransformerPrimitiveBase[containe
 
         # get the learning data (the dataset entry point)
         learning_id, learning_df = common_utils.get_tabular_resource(inputs, None, pick_entry_point=True)
+        learning_df = learning_df.head(int(learning_df.shape[0]*self.hyperparams['sample']))
         learning_df.metadata = self._update_metadata(inputs.metadata, learning_id, learning_df)
 
         # find the column that is acting as the foreign key and extract the resource + column it references
@@ -84,6 +91,7 @@ class RaggedDatasetLoaderPrimitive(transformer.TransformerPrimitiveBase[containe
 
         # get the learning data (the dataset entry point)
         collection_id, collection_df = common_utils.get_tabular_resource(inputs, resource_id)
+        collection_df = collection_df.head(learning_df.shape[0])
         collection_df.metadata = self._update_metadata(inputs.metadata, collection_id, collection_df)
 
         # get the base path

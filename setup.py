@@ -16,12 +16,12 @@ setup(
         'pytorch-pretrained-bert==0.4.0',
         'sklearn_pandas==1.8.0',
         'frozendict>=1.2',
-        'd3m==2019.2.18',
+        'd3m==2019.4.4',
         'sgm @ git+https://github.com/nowfred/sgm.git@v1.0.0#egg=sgm'
 
     ],
     dependency_links=[
-        'git+https://gitlab.com/datadrivendiscovery/common-primitives.git@v0.3.0#egg=common_primitives',
+        'git+https://gitlab.com/datadrivendiscovery/common-primitives.git#egg=common_primitives',
     ],
     entry_points={
         'd3m.primitives': [
@@ -41,7 +41,9 @@ setup(
             'data_transformation.column_parser.ExlineSimpleColumnParser = exline.primitives.simple_column_parser:SimpleColumnParserPrimitive',
             'data_transformation.missing_indicator.ExlineMissingIndicator = exline.primitives.missing_indicator:MissingIndicatorPrimitive',
             'data_transformation.data_cleaning.ExlineZeroColumnRemover = exline.primitives.zero_column_remover:ZeroColumnRemoverPrimitive',
-            'data_transformation.data_cleaning.ExlineRaggedDatasetLoader = exline.primitives.ragged_dataset_loader:RaggedDatasetLoaderPrimitive'
+            'data_transformation.data_cleaning.ExlineRaggedDatasetLoader = exline.primitives.ragged_dataset_loader:RaggedDatasetLoaderPrimitive',
+            'data_transformation.data_cleaning.ExlineTimeSeriesReshaper = exline.primitives.timeseries_reshaper:TimeSeriesReshaperPrimitive',
+            'learner.random_forest.ExlineTimeSeriesNeighboursPrimitive = exline.primitives.timeseries_neighbours:TimeSeriesNeighboursPrimitive'
         ],
     }
 )

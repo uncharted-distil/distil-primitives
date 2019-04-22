@@ -66,7 +66,7 @@ def _vote(p, tiebreaker):
 
 def tiebreaking_vote(preds, y_train):
     # Vote, breaking ties according to class prevalance
-    labels = pd.unique(y_train.values.squeeze())
+    labels = pd.unique(y_train.squeeze())
     return tiebreaking_vote_pre(preds, labels)
 
 def tiebreaking_vote_pre(preds, labels):
