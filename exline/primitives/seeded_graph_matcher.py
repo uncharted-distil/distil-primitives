@@ -29,7 +29,7 @@ class Hyperparams(hyperparams.Hyperparams):
 class Params(params.Params):
     pass
 
-class ExlineSeededGraphMatchingPrimitive(PrimitiveBase[container.DataFrame, container.List, Params, Hyperparams]):
+class ExlineSeededGraphMatchingPrimitive(PrimitiveBase[container.List, container.List, Params, Hyperparams]):
     """
     A primitive that matches seeded graphs.
     """
@@ -80,7 +80,7 @@ class ExlineSeededGraphMatchingPrimitive(PrimitiveBase[container.DataFrame, cont
         PrimitiveBase.__setstate__(self, state)
         self._model = state['models']
 
-    def set_training_data(self, *, inputs: container.List, outputs: container.DataFrame) -> None:
+    def set_training_data(self, *, inputs: container.List, outputs: container.List) -> None:
         self._inputs = inputs
         self._outputs = outputs
 

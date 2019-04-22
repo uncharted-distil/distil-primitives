@@ -16,12 +16,11 @@ setup(
         'pytorch-pretrained-bert==0.4.0',
         'sklearn_pandas==1.8.0',
         'frozendict>=1.2',
+        'cython==0.29.3',
+        'sgm @ git+https://github.com/nowfred/sgm.git#egg=sgm',
+        'common_primitives @ git+https://gitlab.com/datadrivendiscovery/common-primitives.git#egg=common_primitives',
         'd3m==2019.4.4',
-        'sgm @ git+https://github.com/nowfred/sgm.git@v1.0.0#egg=sgm'
 
-    ],
-    dependency_links=[
-        'git+https://gitlab.com/datadrivendiscovery/common-primitives.git#egg=common_primitives',
     ],
     entry_points={
         'd3m.primitives': [
