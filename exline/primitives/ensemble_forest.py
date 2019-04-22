@@ -120,14 +120,14 @@ class EnsembleForestPrimitive(PrimitiveBase[container.DataFrame, container.DataF
                 sampled_outputs = self._outputs.loc[self._outputs.index.intersection(sampled_inputs.index), ]
                 self._model.fit(sampled_inputs, sampled_outputs)
         else:
-            self._model.fit(self._inputs, self._outputs)
+            self._model.fit(self._inputs.values, self._outputs.values)
         return CallResult(None)
 
     def produce(self, *, inputs: container.DataFrame, timeout: float = None, iterations: int = None) -> CallResult[container.DataFrame]:
         logger.debug(f'Producing {__name__}')
 
         # create dataframe to hold d3mIndex and result
-        result = self._model.predict(inputs)
+        result = self._model.predict(inputs.values)
         result_df = container.DataFrame({inputs.index.name: inputs.index, self._outputs.columns[0]: result}, generate_metadata=True)
 
         # mark the semantic types on the dataframe
