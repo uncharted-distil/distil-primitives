@@ -20,9 +20,14 @@ logger = logging.getLogger(__name__)
 class Hyperparams(hyperparams.Hyperparams):
     metric = hyperparams.Hyperparameter[str](
         default='',
-        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter']
+        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
+        description='scoring metric to use'
     )
-
+    sample = hyperparams.Hyperparameter[float](
+        default=1.0,
+        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
+        description='pct of data to use - for debugging purposes only, takes first n rows'
+    )
 
 class Params(params.Params):
     pass
@@ -69,17 +74,19 @@ class BertClassificationPrimitive(PrimitiveBase[container.DataFrame, container.D
     def __getstate__(self) -> dict:
         state = base.PrimitiveBase.__getstate__(self)
         state['model'] = self._model
-        state['columns'] = self._cols
         return state
 
     def __setstate__(self, state: dict) -> None:
         base.PrimitiveBase.__setstate__(self, state)
         self._model = state['model']
-        self._cols = state['columns']
 
     def set_training_data(self, *, inputs: container.DataFrame, outputs: container.DataFrame) -> None:
-        self._inputs = inputs
-        self._outputs = outputs
+        rows = int(inputs.shape[0]*self.hyperparams['sample'])
+        if self.hyperparams['sample'] < 1.0:
+            logger.debug(f'sampling the first {rows} rows of the data')
+
+        self._inputs = inputs.head(rows)
+        self._outputs = outputs.head(rows)
 
     def fit(self, *, timeout: float = None, iterations: int = None) -> base.CallResult[None]:
         logger.debug(f'Fitting {__name__}')
@@ -89,8 +96,13 @@ class BertClassificationPrimitive(PrimitiveBase[container.DataFrame, container.D
     def produce(self, *, inputs: container.DataFrame, timeout: float = None, iterations: int = None) -> base.CallResult[container.DataFrame]:
         logger.debug(f'Producing {__name__}')
 
+        rows = int(inputs.shape[0]*self.hyperparams['sample'])
+        inputs = inputs.head(rows)
+
         # create dataframe to hold d3mIndex and result
         result = self._model.predict(inputs)
+        result =np.array([self._model.label_list[r] for r in result]) # decode labels
+
         result_df = container.DataFrame({inputs.index.name: inputs.index, self._outputs.columns[0]: result}, generate_metadata=True)
 
         # mark the semantic types on the dataframe
@@ -98,6 +110,7 @@ class BertClassificationPrimitive(PrimitiveBase[container.DataFrame, container.D
         result_df.metadata = result_df.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, 1), 'https://metadata.datadrivendiscovery.org/types/PredictedTarget')
 
         logger.debug(f'\n{result_df}')
+
         return base.CallResult(result_df)
 
     def get_params(self) -> Params:
