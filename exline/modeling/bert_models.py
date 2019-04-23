@@ -21,6 +21,9 @@ from pytorch_pretrained_bert.optimization import BertAdam
 from .base import EXLineBaseModel
 from .metrics import metrics, classification_metrics
 
+import logging
+logger = logging.getLogger(__name__)
+
 # --
 # Helpers
 
@@ -134,7 +137,13 @@ class BERTPairClassification(EXLineBaseModel):
 
         self.bert_model        = 'bert-base-uncased'
         self.do_lower_case     = True
-        self.device            = torch.device("cuda")
+
+        if torch.cuda.is_available():
+            logger.info("Detect CUDA support")
+            self.device = torch.device("cuda")
+        else:
+            logger.info("CUDA does not appear to be supported - using CPU.")
+            self.device = torch.device("cpu")
 
         self.tokenizer = BertTokenizer.from_pretrained(self.bert_model, do_lower_case=self.do_lower_case)
 
@@ -156,6 +165,8 @@ class BERTPairClassification(EXLineBaseModel):
 
     def fit(self, X_train, y_train, U_train=None):
 
+        # CDB: This can't be hardcoded.  System needs to infer on its own, or the user needs to mark the columns
+        # for pairwise matching.
         assert 'question' in X_train.columns
         assert 'sentence' in X_train.columns
 
