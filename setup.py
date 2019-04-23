@@ -42,7 +42,10 @@ setup(
             'data_transformation.data_cleaning.ExlineZeroColumnRemover = exline.primitives.zero_column_remover:ZeroColumnRemoverPrimitive',
             'data_transformation.data_cleaning.ExlineRaggedDatasetLoader = exline.primitives.ragged_dataset_loader:RaggedDatasetLoaderPrimitive',
             'data_transformation.data_cleaning.ExlineTimeSeriesReshaper = exline.primitives.timeseries_reshaper:TimeSeriesReshaperPrimitive',
-            'learner.random_forest.ExlineTimeSeriesNeighboursPrimitive = exline.primitives.timeseries_neighbours:TimeSeriesNeighboursPrimitive'
+            'learner.random_forest.ExlineTimeSeriesNeighboursPrimitive = exline.primitives.timeseries_neighbours:TimeSeriesNeighboursPrimitive',
+            'data_transformation.encoder.ExlineTextClassifier = exline.primitives.text_classifier:TextClassifierPrimitive',
+            'data_transformation.encoder.ExlineImageTransfer = exline.primitives.image_transfer:ImageTransferPrimitive',
+            'data_transformation.encoder.ExlineAudioTransfer = exline.primitives.audio_transfer:AudioTransferPrimitive',
         ],
     }
 )
