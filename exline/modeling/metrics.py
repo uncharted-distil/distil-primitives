@@ -72,6 +72,7 @@ def translate_proto_metric(proto_metric):
     lookup = {
         'F1_MACRO': 'f1Macro',
         'F1_MICRO': 'f1Micro',
+        'F1': 'f1',
         'ACCURACY': 'accuracy',
         'MEAN_SQUARED_ERROR': 'meanSquaredError',
         'ROOT_MEAN_SQUARED_ERROR': 'rootMeanSquaredError',
