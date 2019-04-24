@@ -110,9 +110,14 @@ class TextClassifierPrimitive(base.PrimitiveBase[container.DataFrame, container.
         self._grid = state['grid']
 
     def set_training_data(self, *, inputs: container.DataFrame, outputs: container.DataFrame) -> None:
-        inputs = np.array([text[0] for text in inputs['filename']]) # text reader has an odd format
+        """ TODO: `TextReaderPrimivite` has a weird output format from `read_file_uri`
+        to remain consistent with common primitives base `FileReaderPrimitive` """
+
         self._inputs = inputs
         self._outputs = outputs
+
+    def _format_text(self, inputs):
+        return np.array([text[0] for text in inputs['filename']])  # text reader has an odd format
 
     def fit(self, *, timeout: float = None, iterations: int = None) -> CallResult[None]:
         logger.debug(f'Fitting {__name__}')
@@ -121,9 +126,9 @@ class TextClassifierPrimitive(base.PrimitiveBase[container.DataFrame, container.
             if rows > self._FAST_FIT_ROWS:
                 sampled_inputs = self._inputs.sample(n=self._FAST_FIT_ROWS, random_state=1)
                 sampled_outputs = self._outputs.loc[self._outputs.index.intersection(sampled_inputs.index), ]
-                self._model.fit(sampled_inputs, sampled_outputs)
+                self._model.fit(self._format_text(sampled_inputs), sampled_outputs)
         else:
-            self._model.fit(self._inputs, self._outputs)
+            self._model.fit(self._format_text(self._inputs), self._outputs)
 
         return CallResult(None)
 
@@ -131,8 +136,8 @@ class TextClassifierPrimitive(base.PrimitiveBase[container.DataFrame, container.
         logger.debug(f'Producing {__name__}')
 
         # create dataframe to hold d3mIndex and result
-        _inputs = np.array([text[0] for text in inputs['filename']])  # text reader has an odd format
-        result = self._model.predict(_inputs)
+
+        result = self._model.predict(self._format_text(inputs))
         result_df = container.DataFrame({inputs.index.name: inputs.index, self._outputs.columns[0]: result}, generate_metadata=True)
 
         # mark the semantic types on the dataframe
