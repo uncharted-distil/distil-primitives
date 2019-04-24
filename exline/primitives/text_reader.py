@@ -9,6 +9,7 @@ from d3m.metadata import base as metadata_base
 import common_primitives
 from common_primitives import base
 
+from d3m import container
 
 class TextReaderPrimitive(base.FileReaderPrimitiveBase):
     """
@@ -27,29 +28,31 @@ class TextReaderPrimitive(base.FileReaderPrimitiveBase):
 
     metadata = metadata_base.PrimitiveMetadata(
         {
-            'id': '1b21fcca-8b35-457d-a65d-36294c6f80a2',
+            'id': '0b21fcca-8b35-457d-a65d-36294c6f80a2',
             'version': '0.1.0',
             'name': 'Columns text reader',
-            'python_path': 'd3m.primitives.data_transformation.encoder.TextReader',
+            'python_path': 'd3m.primitives.data_preprocessing.text_reader.DataFrameCommon',
+            'keywords': ['text', 'reader', 'plain'],
             'source': {
-                'name': 'exline',
-                'contact': 'mailto:cbethune@uncharted.software',
+                'name': common_primitives.__author__,
+                'contact': 'mailto:mitar.commonprimitives@tnode.com',
                 'uris': [
-                    'https://github.com/uncharted-distil/distil-primitives/exline/primitives/text_reader.py',
-                    'https://github.com/uncharted-distil/distil-primitives',
+                    'https://gitlab.com/datadrivendiscovery/common-primitives/blob/master/common_primitives/text_reader.py',
+                    'https://gitlab.com/datadrivendiscovery/common-primitives.git',
                 ],
             },
             'installation': [{
                 'type': metadata_base.PrimitiveInstallationType.PIP,
-                'package_uri': 'git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=d3m-exline'.format(
+                'package_uri': 'git+https://gitlab.com/datadrivendiscovery/common-primitives.git@{git_commit}#egg=common_primitives'.format(
                     git_commit=d3m_utils.current_git_commit(os.path.dirname(__file__)),
                 ),
             }],
             'algorithm_types': [
-                metadata_base.PrimitiveAlgorithmType.ARRAY_SLICING,
+                metadata_base.PrimitiveAlgorithmType.FILE_MANIPULATION,
             ],
-            'primitive_family': metadata_base.PrimitiveFamily.DATA_TRANSFORMATION,
-        },
+            'supported_media_types': _supported_media_types,
+            'primitive_family': metadata_base.PrimitiveFamily.DATA_PREPROCESSING,
+        }
     )
 
     # TODO: Because we can read only local files, we could change "can_accept" to inspect "location_base_uris" to assure it is a local URI.
@@ -65,5 +68,19 @@ class TextReaderPrimitive(base.FileReaderPrimitiveBase):
         if not parsed_uri.path.startswith('/'):
             raise exceptions.InvalidArgumentValueError("Not an absolute path for a local file: {fileuri}".format(fileuri=fileuri))
 
-        with open(parsed_uri.path, 'r') as file:
-            return file.read()
+        with open(parsed_uri.path, 'r', encoding='utf8') as file:
+            text = file.read()
+
+        text = container.List([text], {
+            'schema': metadata_base.CONTAINER_SCHEMA_VERSION,
+            'structural_type': container.List,
+        }, generate_metadata=False)
+
+        text.metadata = text.metadata.update((), {
+            'dimension': {
+                'None': None,
+            },
+        })
+
+        return text
+
