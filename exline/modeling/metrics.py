@@ -61,9 +61,11 @@ def translate_d3m_metric(metric):
         'f1'                   : 'f1',
         'accuracy'             : 'accuracy',
 
-        'meanSquaredError'        : 'neg_mean_squared_error',
-        'rootMeanSquaredError'    : 'neg_mean_squared_error', # wrong values, but right ranking
-        'rootMeanSquaredErrorAvg' : 'neg_mean_squared_error', # wrong values, but right ranking
+        'rSquared'                : 'r_squared',
+        'meanSquaredError'        : 'mean_squared_error',
+        'rootMeanSquaredError'    : 'root_mean_squared_error',
+        'rootMeanSquaredErrorAvg' : 'root_mean_squared_error_avg',
+        'meanAbsoluteError'       : 'mean_absolute_error'
     }
     assert metric in lookup, '%s not in lookup' % metric
     return lookup[metric]
@@ -77,7 +79,8 @@ def translate_proto_metric(proto_metric):
         'MEAN_SQUARED_ERROR': 'meanSquaredError',
         'ROOT_MEAN_SQUARED_ERROR': 'rootMeanSquaredError',
         'ROOT_MEAN_SQUARED_ERROR_AVG': 'rootMeanSquaredErrorAvg',
-        'R_SQUARED': 'meanSquaredError' # mapped for now
+        'R_SQUARED': 'rSquared', # mapped for now,
+        'MEAN_ABSOLUTE_ERROR': 'meanAbsoluteError'
     }
     assert proto_metric in lookup, '%s not in lookup' % proto_metric
     return lookup[proto_metric]
