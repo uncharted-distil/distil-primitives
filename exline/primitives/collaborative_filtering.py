@@ -33,7 +33,6 @@ class Params(params.Params):
 
 
 class CollaborativeFilteringPrimitive(PrimitiveBase[container.DataFrame, container.DataFrame, Params, Hyperparams]):
-    _ROWS = 5000
     """
     A primitive that filters collaboratives.
     """
@@ -85,8 +84,8 @@ class CollaborativeFilteringPrimitive(PrimitiveBase[container.DataFrame, contain
 
 
     def set_training_data(self, *, inputs: container.DataFrame, outputs: container.DataFrame) -> None:
-        self._inputs = inputs.head(self._ROWS)
-        self._outputs = outputs.head(self._ROWS)
+        self._inputs = inputs
+        self._outputs = outputs
         self._encoders: Mapping[str, preprocessing.LabelEncoder] = defaultdict(preprocessing.LabelEncoder)
 
 
@@ -112,8 +111,6 @@ class CollaborativeFilteringPrimitive(PrimitiveBase[container.DataFrame, contain
 
     def produce(self, *, inputs: container.DataFrame, timeout: float = None, iterations: int = None) -> base.CallResult[container.DataFrame]:
         logger.debug(f'Producing {__name__}')
-
-        inputs = inputs.head(self._ROWS)
 
         # create dataframe to hold d3mIndex and result
         inputs = inputs.apply(lambda x: self._encoders[x.name].transform(x))
