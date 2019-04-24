@@ -110,6 +110,7 @@ class TextClassifierPrimitive(base.PrimitiveBase[container.DataFrame, container.
         self._grid = state['grid']
 
     def set_training_data(self, *, inputs: container.DataFrame, outputs: container.DataFrame) -> None:
+        inputs = np.array([text[0] for text in inputs['filename']]) # text reader has an odd format
         self._inputs = inputs
         self._outputs = outputs
 
@@ -130,7 +131,8 @@ class TextClassifierPrimitive(base.PrimitiveBase[container.DataFrame, container.
         logger.debug(f'Producing {__name__}')
 
         # create dataframe to hold d3mIndex and result
-        result = self._model.predict(inputs)
+        _inputs = np.array([text[0] for text in inputs['filename']])  # text reader has an odd format
+        result = self._model.predict(_inputs)
         result_df = container.DataFrame({inputs.index.name: inputs.index, self._outputs.columns[0]: result}, generate_metadata=True)
 
         # mark the semantic types on the dataframe

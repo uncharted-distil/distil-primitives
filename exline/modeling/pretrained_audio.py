@@ -32,13 +32,11 @@ from ..utils import parmap
 
 # --
 # Helpers
-import logging
 
-logging.basicConfig()
 
 def audioarray2mel(w):
     #TODO: query metadata
-    logging.warning(w.shape)
+
     sample_rate = w.metadata.to_json_structure()[0]['metadata']['dimension']['sample_rate']
     assert np.array(w.data).dtype == np.float32
     return vggish_input.waveform_to_examples(np.array(w.data) / 32768.0, sample_rate)

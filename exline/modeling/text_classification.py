@@ -40,7 +40,7 @@ class TextClassifierCV(EXLineBaseModel):
         self.n_runs  = 1
     
     def fit(self, X_train, y_train, U_train=None):
-        X_train = np.array([text[0] for text in X_train['filename']]) # TODO: move this up
+        #X_train = np.array([text[0] for text in X_train['filename']]) # TODO: move this up
 
         self.model = RandomizedSearchCV(
             Pipeline([
@@ -64,7 +64,7 @@ class TextClassifierCV(EXLineBaseModel):
         return self
     
     def predict(self, X):
-        X = np.array([text[0] for text in X['filename']])
+        #X = np.array([text[0] for text in X['filename']])
         return self.model.predict(X)
     
     @property

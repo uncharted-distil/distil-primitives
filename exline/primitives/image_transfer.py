@@ -13,7 +13,6 @@ from PIL import Image
 
 from exline.modeling.metrics import classification_metrics, regression_metrics
 
-
 from exline.utils import Img2Vec
 
 __all__ = ('ImageTransferPrimitive',)
