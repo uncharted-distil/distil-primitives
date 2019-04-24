@@ -28,31 +28,29 @@ class TextReaderPrimitive(base.FileReaderPrimitiveBase):
 
     metadata = metadata_base.PrimitiveMetadata(
         {
-            'id': '0b21fcca-8b35-457d-a65d-36294c6f80a2',
+            'id': '1b21fcca-8b35-457d-a65d-36294c6f80a2',
             'version': '0.1.0',
             'name': 'Columns text reader',
-            'python_path': 'd3m.primitives.data_preprocessing.text_reader.DataFrameCommon',
-            'keywords': ['text', 'reader', 'plain'],
+            'python_path': 'd3m.primitives.data_transformation.encoder.ExlineTextReader',
             'source': {
-                'name': common_primitives.__author__,
-                'contact': 'mailto:mitar.commonprimitives@tnode.com',
+                'name': 'exline',
+                'contact': 'mailto:cbethune@uncharted.software',
                 'uris': [
-                    'https://gitlab.com/datadrivendiscovery/common-primitives/blob/master/common_primitives/text_reader.py',
-                    'https://gitlab.com/datadrivendiscovery/common-primitives.git',
+                    'https://github.com/uncharted-distil/distil-primitives/exline/primitives/text_reader.py',
+                    'https://github.com/uncharted-distil/distil-primitives',
                 ],
             },
             'installation': [{
                 'type': metadata_base.PrimitiveInstallationType.PIP,
-                'package_uri': 'git+https://gitlab.com/datadrivendiscovery/common-primitives.git@{git_commit}#egg=common_primitives'.format(
+                'package_uri': 'git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=d3m-exline'.format(
                     git_commit=d3m_utils.current_git_commit(os.path.dirname(__file__)),
                 ),
             }],
             'algorithm_types': [
-                metadata_base.PrimitiveAlgorithmType.FILE_MANIPULATION,
+                metadata_base.PrimitiveAlgorithmType.ARRAY_SLICING,
             ],
-            'supported_media_types': _supported_media_types,
-            'primitive_family': metadata_base.PrimitiveFamily.DATA_PREPROCESSING,
-        }
+            'primitive_family': metadata_base.PrimitiveFamily.DATA_TRANSFORMATION,
+        },
     )
 
     # TODO: Because we can read only local files, we could change "can_accept" to inspect "location_base_uris" to assure it is a local URI.
