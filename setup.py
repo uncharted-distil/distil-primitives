@@ -46,6 +46,8 @@ setup(
             'data_transformation.encoder.ExlineTextClassifier = exline.primitives.text_classifier:TextClassifierPrimitive',
             'data_transformation.encoder.ExlineImageTransfer = exline.primitives.image_transfer:ImageTransferPrimitive',
             'data_transformation.encoder.ExlineAudioTransfer = exline.primitives.audio_transfer:AudioTransferPrimitive',
+            'data_transformation.encoder.TextReader = exline.primitives.text_reader:TextReaderPrimitive',
+
         ],
     }
 )
