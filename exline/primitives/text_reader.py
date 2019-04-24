@@ -28,7 +28,7 @@ class TextReaderPrimitive(base.FileReaderPrimitiveBase):
 
     metadata = metadata_base.PrimitiveMetadata(
         {
-            'id': '1b21fcca-8b35-457d-a65d-36294c6f80a2',
+            'id': '8837cc45-457e-4e9d-84c9-09050f6c2070',
             'version': '0.1.0',
             'name': 'Columns text reader',
             'python_path': 'd3m.primitives.data_transformation.encoder.ExlineTextReader',

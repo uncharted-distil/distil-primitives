@@ -34,7 +34,7 @@ class TextEncoderPrimitive(base.PrimitiveBase[container.DataFrame, container.Dat
 
     metadata = metadata_base.PrimitiveMetadata(
         {
-            'id': '8837cc45-457e-4e9d-84c9-09050f6c2070',
+            'id': '09f252eb-215d-4e0b-9a60-fcd967f5e708',
             'version': '0.1.0',
             'name': "Text encoder",
             'python_path': 'd3m.primitives.data_transformation.encoder.ExlineTextEncoder',
