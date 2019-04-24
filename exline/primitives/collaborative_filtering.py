@@ -1,6 +1,7 @@
 import os
 import logging
-from typing import List, Tuple
+from typing import List, Tuple, Mapping
+from collections import defaultdict
 
 from d3m import container, utils as d3m_utils
 from d3m.metadata import base as metadata_base, hyperparams, params
@@ -9,13 +10,16 @@ from d3m.primitive_interfaces.supervised_learning import PrimitiveBase
 
 import pandas as pd
 import numpy as np
+from sklearn import preprocessing
+import torch
 
 from exline.modeling.collaborative_filtering import SGDCollaborativeFilter
 
 
-_all__ = ('CollaborativeFiltering',)
+_all__ = ('CollaborativeFilteringPrimtive',)
 
 logger = logging.getLogger(__name__)
+
 
 class Hyperparams(hyperparams.Hyperparams):
     metric = hyperparams.Hyperparameter[str](
@@ -29,10 +33,10 @@ class Params(params.Params):
 
 
 class CollaborativeFilteringPrimitive(PrimitiveBase[container.DataFrame, container.DataFrame, Params, Hyperparams]):
+    _ROWS = 5000
     """
     A primitive that filters collaboratives.
     """
-
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': 'a242314d-7955-483f-aed6-c74cd2b880df',
@@ -70,27 +74,38 @@ class CollaborativeFilteringPrimitive(PrimitiveBase[container.DataFrame, contain
     def __getstate__(self) -> dict:
         state = base.PrimitiveBase.__getstate__(self)
         state['model'] = self._model
-        state['columns'] = self._cols
+        state['encoders'] = self._encoders
         return state
 
 
     def __setstate__(self, state: dict) -> None:
         base.PrimitiveBase.__setstate__(self, state)
         self._model = state['model']
-        self._cols = state['columns']
+        self._encoders = state['encoders']
 
 
     def set_training_data(self, *, inputs: container.DataFrame, outputs: container.DataFrame) -> None:
-        self._inputs = inputs
-        self._outputs = outputs
+        self._inputs = inputs.head(self._ROWS)
+        self._outputs = outputs.head(self._ROWS)
+        self._encoders: Mapping[str, preprocessing.LabelEncoder] = defaultdict(preprocessing.LabelEncoder)
 
 
     def fit(self, *, timeout: float = None, iterations: int = None) -> base.CallResult[None]:
         logger.debug(f'Fitting {__name__}')
 
-        n_users, n_items, graph = self._remap_graphs(self._inputs)
-        self._model = SGDCollaborativeFilter(n_users, n_items, self.hyperparams['metric'])
-        self._model.fit(self._inputs, self._outputs)
+        if torch.cuda.is_available():
+            logger.info("Detect CUDA support")
+            device = "cuda"
+        else:
+            logger.info("CUDA does not appear to be supported - using CPU.")
+            device = "cpu"
+
+        # need int encoded inputs for the underlying model
+        encoded_inputs = self._inputs.apply(lambda x: self._encoders[x.name].fit_transform(x))
+
+        graph, n_users, n_items = self._remap_graphs(self._inputs)
+        self._model = SGDCollaborativeFilter(n_users, n_items, self.hyperparams['metric'], device=device)
+        self._model.fit(encoded_inputs, self._outputs.values)
 
         return base.CallResult(None)
 
@@ -98,7 +113,10 @@ class CollaborativeFilteringPrimitive(PrimitiveBase[container.DataFrame, contain
     def produce(self, *, inputs: container.DataFrame, timeout: float = None, iterations: int = None) -> base.CallResult[container.DataFrame]:
         logger.debug(f'Producing {__name__}')
 
+        inputs = inputs.head(self._ROWS)
+
         # create dataframe to hold d3mIndex and result
+        inputs = inputs.apply(lambda x: self._encoders[x.name].transform(x))
         result = self._model.predict(inputs)
         result_df = container.DataFrame({inputs.index.name: inputs.index, self._outputs.columns[0]: result}, generate_metadata=True)
 
