@@ -24,6 +24,7 @@ metrics = {
     'meanAbsoluteError'           : lambda act, pred: -1.0 * sklearn_metrics.mean_absolute_error(act, pred),
     'rootMeanSquaredError'        : lambda act, pred: -1.0 * np.sqrt(sklearn_metrics.mean_squared_error(act, pred)),
     'rootMeanSquaredErrorAvg'     : lambda act, pred: -1.0 * np.sqrt(sklearn_metrics.mean_squared_error(act, pred)),
+    'rSquared'                    : lambda act, pred: -1.0 * sklearn_metrics.r2_score(act, pred),
 
     # clustering
     'normalizedMutualInformation' : sklearn_metrics.normalized_mutual_info_score,
@@ -44,6 +45,7 @@ regression_metrics = set([
     'meanAbsoluteError',
     'rootMeanSquaredError',
     'rootMeanSquaredErrorAvg',
+    'rSquared',
 ])
 
 clustering_metrics = set([
