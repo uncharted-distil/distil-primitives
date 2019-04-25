@@ -36,7 +36,7 @@ classification_metrics = set([
     'f1Macro',
     'f1Micro',
     'f1',
-    'accuracy',
+    'accuracy'
 ])
 
 regression_metrics = set([
@@ -52,20 +52,19 @@ clustering_metrics = set([
 
 
 def translate_d3m_metric(metric):
-    if metric in ['rootMeanSquaredError', 'rootMeanSquaredErrorAvg']:
-        print('translate_d3m_metric: metric=%s -> right ranking, but wrong values' % translate_d3m_metric, file=sys.stderr)
-
     lookup = {
-        'f1Macro'              : 'f1_macro',
-        'f1Micro'              : 'f1_micro',
-        'f1'                   : 'f1',
-        'accuracy'             : 'accuracy',
+        'f1Macro'                     : 'f1_macro',
+        'f1Micro'                     : 'f1_micro',
+        'f1'                          : 'f1',
+        'accuracy'                    : 'accuracy',
 
         'rSquared'                : 'r_squared',
         'meanSquaredError'        : 'mean_squared_error',
         'rootMeanSquaredError'    : 'root_mean_squared_error',
         'rootMeanSquaredErrorAvg' : 'root_mean_squared_error_avg',
-        'meanAbsoluteError'       : 'mean_absolute_error'
+        'meanAbsoluteError'       : 'mean_absolute_error',
+
+        'normalizedMutualInformation' : 'normalized_mutual_information',
     }
     assert metric in lookup, '%s not in lookup' % metric
     return lookup[metric]
@@ -80,7 +79,8 @@ def translate_proto_metric(proto_metric):
         'ROOT_MEAN_SQUARED_ERROR': 'rootMeanSquaredError',
         'ROOT_MEAN_SQUARED_ERROR_AVG': 'rootMeanSquaredErrorAvg',
         'R_SQUARED': 'rSquared', # mapped for now,
-        'MEAN_ABSOLUTE_ERROR': 'meanAbsoluteError'
+        'MEAN_ABSOLUTE_ERROR': 'meanAbsoluteError',
+        'NORMALIZED_MUTUAL_INFORMATION': 'normalizedMutualInformation',
     }
     assert proto_metric in lookup, '%s not in lookup' % proto_metric
     return lookup[proto_metric]

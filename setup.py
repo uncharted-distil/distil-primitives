@@ -42,7 +42,8 @@ setup(
             'data_transformation.data_cleaning.ExlineZeroColumnRemover = exline.primitives.zero_column_remover:ZeroColumnRemoverPrimitive',
             'data_transformation.data_cleaning.ExlineRaggedDatasetLoader = exline.primitives.ragged_dataset_loader:RaggedDatasetLoaderPrimitive',
             'data_transformation.data_cleaning.ExlineTimeSeriesReshaper = exline.primitives.timeseries_reshaper:TimeSeriesReshaperPrimitive',
-            'learner.random_forest.ExlineTimeSeriesNeighboursPrimitive = exline.primitives.timeseries_neighbours:TimeSeriesNeighboursPrimitive'
+            'learner.random_forest.ExlineTimeSeriesNeighboursPrimitive = exline.primitives.timeseries_neighbours:TimeSeriesNeighboursPrimitive',
+            'clustering.k_means.ExlineKMeans = exline.primitives.k_means:KMeansPrimitive'
         ],
     }
 )
