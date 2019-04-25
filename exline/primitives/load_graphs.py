@@ -1,10 +1,17 @@
 import os
 import typing
 
+from typing import List, Sequence
+
+
 from d3m import container, utils as d3m_utils
 from d3m.base import utils as base_utils
 from d3m.metadata import base as metadata_base, hyperparams
 from d3m.primitive_interfaces import base, transformer
+
+from common_primitives import utils as common_utils
+
+import pandas as pd
 
 import common_primitives
 
@@ -74,51 +81,86 @@ class ExlineGraphLoaderPrimitive(transformer.TransformerPrimitiveBase[Inputs, Ou
 
         assert isinstance(dataframe, container.DataFrame), type(dataframe)
 
-        G1, G2, G1_lookup, G2_lookup, X_train, y_train, n_nodes, index = self._prep([dataframe, graph1, graph2])
+        U_train = {'graphs': {'0': graph1, '1': graph2}}
+        y_train = self.produce_target(inputs=inputs).value
+        X_train = dataframe
 
-        return base.CallResult([G1, G2, G1_lookup, G2_lookup, X_train, y_train, n_nodes, index])
+        X_train = self._typify_dataframe(X_train)
 
-    def _pad_graphs(self, G1, G2):
-        n_nodes = max(G1.order(), G2.order())  
-        for i in range(n_nodes - G1.order()):
-            G1.add_node('__new_node__salt123_%d' % i)      
-        for i in range(n_nodes - G2.order()):
-            G2.add_node('__new_node__salt456_%d' % i)     
-        assert G1.order() == G2.order()
-        return G1, G2, n_nodes
+        return base.CallResult([X_train, y_train, U_train])
 
-    def _prep(self, inputs):
-        df = inputs[0]
+    def _typify_dataframe(self, df):
+        outputs = df.copy()
 
-        G1 = inputs[1]
-        G2 = inputs[2]
-        assert isinstance(list(G1.nodes)[0], str)
-        assert isinstance(list(G2.nodes)[0], str)
-        
-        y_train = df['match']
-        index = df['d3mIndex']
-        df.drop(['d3mIndex', 'match'], axis=1, inplace=True)
-        assert df.shape[1] == 2
+        num_cols = outputs.metadata.query((metadata_base.ALL_ELEMENTS,))['dimension']['length']
+        remove_indices = []
+        target_idx = -1
+        suggested_target_idx = -1
+        for i in range(num_cols):
+            semantic_types = outputs.metadata.query((metadata_base.ALL_ELEMENTS,i))['semantic_types']
+            # mark target + index for removal
+            if 'https://metadata.datadrivendiscovery.org/types/Target' in semantic_types or \
+                'https://metadata.datadrivendiscovery.org/types/TrueTarget' in semantic_types or \
+                'https://metadata.datadrivendiscovery.org/types/PrimaryKey' in semantic_types:
+                target_idx = i
+                remove_indices.append(i)
+            elif 'https://metadata.datadrivendiscovery.org/types/Target' in semantic_types:
+                suggested_target_idx = i
 
-        df.columns = ('orig_id1', 'orig_id2')
-        df.orig_id1 = df.orig_id1.astype(str)
-        df.orig_id2 = df.orig_id2.astype(str)
+            # update the structural / df type from the semantic type
+            outputs = self._update_type_info(semantic_types, outputs, i)
 
-        G1, G2, n_nodes = self._pad_graphs(G1, G2)
+        # fallback on suggested target if no true target / target marked
+        if target_idx == -1:
+            target_idx = suggested_target_idx
+            remove_indices.append(target_idx)
 
-        G1_nodes = sorted(dict(G1.degree()).items(), key=lambda x: -x[1])
-        G1_nodes = list(zip(*G1_nodes))[0]
-        G1_lookup = dict(zip(G1.nodes, range(len(G1.nodes))))
-        df['num_id1'] = df['orig_id1'].apply(lambda x: G1_lookup[x])
+        # flip the d3mIndex to be the df index as well
+        outputs = outputs.set_index('d3mIndex', drop=False)
 
-        G2_nodes = sorted(dict(G1.degree()).items(), key=lambda x: -x[1])
-        G2_nodes = list(zip(*G2_nodes))[0]
-        G2_lookup = dict(zip(G2.nodes, range(len(G2.nodes))))
-        df['num_id2'] = df['orig_id2'].apply(lambda x: G2_lookup[x])
+        # remove target and primary key
+        outputs = common_utils.remove_columns(outputs, remove_indices)
 
-        X_train = df
+        logger.debug(f'\n{outputs.dtypes}')
+        logger.debug(f'\n{outputs}')
 
-        return G1, G2, G1_lookup, G2_lookup, X_train, y_train, n_nodes, index
+        return base.CallResult(outputs)
+
+    def produce_target(self, *, inputs: Inputs, timeout: float = None, iterations: int = None) -> base.CallResult[container.DataFrame]:
+        logger.debug(f'Running {__name__} produce_target')
+
+        _, dataframe = base_utils.get_tabular_resource(inputs, self.hyperparams['dataframe_resource'])
+        outputs = dataframe.copy()
+
+        # find the target column and remove all others
+        num_cols = outputs.metadata.query((metadata_base.ALL_ELEMENTS,))['dimension']['length']
+        target_idx = -1
+        suggested_target_idx = -1
+        for i in range(num_cols):
+            semantic_types = outputs.metadata.query((metadata_base.ALL_ELEMENTS,i))['semantic_types']
+            if 'https://metadata.datadrivendiscovery.org/types/Target' in semantic_types or \
+               'https://metadata.datadrivendiscovery.org/types/TrueTarget' in semantic_types:
+                target_idx = i
+                outputs = self._update_type_info(semantic_types, outputs, i)
+            elif 'https://metadata.datadrivendiscovery.org/types/SuggestedTarget' in semantic_types:
+                suggested_target_idx = i
+            elif 'https://metadata.datadrivendiscovery.org/types/PrimaryKey' in semantic_types:
+                outputs = self._update_type_info(semantic_types, outputs, i)
+        # fall back on suggested target
+        if target_idx == -1:
+            target_idx = suggested_target_idx
+
+        # flip the d3mIndex to be the df index as well
+        outputs = outputs.set_index('d3mIndex', drop=False)
+
+        remove_indices = set(range(num_cols))
+        remove_indices.remove(target_idx)
+        outputs = common_utils.remove_columns(outputs, remove_indices)
+
+        logger.debug(f'\n{outputs.dtypes}')
+        logger.debug(f'\n{outputs}')
+
+        return base.CallResult(outputs)
 
     @classmethod
     def _update_metadata(cls, metadata: metadata_base.DataMetadata, resource_id: metadata_base.SelectorSegment) -> metadata_base.DataMetadata:
@@ -143,6 +185,21 @@ class ExlineGraphLoaderPrimitive(transformer.TransformerPrimitiveBase[Inputs, Ou
         new_metadata = new_metadata.remove_semantic_type((), 'https://metadata.datadrivendiscovery.org/types/DatasetEntryPoint')
 
         return new_metadata
+
+    @classmethod
+    def _update_type_info(self, semantic_types: Sequence[str], outputs: container.DataFrame, i: int) -> container.DataFrame:
+        # update the structural / df type from the semantic type
+        if 'http://schema.org/Integer' in semantic_types:
+            outputs.metadata = outputs.metadata.update_column(i, {'structural_type': int})
+            outputs.iloc[:,i] = pd.to_numeric(outputs.iloc[:,i])
+        elif 'http://schema.org/Float' in semantic_types:
+            outputs.metadata = outputs.metadata.update_column(i, {'structural_type': float})
+            outputs.iloc[:,i] = pd.to_numeric(outputs.iloc[:,i])
+        elif 'http://schema.org/Boolean' in semantic_types:
+            outputs.metadata = outputs.metadata.update_column(i, {'structural_type': bool})
+            outputs.iloc[:,i] = outputs.iloc[:,i].astype('bool')
+
+        return outputs
 
     @classmethod
     def can_accept(cls, *, method_name: str, arguments: typing.Dict[str, typing.Union[metadata_base.Metadata, type]],
