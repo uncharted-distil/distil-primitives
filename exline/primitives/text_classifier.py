@@ -120,7 +120,7 @@ class TextClassifierPrimitive(base.PrimitiveBase[container.DataFrame, container.
         return np.array([text[0] for text in inputs['filename']])  # text reader has an odd format
 
     def _format_output(self, outputs):
-        return outputs.dtype(int)
+        return outputs.astype(int)
 
     def fit(self, *, timeout: float = None, iterations: int = None) -> CallResult[None]:
         logger.debug(f'Fitting {__name__}')
