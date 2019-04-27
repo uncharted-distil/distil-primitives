@@ -24,6 +24,7 @@ metrics = {
     'meanAbsoluteError'           : lambda act, pred: -1.0 * sklearn_metrics.mean_absolute_error(act, pred),
     'rootMeanSquaredError'        : lambda act, pred: -1.0 * np.sqrt(sklearn_metrics.mean_squared_error(act, pred)),
     'rootMeanSquaredErrorAvg'     : lambda act, pred: -1.0 * np.sqrt(sklearn_metrics.mean_squared_error(act, pred)),
+    'rSquared'                    : lambda act, pred: -1.0 * sklearn_metrics.r2_score(act, pred),
 
     # clustering
     'normalizedMutualInformation' : sklearn_metrics.normalized_mutual_info_score,
@@ -36,7 +37,7 @@ classification_metrics = set([
     'f1Macro',
     'f1Micro',
     'f1',
-    'accuracy',
+    'accuracy'
 ])
 
 regression_metrics = set([
@@ -44,6 +45,7 @@ regression_metrics = set([
     'meanAbsoluteError',
     'rootMeanSquaredError',
     'rootMeanSquaredErrorAvg',
+    'rSquared',
 ])
 
 clustering_metrics = set([
@@ -52,18 +54,19 @@ clustering_metrics = set([
 
 
 def translate_d3m_metric(metric):
-    if metric in ['rootMeanSquaredError', 'rootMeanSquaredErrorAvg']:
-        print('translate_d3m_metric: metric=%s -> right ranking, but wrong values' % translate_d3m_metric, file=sys.stderr)
-
     lookup = {
-        'f1Macro'              : 'f1_macro',
-        'f1Micro'              : 'f1_micro',
-        'f1'                   : 'f1',
-        'accuracy'             : 'accuracy',
+        'f1Macro'                     : 'f1_macro',
+        'f1Micro'                     : 'f1_micro',
+        'f1'                          : 'f1',
+        'accuracy'                    : 'accuracy',
 
-        'meanSquaredError'        : 'neg_mean_squared_error',
-        'rootMeanSquaredError'    : 'neg_mean_squared_error', # wrong values, but right ranking
-        'rootMeanSquaredErrorAvg' : 'neg_mean_squared_error', # wrong values, but right ranking
+        'rSquared'                : 'r_squared',
+        'meanSquaredError'        : 'mean_squared_error',
+        'rootMeanSquaredError'    : 'root_mean_squared_error',
+        'rootMeanSquaredErrorAvg' : 'root_mean_squared_error_avg',
+        'meanAbsoluteError'       : 'mean_absolute_error',
+
+        'normalizedMutualInformation' : 'normalized_mutual_information',
     }
     assert metric in lookup, '%s not in lookup' % metric
     return lookup[metric]
@@ -77,7 +80,9 @@ def translate_proto_metric(proto_metric):
         'MEAN_SQUARED_ERROR': 'meanSquaredError',
         'ROOT_MEAN_SQUARED_ERROR': 'rootMeanSquaredError',
         'ROOT_MEAN_SQUARED_ERROR_AVG': 'rootMeanSquaredErrorAvg',
-        'R_SQUARED': 'meanSquaredError' # mapped for now
+        'R_SQUARED': 'rSquared', # mapped for now,
+        'MEAN_ABSOLUTE_ERROR': 'meanAbsoluteError',
+        'NORMALIZED_MUTUAL_INFORMATION': 'normalizedMutualInformation',
     }
     assert proto_metric in lookup, '%s not in lookup' % proto_metric
     return lookup[proto_metric]

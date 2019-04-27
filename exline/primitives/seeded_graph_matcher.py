@@ -15,6 +15,8 @@ from scipy import sparse
 
 from sgm.backends.classic import ScipyJVClassicSGM
 
+from exline.modeling.sgm import SGMGraphMatcher
+
 __all__ = ('SeededGraphMatcher',)
 
 logger = logging.getLogger(__name__)
@@ -29,7 +31,7 @@ class Hyperparams(hyperparams.Hyperparams):
 class Params(params.Params):
     pass
 
-class ExlineSeededGraphMatchingPrimitive(PrimitiveBase[container.List, container.List, Params, Hyperparams]):
+class ExlineSeededGraphMatchingPrimitive(PrimitiveBase[container.List, container.DataFrame, Params, Hyperparams]):
     """
     A primitive that matches seeded graphs.
     """
@@ -65,11 +67,7 @@ class ExlineSeededGraphMatchingPrimitive(PrimitiveBase[container.List, container
                  random_seed: int = 0) -> None:
 
         PrimitiveBase.__init__(self, hyperparams=hyperparams, random_seed=random_seed)
-        self._model = False
-        self.unweighted = True
-        self.verbose = False
-        self.num_iters = 20
-        self.tolerance = 1
+        self._model = SGMGraphMatcher(target_metric='accuracy')
 
     def __getstate__(self) -> dict:
         state = PrimitiveBase.__getstate__(self)
@@ -80,85 +78,28 @@ class ExlineSeededGraphMatchingPrimitive(PrimitiveBase[container.List, container
         PrimitiveBase.__setstate__(self, state)
         self._model = state['models']
 
-    def set_training_data(self, *, inputs: container.List, outputs: container.List) -> None:
+    def set_training_data(self, *, inputs: container.List, outputs: container.DataFrame) -> None:
         self._inputs = inputs
         self._outputs = outputs
-
-    def _prep(self, inputs):
-        df = inputs[0]
-
-        G1 = self._inputs[1]
-        G2 = self._inputs[2]
-        assert isinstance(list(G1.nodes)[0], str)
-        assert isinstance(list(G2.nodes)[0], str)
-        
-        df = self._inputs[0]
-        y_train = df['match']
-        df.drop(['d3mIndex', 'match'], axis=1, inplace=True)
-        assert df.shape[1] == 2
-
-        df.columns = ('orig_id1', 'orig_id2')
-        df.orig_id1 = df.orig_id1.astype(str)
-        df.orig_id2 = df.orig_id2.astype(str)
-
-        G1, G2, n_nodes = self._pad_graphs(G1, G2)
-
-        G1_nodes = sorted(dict(G1.degree()).items(), key=lambda x: -x[1])
-        G1_nodes = list(zip(*G1_nodes))[0]
-        G1_lookup = dict(zip(G1.nodes, range(len(G1.nodes))))
-        df['num_id1'] = df['orig_id1'].apply(lambda x: G1_lookup[x])
-
-        G2_nodes = sorted(dict(G1.degree()).items(), key=lambda x: -x[1])
-        G2_nodes = list(zip(*G2_nodes))[0]
-        G2_lookup = dict(zip(G2.nodes, range(len(G2.nodes))))
-        df['num_id2'] = df['orig_id2'].apply(lambda x: G2_lookup[x])
-
-        X_train = df
-
-        return G1, G2, G1_lookup, G2_lookup, X_train, y_train, n_nodes
 
     def fit(self, *, timeout: float = None, iterations: int = None) -> CallResult[None]:
         logger.debug(f'Fitting {__name__}')
 
-        G1, G2, G1_lookup, G2_lookup, X_train, y_train, n_nodes, _ = self._inputs
-
-        G1p = nx.relabel_nodes(G1, G1_lookup)
-        G2p = nx.relabel_nodes(G2, G2_lookup)
-        A = nx.adjacency_matrix(G1p, nodelist=list(G1_lookup.values()))
-        B = nx.adjacency_matrix(G2p, nodelist=list(G2_lookup.values()))
-
-        # Symmetrize (required by our SGM implementation)
-        A = ((A + A.T) > 0).astype(np.float32)
-        B = ((B + B.T) > 0).astype(np.float32)
-
-        if self.unweighted:
-            A = (A != 0)
-            B = (B != 0)
-        
-        P = X_train[['num_id1', 'num_id2']][y_train == 1].values
-        P = sparse.csr_matrix((np.ones(P.shape[0]), (P[:,0], P[:,1])), shape=(n_nodes, n_nodes))
-        
-        sgm = ScipyJVClassicSGM(A=A, B=B, P=P, verbose=self.verbose)
-        P_out = sgm.run(
-            num_iters=self.num_iters,
-            tolerance=self.tolerance
-        )
-        P_out = sparse.csr_matrix((np.ones(n_nodes), (np.arange(n_nodes), P_out)))
-
-        self._model = P_out
+        X_train, y_train, U_train = self._inputs
+        X_train = X_train.value
+        self._model.fit(X_train, y_train, U_train)
 
         return CallResult(None)
 
     def produce(self, *, inputs: container.List, timeout: float = None, iterations: int = None) -> CallResult[container.DataFrame]:
         logger.debug(f'Producing {__name__}')
 
-        _, _, _, _, X_train, _, _, index = self._inputs
-        
-        preds = self._model[(X_train.num_id1.values, X_train.num_id2.values)]
-        preds = np.asarray(preds).squeeze()
+        X_train, _, _ = self._inputs
+        X_train = X_train.value
+        result = self._model.predict(X_train)
 
         # create dataframe to hold d3mIndex and result
-        result_df = container.DataFrame({"d3mIndex": index, "match": preds}, generate_metadata=True)
+        result_df = container.DataFrame({X_train.index.name: X_train.index, self._outputs.columns[0]: result})
 
         # mark the semantic types on the dataframe
         result_df.metadata = result_df.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, 0), 'https://metadata.datadrivendiscovery.org/types/PrimaryKey')

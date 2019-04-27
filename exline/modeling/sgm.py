@@ -17,6 +17,9 @@ from .base import EXLineBaseModel
 from .metrics import metrics
 from sgm.backends.classic import ScipyJVClassicSGM
 
+import copy
+
+
 # --
 # Helpers
 
@@ -54,7 +57,10 @@ class SGMGraphMatcher(EXLineBaseModel):
         self.unweighted = unweighted
     
     def predict(self, X):
-        assert X.shape[1] == 2
+        #TODO: this is all wrong, fix memory sharing?
+        if X.shape[1] != 2:
+            X = X[['orig_id1', 'orig_id2']]
+
         X.columns  = ('orig_id1', 'orig_id2')
         
         X.orig_id1  = X.orig_id1.astype(str)
@@ -65,14 +71,21 @@ class SGMGraphMatcher(EXLineBaseModel):
         
         return make_preds(self.P, X)
     
-    def fit(self, X_train, y_train, U_train):
+    def fit(self, _X_train, _y_train, _U_train):
+        X_train = copy.deepcopy(_X_train)
+        y_train = copy.deepcopy(_y_train)
+        U_train = copy.deepcopy(_U_train)
+
         graphs = U_train['graphs']
         
         assert list(graphs.keys()) == ['0', '1']
         assert X_train.shape[1] == 2
         
         G1 = graphs['0']
-        G2 = graphs['1'] # !! assumes this is correct
+        G2 = graphs['1']
+
+        G1 = nx.relabel_nodes(G1, {n:G1.nodes[n]['label'] for n in G1.nodes})
+        G2 = nx.relabel_nodes(G2, {n:G2.nodes[n]['label'] for n in G2.nodes})
         
         assert isinstance(list(G1.nodes)[0], str)
         assert isinstance(list(G2.nodes)[0], str)
@@ -105,8 +118,8 @@ class SGMGraphMatcher(EXLineBaseModel):
         # Does it hurt performance?
         A = ((A + A.T) > 0).astype(np.float32)
         B = ((B + B.T) > 0).astype(np.float32)
-        
-        P = X_train[['num_id1', 'num_id2']][y_train == 1].values
+
+        P = X_train[['num_id1', 'num_id2']][y_train.values.flatten() == "1"].values
         P = sparse.csr_matrix((np.ones(P.shape[0]), (P[:,0], P[:,1])), shape=(n_nodes, n_nodes))
         
         sgm = ScipyJVClassicSGM(A=A, B=B, P=P, verbose=self.verbose)
@@ -115,12 +128,13 @@ class SGMGraphMatcher(EXLineBaseModel):
             tolerance=self.tolerance
         )
         P_out = sparse.csr_matrix((np.ones(n_nodes), (np.arange(n_nodes), P_out)))
-        
         P_eye = sparse.eye(P.shape[0]).tocsr()
+
+        y_train = pd.to_numeric(y_train.values.flatten())
         
         self.sgm_train_acc  = metrics[self.target_metric](y_train, make_preds(P_out, X_train))
         self.null_train_acc = metrics[self.target_metric](y_train, make_preds(P_eye, X_train))
-        
+
         if self.null_train_acc > self.sgm_train_acc:
             self.P = P_eye
         else:
