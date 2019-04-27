@@ -129,9 +129,9 @@ class TextClassifierPrimitive(base.PrimitiveBase[container.DataFrame, container.
             if rows > self._FAST_FIT_ROWS:
                 sampled_inputs = self._inputs.sample(n=self._FAST_FIT_ROWS, random_state=1)
                 sampled_outputs = self._outputs.loc[self._outputs.index.intersection(sampled_inputs.index), ]
-                self._model.fit(self._format_text(sampled_inputs), sampled_outputs)
+                self._model.fit(self._format_text(sampled_inputs), self._format_output(sampled_outputs))
         else:
-            self._model.fit(self._format_text(self._inputs), self._outputs)
+            self._model.fit(self._format_text(self._inputs), self._format_output(self._outputs))
 
         return CallResult(None)
 
