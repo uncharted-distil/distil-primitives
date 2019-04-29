@@ -46,21 +46,30 @@ class VertexNominationCV(EXLineBaseModel):
         # Choose the best model
         
         print('VertexNominationCV: ForestCV', file=sys.stderr)
-        forest = ForestCV(target_metric=self.target_metric)
-        forest = forest.fit(Xf_train, y_train)
+        forest = False
+        try:
+            forest = ForestCV(target_metric=self.target_metric)
+            forest = forest.fit(Xf_train, y_train)
+        except:
+            pass
         
         print('VertexNominationCV: SupportVectorCV', file=sys.stderr)
-        svm = SupportVectorCV(target_metric=self.target_metric)
-        svm = svm.fit(Xf_train, y_train)
+        svm = False
+        try:
+            svm = SupportVectorCV(target_metric=self.target_metric)
+            #svm = svm.fit(Xf_train, y_train)
+        except:
+            pass
+
+        self.model        = forest
+        self.best_params  = forest.best_params
+        self.best_fitness = forest.best_fitness
         
-        if (svm.best_fitness > forest.best_fitness):
-            self.model       = svm.model
-            self.best_params = svm.best_params
-            self.score_cv    = svm.best_fitness
-        else:
-            self.model        = forest
-            self.best_params  = forest.best_params
-            self.best_fitness = forest.best_fitness
+        if hasattr(svm, 'best_fitness'):
+            if (svm.best_fitness > forest.best_fitness):
+                self.model       = svm.model
+                self.best_params = svm.best_params
+                self.score_cv    = svm.best_fitness
         
         return self
     

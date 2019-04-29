@@ -21,8 +21,8 @@ def maybe_subset(X, y, n):
         return X, y
 
 def parmap(fn, x, n_jobs=32, backend='multiprocessing', verbose=1, **kwargs):
-    if len(x) < n_jobs: # TODO: I'm surprised this is necessary
-        n_jobs = len(x)
+    if len(list(x)) < n_jobs: # TODO: I'm surprised this is necessary
+        n_jobs = len(list(x))
 
     jobs = [delayed(fn)(xx, **kwargs) for xx in x]
     return Parallel(n_jobs=n_jobs, backend=backend, verbose=verbose)(jobs)
