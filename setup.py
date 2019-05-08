@@ -51,6 +51,7 @@ setup(
             'data_transformation.encoder.ExlineImageTransfer = exline.primitives.image_transfer:ImageTransferPrimitive',
             'data_transformation.encoder.ExlineAudioTransfer = exline.primitives.audio_transfer:AudioTransferPrimitive',
             'data_transformation.encoder.ExlineTextReader = exline.primitives.text_reader:TextReaderPrimitive',
+            'data_transformation.data_cleaning.ExlineAudioDatasetLoader = exline.primitives.audio_loader:AudioDatasetLoaderPrimitive',
             'clustering.k_means.ExlineKMeans = exline.primitives.k_means:KMeansPrimitive'
         ],
     }
