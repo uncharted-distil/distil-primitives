@@ -13,9 +13,9 @@ import numpy as np
 import networkx as nx
 from scipy import sparse
 
-from exline.modeling.sgm import SGMGraphMatcher
+from exline.modeling.vertex_nomination import VertexNominationCV
 
-__all__ = ('SeededGraphMatcher',)
+__all__ = ('VertexNomination',)
 
 logger = logging.getLogger(__name__)
 
@@ -29,21 +29,21 @@ class Hyperparams(hyperparams.Hyperparams):
 class Params(params.Params):
     pass
 
-class ExlineSeededGraphMatchingPrimitive(PrimitiveBase[container.List, container.DataFrame, Params, Hyperparams]):
+class ExlineVertexNominationPrimitive(PrimitiveBase[container.List, container.DataFrame, Params, Hyperparams]):
     """
     A primitive that matches seeded graphs.
     """
     metadata = metadata_base.PrimitiveMetadata(
         {
-            'id': '8baea8e6-9d3a-46d7-acf1-04fd593dcd37',
+            'id': '0130828c-1ac0-47a9-a167-f05bae5a3146',
             'version': '0.1.0',
-            'name': "SeededGraphMatcher",
-            'python_path': 'd3m.primitives.data_transformation.seeded_graph_matcher.ExlineSeededGraphMatcher',
+            'name': "VertexNomination",
+            'python_path': 'd3m.primitives.data_transformation.vertex_nomination.ExlineVertexNomination',
             'source': {
                 'name': 'exline',
                 'contact': 'mailto:fred@qntfy.com',
                 'uris': [
-                    'https://github.com/uncharted-distil/distil-primitives/seeded_graph_matcher.py',
+                    'https://github.com/uncharted-distil/distil-primitives/vertex_nomination.py',
                     'https://github.com/uncharted-distil/distil-primitives',
                 ],
             },
@@ -65,7 +65,7 @@ class ExlineSeededGraphMatchingPrimitive(PrimitiveBase[container.List, container
                  random_seed: int = 0) -> None:
 
         PrimitiveBase.__init__(self, hyperparams=hyperparams, random_seed=random_seed)
-        self._model = SGMGraphMatcher(target_metric='accuracy')
+        self._model = VertexNominationCV(target_metric=self.hyperparams['metric'])
 
     def __getstate__(self) -> dict:
         state = PrimitiveBase.__getstate__(self)
@@ -85,6 +85,7 @@ class ExlineSeededGraphMatchingPrimitive(PrimitiveBase[container.List, container
 
         X_train, y_train, U_train = self._inputs
         X_train = X_train.value
+        y_train = y_train.squeeze()
         self._model.fit(X_train, y_train, U_train)
 
         return CallResult(None)

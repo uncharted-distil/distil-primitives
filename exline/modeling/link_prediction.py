@@ -18,6 +18,10 @@ from .base import EXLineBaseModel
 from .metrics import metrics
 from ..utils import parmap
 
+import logging
+logger = logging.getLogger(__name__)
+
+
 def edgelist2tensor(edgelist, num_nodes, num_edge_types):
     adj = [sparse.lil_matrix((num_nodes, num_nodes)) for _ in range(num_edge_types)]
     for ii, jj, kk in edgelist:
@@ -99,7 +103,7 @@ class RescalLinkPrediction(EXLineBaseModel):
         graph = U_train['graph']
         
         edgelist = nx2edgelist(graph)
-        
+
         num_nodes      = len(graph.nodes())
         num_edge_types = len(set(edgelist[:,-1]))
         
@@ -110,7 +114,9 @@ class RescalLinkPrediction(EXLineBaseModel):
             train_idx, valid_idx = args
             return cv_fold(edgelist, num_nodes, num_edge_types, train_idx, valid_idx, target_metric=self.target_metric)
             
-        cv_res = parmap(_cv_fold, KFold(n_splits=10, shuffle=True).split(edgelist))
+        _x = KFold(n_splits=10, shuffle=True).split(edgelist)
+        _x = [d for d in _x]
+        cv_res = parmap(_cv_fold, _x)
         cv_res = pd.DataFrame(cv_res)
         self.opt_thresh = cv_res.thresh.mean()
         
@@ -123,6 +129,10 @@ class RescalLinkPrediction(EXLineBaseModel):
         return self
     
     def predict(self, X):
+        X.source_nodeID = X.source_nodeID.astype(int)
+        X.target_nodeID = X.target_nodeID.astype(int)
+        X.linkType = X.linkType.astype(int)
+
         return self.adj_lr[(
             X.source_nodeID.values,
             X.target_nodeID.values,

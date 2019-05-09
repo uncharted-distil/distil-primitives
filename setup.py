@@ -24,6 +24,9 @@ setup(
     ],
     entry_points={
         'd3m.primitives': [
+            'data_transformation.link_prediction.ExlineLinkPrediction = exline.primitives.link_prediction:ExlineLinkPredictionPrimitive',
+            'data_transformation.vertex_nomination.ExlineVertexNomination = exline.primitives.vertex_nomination:ExlineVertexNominationPrimitive',
+            'data_transformation.load_single_graph.ExlineSingleGraphLoader = exline.primitives.load_single_graph:ExlineSingleGraphLoaderPrimitive',
             'data_transformation.seeded_graph_matcher.ExlineSeededGraphMatcher = exline.primitives.seeded_graph_matcher:ExlineSeededGraphMatchingPrimitive',
             'data_transformation.load_graphs.ExlineGraphLoader = exline.primitives.load_graphs:ExlineGraphLoaderPrimitive',
             'data_transformation.imputer.ExlineSimpleImputer = exline.primitives.simple_imputer:SimpleImputerPrimitive',

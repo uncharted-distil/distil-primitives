@@ -13,9 +13,9 @@ import numpy as np
 import networkx as nx
 from scipy import sparse
 
-from exline.modeling.sgm import SGMGraphMatcher
+from exline.modeling.link_prediction import RescalLinkPrediction
 
-__all__ = ('SeededGraphMatcher',)
+__all__ = ('LinkPrediction',)
 
 logger = logging.getLogger(__name__)
 
@@ -29,21 +29,21 @@ class Hyperparams(hyperparams.Hyperparams):
 class Params(params.Params):
     pass
 
-class ExlineSeededGraphMatchingPrimitive(PrimitiveBase[container.List, container.DataFrame, Params, Hyperparams]):
+class ExlineLinkPredictionPrimitive(PrimitiveBase[container.List, container.DataFrame, Params, Hyperparams]):
     """
-    A primitive that matches seeded graphs.
+    A primitive that predicts links.
     """
     metadata = metadata_base.PrimitiveMetadata(
         {
-            'id': '8baea8e6-9d3a-46d7-acf1-04fd593dcd37',
+            'id': 'fc138210-c317-4528-81ae-5eed3a1a0267',
             'version': '0.1.0',
-            'name': "SeededGraphMatcher",
-            'python_path': 'd3m.primitives.data_transformation.seeded_graph_matcher.ExlineSeededGraphMatcher',
+            'name': "LinkPrediction",
+            'python_path': 'd3m.primitives.data_transformation.link_prediction.ExlineLinkPrediction',
             'source': {
                 'name': 'exline',
                 'contact': 'mailto:fred@qntfy.com',
                 'uris': [
-                    'https://github.com/uncharted-distil/distil-primitives/seeded_graph_matcher.py',
+                    'https://github.com/uncharted-distil/distil-primitives/link_prediction.py',
                     'https://github.com/uncharted-distil/distil-primitives',
                 ],
             },
@@ -65,7 +65,7 @@ class ExlineSeededGraphMatchingPrimitive(PrimitiveBase[container.List, container
                  random_seed: int = 0) -> None:
 
         PrimitiveBase.__init__(self, hyperparams=hyperparams, random_seed=random_seed)
-        self._model = SGMGraphMatcher(target_metric='accuracy')
+        self._model = RescalLinkPrediction(target_metric=self.hyperparams['metric'])
 
     def __getstate__(self) -> dict:
         state = PrimitiveBase.__getstate__(self)
@@ -85,6 +85,7 @@ class ExlineSeededGraphMatchingPrimitive(PrimitiveBase[container.List, container
 
         X_train, y_train, U_train = self._inputs
         X_train = X_train.value
+        y_train = y_train.squeeze()
         self._model.fit(X_train, y_train, U_train)
 
         return CallResult(None)
