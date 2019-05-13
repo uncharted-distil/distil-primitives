@@ -24,6 +24,7 @@ setup(
     ],
     entry_points={
         'd3m.primitives': [
+            'data_transformation.community_detection.ExlineCommunityDetection = exline.primitives.community_detection:ExlineCommunityDetectionPrimitive',
             'data_transformation.link_prediction.ExlineLinkPrediction = exline.primitives.link_prediction:ExlineLinkPredictionPrimitive',
             'data_transformation.vertex_nomination.ExlineVertexNomination = exline.primitives.vertex_nomination:ExlineVertexNominationPrimitive',
             'data_transformation.load_single_graph.ExlineSingleGraphLoader = exline.primitives.load_single_graph:ExlineSingleGraphLoaderPrimitive',
