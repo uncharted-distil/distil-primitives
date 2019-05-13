@@ -40,7 +40,7 @@ class Params(params.Params):
     pass
 
 
-class AudioTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBase[container.DataFrame, container.DataFrame, Params, Hyperparams]):
+class AudioTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBase[container.List, container.DataFrame, Params, Hyperparams]):
     """
     A primitive that encodes texts.
     """
@@ -89,41 +89,37 @@ class AudioTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
         PrimitiveBase.__setstate__(self, state)
 
 
-    def set_training_data(self, *, inputs: container.DataFrame) -> None:
+    def set_training_data(self, *, inputs: container.List) -> None:
         self._inputs = inputs
 
 
+
     def _transform_inputs(self, inputs):
-        result = inputs.copy()
+        logger.warning('start audio transfer')
 
+        import time
 
-        m = result['filename'].tolist()
+        t0 = time.time()
+        logger.warning(inputs)
 
-        # m to list of arrays ??
-        audio_vecs = pd.DataFrame(self.audio_set._featurize(m).tolist()) # TODO: pass this as an array instead of `DF`
+        feats = self.audio_set._featurize(inputs.audio)
 
-        logger.warning(audio_vecs)
-
+        audio_vecs = pd.DataFrame(feats.tolist(), inputs.index)
         audio_vecs.columns = ['v{}'.format(i) for i in range(0, audio_vecs.shape[1])]
-        audio_vecs.index = result.index
-        audio_vecs.index.name = 'd3mIndex'
-        logger.warning('GOOD WORK TLing')
-        logger.warning(audio_vecs)
-        result.drop('filename', 1, inplace=True)
 
-        return container.DataFrame(audio_vecs)
+        df = container.DataFrame(audio_vecs) # TODO: fix index setup
+        df.index.name = 'd3mIndex'
+
+        logger.warning(df)
+
+        return df
 
     def fit(self, *, timeout: float = None, iterations: int = None) -> CallResult[None]:
-        # create dataframe to hold d3mIndex and result
 
-        self.features_df = self._transform_inputs(self._inputs)
-
-        logger.debug(self.features_df)
-        logger.debug(self.features_df.metadata)
 
         return CallResult(None)
 
-    def produce(self, *, inputs: container.DataFrame, timeout: float = None, iterations: int = None) -> CallResult[container.DataFrame]:
+    def produce(self, *, inputs: container.List, timeout: float = None, iterations: int = None) -> CallResult[container.DataFrame]:
         logger.debug(f'Producing {__name__}')
 
         return base.CallResult(self._transform_inputs(inputs))
