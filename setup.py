@@ -18,7 +18,7 @@ setup(
         'frozendict>=1.2',
         'cython==0.29.3',
         'sgm @ git+https://github.com/nowfred/sgm.git#egg=sgm',
-        'common_primitives @ git+https://gitlab.com/datadrivendiscovery/common-primitives.git#egg=common_primitives',
+        'common_primitives @ git+https://gitlab.com/datadrivendiscovery/common-primitives.git@485ddb70e8c581926f6591df15ce70986b098700#egg=common_primitives',
         'd3m==2019.4.4',
 
     ],
