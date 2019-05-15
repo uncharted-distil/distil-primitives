@@ -93,7 +93,7 @@ class ExlineLinkPredictionPrimitive(PrimitiveBase[container.List, container.Data
     def produce(self, *, inputs: container.List, timeout: float = None, iterations: int = None) -> CallResult[container.DataFrame]:
         logger.debug(f'Producing {__name__}')
 
-        X_train, _, _ = self._inputs
+        X_train, _, _ = inputs
         X_train = X_train.value
         result = self._model.predict(X_train)
 
