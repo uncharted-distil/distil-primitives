@@ -71,5 +71,10 @@ def tiebreaking_vote(preds, y_train):
 
 def tiebreaking_vote_pre(preds, labels):
     # Tiebreaking vote but uses a pre-calculated list of labels
-    return np.array([_vote(p, labels) for p in preds.T])
+    if preds.shape[0] == 1:
+        # shortcut if there is only set of predictions
+        return preds[0]
+    else:
+        # CDB: this is a major bottle neck at scale
+        return np.array([_vote(p, labels) for p in preds.T])
 

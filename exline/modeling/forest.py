@@ -14,6 +14,7 @@ if SUPRESS_WARNINGS:
 
 import sys
 import numpy as np
+import pandas as pd
 from copy import deepcopy
 
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor, \
@@ -23,7 +24,7 @@ from sklearn.model_selection import ParameterGrid
 
 from .base import EXLineBaseModel
 from .metrics import metrics, classification_metrics, regression_metrics
-from .helpers import tiebreaking_vote, adjust_f1_macro
+from .helpers import tiebreaking_vote_pre, adjust_f1_macro
 from ..utils import parmap, maybe_subset
 
 class AnyForest:
@@ -120,7 +121,8 @@ class ForestCV(EXLineBaseModel):
         preds = [model.predict(X) for model in self._models]
 
         if self.mode == 'classification':
-            return tiebreaking_vote(np.vstack(preds), self._y_train)
+            labels = pd.unique(np.vstack(self._y_train).squeeze())
+            return tiebreaking_vote_pre(np.vstack(preds), labels)
         elif self.mode == 'regression':
             return np.stack(preds).mean(axis=0)
 

@@ -2,10 +2,8 @@
 
 """
     exline/modeling/pretrained_audio.py
-
     Featurize audio w/ pretrained audioset model,
     then train ForestCV model
-
 """
 
 import os
@@ -29,17 +27,27 @@ from .forest import ForestCV
 from .metrics import metrics
 from ..utils import parmap
 
+from tensorflow.errors import InvalidArgumentError
+from joblib import Parallel, delayed
 
+from numba import jit
+import gc
 # --
 # Helpers
+import logging
 
+logger = logging.getLogger(__name__)
 
-def audioarray2mel(w):
-    #TODO: query metadata
+@jit
+def _mem_to_arr(w):
+    return np.array(w, dtype='int16')
 
-    sample_rate = w.metadata.to_json_structure()[0]['metadata']['dimension']['sample_rate']
-    assert np.array(w.data).dtype == np.float32
-    return vggish_input.waveform_to_examples(np.array(w.data) / 32768.0, sample_rate)
+def audioarray2mel(data, sample_rate):
+    assert data.shape[1] > 0, data.shape
+
+    ret_val = vggish_input.waveform_to_examples(data / 32768.0, sample_rate)
+
+    return ret_val
 
 
 def audio2vec(X):
@@ -52,11 +60,11 @@ def audio2vec(X):
 
         all_feats = []
         for xx in tqdm(X):
+
             [feats] = sess.run([emb_], feed_dict={feat_: xx})
             all_feats.append(feats)
 
         return all_feats
-
 
 # --
 # Model
@@ -67,8 +75,12 @@ class AudiosetModel(EXLineBaseModel):
         self.target_metric = target_metric
 
     def _featurize(self, A):
-        mel_feats = parmap(audioarray2mel, A, verbose=10)
+
+        jobs = [delayed(audioarray2mel)(xx.data, xx.sample_rate) for xx in A]
+        mel_feats = Parallel(n_jobs=32, backend='multiprocessing', verbose=10)(jobs)
+
         vec_feats = audio2vec(mel_feats)
+
         return np.vstack([f.max(axis=0) for f in vec_feats])
 
     def fit(self, X_train, y_train, U_train=None):
@@ -82,4 +94,3 @@ class AudiosetModel(EXLineBaseModel):
     def predict(self, X):
         vec_maxpool = self._featurize(X)
         return self.model.predict(vec_maxpool)
-

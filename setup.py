@@ -36,6 +36,7 @@ setup(
     ],
     entry_points={
         'd3m.primitives': [
+            'data_transformation.community_detection.ExlineCommunityDetection = exline.primitives.community_detection:ExlineCommunityDetectionPrimitive',
             'data_transformation.link_prediction.ExlineLinkPrediction = exline.primitives.link_prediction:ExlineLinkPredictionPrimitive',
             'data_transformation.vertex_nomination.ExlineVertexNomination = exline.primitives.vertex_nomination:ExlineVertexNominationPrimitive',
             'data_transformation.load_single_graph.ExlineSingleGraphLoader = exline.primitives.load_single_graph:ExlineSingleGraphLoaderPrimitive',
@@ -62,6 +63,7 @@ setup(
             'data_transformation.encoder.ExlineImageTransfer = exline.primitives.image_transfer:ImageTransferPrimitive',
             'data_transformation.encoder.ExlineAudioTransfer = exline.primitives.audio_transfer:AudioTransferPrimitive',
             'data_transformation.encoder.ExlineTextReader = exline.primitives.text_reader:TextReaderPrimitive',
+            'data_transformation.data_cleaning.ExlineAudioDatasetLoader = exline.primitives.audio_loader:AudioDatasetLoaderPrimitive',
             'clustering.k_means.ExlineKMeans = exline.primitives.k_means:KMeansPrimitive'
         ],
     }
