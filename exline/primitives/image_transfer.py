@@ -101,13 +101,10 @@ class ImageTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
 
         df = pd.DataFrame(result['image_vec'].values.tolist())
         df.columns = ['v{}'.format(i) for i in range(0, df.shape[1])]
-        df.index = result.index
+        df.index = result['d3mIndex']
         df.index.name = 'd3mIndex'
 
-        result.drop('filename', 1, inplace=True)
-        result.drop('image_vec', 1, inplace=True)
-
-        return container.DataFrame(df)
+        return CallResult(df)
 
     def fit(self, *, timeout: float = None, iterations: int = None) -> CallResult[None]:
         # create dataframe to hold d3mIndex and result
