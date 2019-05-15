@@ -29,7 +29,6 @@ setup(
         'resampy==0.2.1',
         'soundfile==0.10.2',
         'sgm @ git+https://github.com/nowfred/sgm.git#egg=sgm',
-        #'common_primitives @ git+https://gitlab.com/datadrivendiscovery/common-primitives.git#egg=common_primitives',
         'basenet @ git+https://github.com/bkj/basenet.git@903756540b89809ef458f35257287b937b333417',
         'rescal @ git+https://github.com/mnick/rescal.py.git@69dddaa9157fc7bd24d5d7ecf0308cc412403c17'
 
