@@ -96,9 +96,14 @@ class TimeSeriesNeighboursPrimitive(PrimitiveBase[container.ndarray, container.D
 
         # create dataframe to hold d3mIndex and result
         result = self._model.predict(inputs)
-        result_df = container.DataFrame(result, generate_metadata=True)
+        result_df = container.DataFrame({self._outputs.index.name: self._outputs.index, self._outputs.columns[0]: result}, generate_metadata=True)
+
+        # mark the semantic types on the dataframe
+        result_df.metadata = result_df.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, 0), 'https://metadata.datadrivendiscovery.org/types/PrimaryKey')
+        result_df.metadata = result_df.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, 1), 'https://metadata.datadrivendiscovery.org/types/PredictedTarget')
 
         logger.debug(f'\n{result_df}')
+
         return base.CallResult(result_df)
 
     def get_params(self) -> Params:
