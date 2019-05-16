@@ -35,4 +35,7 @@ RUN apt-get -qq update -qq \
 RUN pip3 install python-prctl
 RUN pip3 install --upgrade pip cython==0.29.3
 
-RUN pip3 install -e git+https://github.com/uncharted-distil/distil-primitives.git#egg=DistilPrimitives
+#RUN pip3 install -e git+https://github.com/uncharted-distil/distil-primitives.git#egg=DistilPrimitives
+
+COPY . .
+RUN pip install -e .
