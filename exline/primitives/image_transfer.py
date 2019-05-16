@@ -104,7 +104,7 @@ class ImageTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
         df.index = result['d3mIndex']
         df.index.name = 'd3mIndex'
 
-        return CallResult(container.DataFrame(df, generate_metadata=True))
+        return container.DataFrame(df, generate_metadata=True)
 
     def fit(self, *, timeout: float = None, iterations: int = None) -> CallResult[None]:
         # create dataframe to hold d3mIndex and result
