@@ -104,13 +104,12 @@ class AudioTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
 
         feats = self.audio_set._featurize(inputs.audio)
 
-        audio_vecs = pd.DataFrame(feats.tolist())
+        audio_vecs = pd.DataFrame(feats.tolist(), inputs.index)
         audio_vecs.columns = ['v{}'.format(i) for i in range(0, audio_vecs.shape[1])]
-        audio_vecs.index = inputs['d3mIndex']
-        audio_vecs.index.name = 'd3mIndex'
-        
-        df = container.DataFrame(audio_vecs, generate_metadata=True) 
-        
+
+        df = container.DataFrame(audio_vecs) # TODO: fix index setup
+        df.index.name = 'd3mIndex'
+
         logger.warning(df)
 
         return df
