@@ -233,7 +233,7 @@ class AudioDatasetLoaderPrimitive(transformer.TransformerPrimitiveBase[container
         result_df = pd.DataFrame({'d3mIndex': learning_df['d3mIndex'], 'audio': outputs}) # d3m container takes for_ever_
         result_df.set_index('d3mIndex', inplace=True) # TODO: fix index setup
 
-        return base.CallResult(result_df)
+        return base.CallResult(container.DataFrame(result_df, generate_metadata=False))
 
     @classmethod
     def _update_metadata(cls, metadata: metadata_base.DataMetadata, resource_id: metadata_base.SelectorSegment,
