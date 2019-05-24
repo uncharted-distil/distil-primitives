@@ -33,7 +33,7 @@ class ReplaceSingletonsPrimitive(transformer.TransformerPrimitiveBase[container.
             'name': "Replace singeltons",
             'python_path': 'd3m.primitives.data_transformation.data_cleaning.DistilReplaceSingletons',
             'source': {
-                'name': 'distil',
+                'name': 'Distil',
                 'contact': 'mailto:cbethune@uncharted.software',
                 'uris': [
                     'https://github.com/uncharted-distil/distil-primitives/distil/primitives/replace_singletons.py',

@@ -37,7 +37,7 @@ class StandardScalerPrimitive(transformer.TransformerPrimitiveBase[container.Dat
             'name': "Standard scaler",
             'python_path': 'd3m.primitives.data_transformation.standard_scaler.DistilStandardScaler',
             'source': {
-                'name': 'distil',
+                'name': 'Distil',
                 'contact': 'mailto:cbethune@uncharted.software',
                 'uris': [
                     'https://github.com/uncharted-distil/distil-primitives/distil/primitives/simple_imputer.py',

@@ -40,7 +40,7 @@ class RaggedDatasetLoaderPrimitive(transformer.TransformerPrimitiveBase[containe
             'name': "Load ragged collection from dataset into a single dataframe",
             'python_path': 'd3m.primitives.data_transformation.data_cleaning.DistilRaggedDatasetLoader',
             'source': {
-                'name': 'distil',
+                'name': 'Distil',
                 'contact': 'mailto:cbethune@uncharted.software',
                 'uris': [
                     'https://github.com/uncharted-distil/distil-primitives/distil/primitives/ragged_dataset_loader.py',

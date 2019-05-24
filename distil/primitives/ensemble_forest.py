@@ -42,7 +42,7 @@ class EnsembleForestPrimitive(PrimitiveBase[container.DataFrame, container.DataF
             'name': "EnsembleForest",
             'python_path': 'd3m.primitives.learner.random_forest.DistilEnsembleForest',
             'source': {
-                'name': 'distil',
+                'name': 'Distil',
                 'contact': 'mailto:cbethune@uncharted.software',
                 'uris': [
                     'https://github.com/uncharted-distil/distil-primitives/distil/primitives/ensemble_forest.py',

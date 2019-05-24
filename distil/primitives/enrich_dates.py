@@ -28,7 +28,7 @@ class EnrichDatesPrimitive(transformer.TransformerPrimitiveBase[container.DataFr
             'name': "Enrich dates",
             'python_path': 'd3m.primitives.data_transformation.data_cleaning.DistilEnrichDates',
             'source': {
-                'name': 'distil',
+                'name': 'Distil',
                 'contact': 'mailto:cbethune@uncharted.software',
                 'uris': [
                     'https://github.com/uncharted-distil/distil-primitives/distil/primitives/enrich_dates.py',

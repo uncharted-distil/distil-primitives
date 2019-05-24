@@ -55,7 +55,7 @@ class TextClassifierPrimitive(base.PrimitiveBase[container.DataFrame, container.
             'name': "Text Classifier",
             'python_path': 'd3m.primitives.data_transformation.encoder.DistilTextClassifier',
             'source': {
-                'name': 'distil',
+                'name': 'Distil',
                 'contact': 'mailto:cbethune@uncharted.software',
                 'uris': [
                     'https://github.com/uncharted-distil/distil-primitives/distil/primitives/text_classifier.py',

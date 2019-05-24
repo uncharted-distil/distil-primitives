@@ -39,7 +39,7 @@ class TextEncoderPrimitive(base.PrimitiveBase[container.DataFrame, container.Dat
             'name': "Text encoder",
             'python_path': 'd3m.primitives.data_transformation.encoder.DistilTextEncoder',
             'source': {
-                'name': 'distil',
+                'name': 'Distil',
                 'contact': 'mailto:cbethune@uncharted.software',
                 'uris': [
                     'https://github.com/uncharted-distil/distil-primitives/distil/primitives/binary_encoder.py',

@@ -40,7 +40,7 @@ class DistilLinkPredictionPrimitive(PrimitiveBase[container.List, container.Data
             'name': "LinkPrediction",
             'python_path': 'd3m.primitives.data_transformation.link_prediction.DistilLinkPrediction',
             'source': {
-                'name': 'distil',
+                'name': 'Distil',
                 'contact': 'mailto:fred@qntfy.com',
                 'uris': [
                     'https://github.com/uncharted-distil/distil-primitives/distil/primitives/link_prediction.py',

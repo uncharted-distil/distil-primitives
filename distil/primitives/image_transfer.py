@@ -51,7 +51,7 @@ class ImageTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
             'name': "Image Transfer",
             'python_path': 'd3m.primitives.data_transformation.encoder.DistilImageTransfer',
             'source': {
-                'name': 'distil',
+                'name': 'Distil',
                 'contact': 'mailto:cbethune@uncharted.software',
                 'uris': [
                     'https://github.com/uncharted/distil-primitives/distil/primitives/image_transfer.py',

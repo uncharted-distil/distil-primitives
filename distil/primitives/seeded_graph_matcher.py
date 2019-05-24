@@ -40,7 +40,7 @@ class DistilSeededGraphMatchingPrimitive(PrimitiveBase[container.List, container
             'name': "SeededGraphMatcher",
             'python_path': 'd3m.primitives.data_transformation.seeded_graph_matcher.DistilSeededGraphMatcher',
             'source': {
-                'name': 'distil',
+                'name': 'Distil',
                 'contact': 'mailto:fred@qntfy.com',
                 'uris': [
                     'https://github.com/uncharted-distil/distil-primitives/distil/primitives/seeded_graph_matcher.py',

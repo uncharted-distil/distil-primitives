@@ -39,7 +39,7 @@ class CategoricalImputerPrimitive(transformer.TransformerPrimitiveBase[container
             'name': "Categorical imputer",
             'python_path': 'd3m.primitives.data_transformation.imputer.DistilCategoricalImputer',
             'source': {
-                'name': 'distil',
+                'name': 'Distil',
                 'contact': 'mailto:cbethune@uncharted.software',
                 'uris': [
                     'https://github.com/uncharted-distil/distil-primitives/distil/primitives/categorical_imputer.py',
