@@ -7,7 +7,7 @@ import json
 import importlib
 
 # List all the primitives
-PRIMITIVES_DIR = 'exline/primitives'
+PRIMITIVES_DIR = 'distil/primitives'
 primitives = os.listdir(PRIMITIVES_DIR)
 
 def hypers(p): 
@@ -32,7 +32,7 @@ for primitive in primitives:
     #    continue
     if 'audio' in f:
         continue
-    lib = importlib.import_module('exline.primitives.' + f)
+    lib = importlib.import_module('distil.primitives.' + f)
     for l in dir(lib):
         if 'Primitive' in l:
             pp = getattr(lib, l)
