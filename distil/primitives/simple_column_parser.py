@@ -29,7 +29,7 @@ class SimpleColumnParserPrimitive(transformer.TransformerPrimitiveBase[container
             'name': "Simple column parser",
             'python_path': 'd3m.primitives.data_transformation.column_parser.DistilSimpleColumnParser',
             'source': {
-                'name': 'distil',
+                'name': 'Distil',
                 'contact': 'mailto:cbethune@uncharted.software',
                 'uris': [
                     'https://github.com/uncharted-distil/distil-primitives/distil/primitives/simple_column_parser.py',

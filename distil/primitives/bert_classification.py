@@ -45,7 +45,7 @@ class BertClassificationPrimitive(PrimitiveBase[container.DataFrame, container.D
             'name': "Bert models",
             'python_path': 'd3m.primitives.learner.random_forest.DistilBertClassification',
             'source': {
-                'name': 'distil',
+                'name': 'Distil',
                 'contact': 'mailto:cbethune@uncharted.software',
                 'uris': [
                     'https://github.com/uncharted-distil/distil-primitives/distil/primitives/bert_classification.py',

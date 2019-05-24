@@ -3,4 +3,4 @@ services:
   distil-primitives:
     build: .
     volumes:
-      - ./:/app
+      - ./annotations:/annotations

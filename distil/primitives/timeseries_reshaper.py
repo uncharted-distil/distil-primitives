@@ -31,7 +31,7 @@ class TimeSeriesReshaperPrimitive(unsupervised_learning.UnsupervisedLearnerPrimi
             'name': "Time series reshaper",
             'python_path': 'd3m.primitives.data_transformation.data_cleaning.DistilTimeSeriesReshaper',
             'source': {
-                'name': 'distil',
+                'name': 'Distil',
                 'contact': 'mailto:cbethune@uncharted.software',
                 'uris': [
                     'https://github.com/uncharted-distil/distil-primitives/distil/primitives/timeseries_reshaper.py',

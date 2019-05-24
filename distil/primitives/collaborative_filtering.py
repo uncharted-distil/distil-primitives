@@ -43,7 +43,7 @@ class CollaborativeFilteringPrimitive(PrimitiveBase[container.DataFrame, contain
             'name': "Collaborative filtering",
             'python_path': 'd3m.primitives.learner.random_forest.DistilCollaborativeFiltering',
             'source': {
-                'name': 'distil',
+                'name': 'Distil',
                 'contact': 'mailto:cbethune@uncharted.software',
                 'uris': [
                     'https://github.com/uncharted-distil/distil-primitives/distil/primitives/collaborative_filtering.py',

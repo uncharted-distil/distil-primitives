@@ -39,7 +39,7 @@ class MissingIndicatorPrimitive(unsupervised_learning.UnsupervisedLearnerPrimiti
             'name': "Missing indicator",
             'python_path': 'd3m.primitives.data_transformation.missing_indicator.DistilMissingIndicator',
             'source': {
-                'name': 'distil',
+                'name': 'Distil',
                 'contact': 'mailto:cbethune@uncharted.software',
                 'uris': [
                     'https://github.com/uncharted-distil/distil-primitives/distil/primitives/missing_indicator.py',

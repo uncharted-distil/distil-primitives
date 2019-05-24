@@ -52,7 +52,7 @@ class AudioTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
             'name': "Audio Transfer",
             'python_path': 'd3m.primitives.data_transformation.encoder.DistilAudioTransfer',
             'source': {
-                'name': 'distil',
+                'name': 'Distil',
                 'contact': 'mailto:cbethune@uncharted.software',
                 'uris': [
                     'https://github.com/uncharted/distil-primitives/distil/primitives/audio_transfer.py',

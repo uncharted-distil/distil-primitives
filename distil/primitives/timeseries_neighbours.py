@@ -41,7 +41,7 @@ class TimeSeriesNeighboursPrimitive(PrimitiveBase[container.ndarray, container.D
             'name': "Timeseries neighbours",
             'python_path': 'd3m.primitives.learner.random_forest.DistilTimeSeriesNeighboursPrimitive',
             'source': {
-                'name': 'distil',
+                'name': 'Distil',
                 'contact': 'mailto:cbethune@uncharted.software',
                 'uris': [
                     'https://github.com/uncharted-distil/distil-primitives/distil/primitives/timeseries_neighbours.py',

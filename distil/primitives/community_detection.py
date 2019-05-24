@@ -40,7 +40,7 @@ class DistilCommunityDetectionPrimitive(PrimitiveBase[container.List, container.
             'name': "CommunityDetection",
             'python_path': 'd3m.primitives.data_transformation.community_detection.DistilCommunityDetection',
             'source': {
-                'name': 'distil',
+                'name': 'Distil',
                 'contact': 'mailto:fred@qntfy.com',
                 'uris': [
                     'https://github.com/uncharted-distil/distil-primitives/distil/primitives/community_detection.py',

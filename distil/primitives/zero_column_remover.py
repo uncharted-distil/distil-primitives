@@ -32,7 +32,7 @@ class ZeroColumnRemoverPrimitive(transformer.TransformerPrimitiveBase[container.
             'name': "Zero column remover",
             'python_path': 'd3m.primitives.data_transformation.data_cleaning.DistilZeroColumnRemover',
             'source': {
-                'name': 'distil',
+                'name': 'Distil',
                 'contact': 'mailto:cbethune@uncharted.software',
                 'uris': [
                     'https://github.com/uncharted-distil/distil-primitives/distil/primitives/zero_column_remover.py',
