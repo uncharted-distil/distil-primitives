@@ -49,8 +49,8 @@ class DistilSingleGraphLoaderPrimitive(transformer.TransformerPrimitiveBase[Inpu
                 'name': 'distil',
                 'contact': 'mailto:fred@qntfy.com',
                 'uris': [
-                    'https://github.com/uncharted-distil/distil-primitives/primitives/load_single_graph.py',
-                    'https://github.com/uncharted-distil/distil-primitives/primitives/',
+                    'https://github.com/uncharted-distil/distil-primitives/distil/primitives/load_single_graph.py',
+                    'https://github.com/uncharted-distil/distil-primitives/',
                 ],
             },
             'installation': [{

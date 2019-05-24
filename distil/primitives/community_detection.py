@@ -43,7 +43,7 @@ class DistilCommunityDetectionPrimitive(PrimitiveBase[container.List, container.
                 'name': 'distil',
                 'contact': 'mailto:fred@qntfy.com',
                 'uris': [
-                    'https://github.com/uncharted-distil/distil-primitives/community_detection.py',
+                    'https://github.com/uncharted-distil/distil-primitives/distil/primitives/community_detection.py',
                     'https://github.com/uncharted-distil/distil-primitives',
                 ],
             },

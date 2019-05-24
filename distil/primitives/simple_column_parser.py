@@ -32,7 +32,7 @@ class SimpleColumnParserPrimitive(transformer.TransformerPrimitiveBase[container
                 'name': 'distil',
                 'contact': 'mailto:cbethune@uncharted.software',
                 'uris': [
-                    'https://github.com/uncharted-distil/distil-primitives/primitives/simple_column_parser.py',
+                    'https://github.com/uncharted-distil/distil-primitives/distil/primitives/simple_column_parser.py',
                     'https://github.com/uncharted-distil/distil-primitives',
                 ],
             },

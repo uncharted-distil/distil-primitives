@@ -43,7 +43,7 @@ class RaggedDatasetLoaderPrimitive(transformer.TransformerPrimitiveBase[containe
                 'name': 'distil',
                 'contact': 'mailto:cbethune@uncharted.software',
                 'uris': [
-                    'https://github.com/uncharted-distil/distil-primitives/primitives/ragged_dataset_loader.py',
+                    'https://github.com/uncharted-distil/distil-primitives/distil/primitives/ragged_dataset_loader.py',
                     'https://github.com/uncharted-distil/distil-primitives',
                 ],
             },

@@ -43,7 +43,7 @@ class DistilSeededGraphMatchingPrimitive(PrimitiveBase[container.List, container
                 'name': 'distil',
                 'contact': 'mailto:fred@qntfy.com',
                 'uris': [
-                    'https://github.com/uncharted-distil/distil-primitives/seeded_graph_matcher.py',
+                    'https://github.com/uncharted-distil/distil-primitives/distil/primitives/seeded_graph_matcher.py',
                     'https://github.com/uncharted-distil/distil-primitives',
                 ],
             },

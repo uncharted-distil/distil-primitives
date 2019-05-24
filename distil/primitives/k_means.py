@@ -49,7 +49,7 @@ class KMeansPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBase[con
                 'name': 'distil',
                 'contact': 'mailto:cbethune@uncharted.software',
                 'uris': [
-                    'https://github.com/uncharted-distil/distil-primitives/primitives/k_means.py',
+                    'https://github.com/uncharted-distil/distil-primitives/distil/primitives/k_means.py',
                     'https://github.com/uncharted-distil/distil-primitives',
                 ],
             },

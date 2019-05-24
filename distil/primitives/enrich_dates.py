@@ -31,7 +31,7 @@ class EnrichDatesPrimitive(transformer.TransformerPrimitiveBase[container.DataFr
                 'name': 'distil',
                 'contact': 'mailto:cbethune@uncharted.software',
                 'uris': [
-                    'https://github.com/uncharted-distil/distil-primitives/primitives/enrich_dates.py',
+                    'https://github.com/uncharted-distil/distil-primitives/distil/primitives/enrich_dates.py',
                     'https://github.com/uncharted-distil/distil-primitives',
                 ],
             },

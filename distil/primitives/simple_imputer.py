@@ -38,7 +38,7 @@ class SimpleImputerPrimitive(transformer.TransformerPrimitiveBase[container.Data
                 'name': 'distil',
                 'contact': 'mailto:cbethune@uncharted.software',
                 'uris': [
-                    'https://github.com/uncharted-distil/distil-primitives/primitives/simple_imputer.py',
+                    'https://github.com/uncharted-distil/distil-primitives/distil/primitives/simple_imputer.py',
                     'https://github.com/uncharted-distil/distil-primitives',
                 ],
             },

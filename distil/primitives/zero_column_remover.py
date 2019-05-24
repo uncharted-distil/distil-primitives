@@ -35,7 +35,7 @@ class ZeroColumnRemoverPrimitive(transformer.TransformerPrimitiveBase[container.
                 'name': 'distil',
                 'contact': 'mailto:cbethune@uncharted.software',
                 'uris': [
-                    'https://github.com/uncharted-distil/distil-primitives/primitives/zero_column_remover.py',
+                    'https://github.com/uncharted-distil/distil-primitives/distil/primitives/zero_column_remover.py',
                     'https://github.com/uncharted-distil/distil-primitives',
                 ],
             },

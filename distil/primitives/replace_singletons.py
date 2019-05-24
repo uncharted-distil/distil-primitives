@@ -36,7 +36,7 @@ class ReplaceSingletonsPrimitive(transformer.TransformerPrimitiveBase[container.
                 'name': 'distil',
                 'contact': 'mailto:cbethune@uncharted.software',
                 'uris': [
-                    'https://github.com/uncharted-distil/distil-primitives/primitives/replace_singletons.py',
+                    'https://github.com/uncharted-distil/distil-primitives/distil/primitives/replace_singletons.py',
                     'https://github.com/uncharted-distil/distil-primitives',
                 ],
             },

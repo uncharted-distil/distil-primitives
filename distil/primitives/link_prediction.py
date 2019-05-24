@@ -43,7 +43,7 @@ class DistilLinkPredictionPrimitive(PrimitiveBase[container.List, container.Data
                 'name': 'distil',
                 'contact': 'mailto:fred@qntfy.com',
                 'uris': [
-                    'https://github.com/uncharted-distil/distil-primitives/link_prediction.py',
+                    'https://github.com/uncharted-distil/distil-primitives/distil/primitives/link_prediction.py',
                     'https://github.com/uncharted-distil/distil-primitives',
                 ],
             },

@@ -109,7 +109,7 @@ class AudioDatasetLoaderPrimitive(transformer.TransformerPrimitiveBase[container
                 'name': 'distil',
                 'contact': 'mailto:cbethune@uncharted.software',
                 'uris': [
-                    'https://github.com/uncharted-distil/distil-primitives/primitives/audio_loader_loader.py',
+                    'https://github.com/uncharted-distil/distil-primitives/distil/primitives/audio_loader_loader.py',
                     'https://github.com/uncharted-distil/distil-primitives',
                 ],
             },

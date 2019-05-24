@@ -48,7 +48,7 @@ class OneHotEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
                 'name': 'distil',
                 'contact': 'mailto:cbethune@uncharted.software',
                 'uris': [
-                    'https://github.com/uncharted-distil/distil-primitives/primitives/one_hot_encoder.py',
+                    'https://github.com/uncharted-distil/distil-primitives/distil/primitives/one_hot_encoder.py',
                     'https://github.com/uncharted-distil/distil-primitives',
                 ],
             },

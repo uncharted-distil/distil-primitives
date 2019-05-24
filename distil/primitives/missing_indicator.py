@@ -42,7 +42,7 @@ class MissingIndicatorPrimitive(unsupervised_learning.UnsupervisedLearnerPrimiti
                 'name': 'distil',
                 'contact': 'mailto:cbethune@uncharted.software',
                 'uris': [
-                    'https://github.com/uncharted-distil/distil-primitives/primitives/missing_indicator.py',
+                    'https://github.com/uncharted-distil/distil-primitives/distil/primitives/missing_indicator.py',
                     'https://github.com/uncharted-distil/distil-primitives',
                 ],
             },

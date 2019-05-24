@@ -42,7 +42,7 @@ class CategoricalImputerPrimitive(transformer.TransformerPrimitiveBase[container
                 'name': 'distil',
                 'contact': 'mailto:cbethune@uncharted.software',
                 'uris': [
-                    'https://github.com/uncharted-distil/distil-primitives/primitives/categorical_imputer.py',
+                    'https://github.com/uncharted-distil/distil-primitives/distil/primitives/categorical_imputer.py',
                     'https://github.com/uncharted-distil/distil-primitives',
                 ],
             },

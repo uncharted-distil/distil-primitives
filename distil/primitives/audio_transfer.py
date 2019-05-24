@@ -55,7 +55,7 @@ class AudioTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
                 'name': 'distil',
                 'contact': 'mailto:cbethune@uncharted.software',
                 'uris': [
-                    'https://github.com/uncharted/distil-primitives/primitives/audio_transfer.py',
+                    'https://github.com/uncharted/distil-primitives/distil/primitives/audio_transfer.py',
                     'https://github.com/cdbethune/distil-primitives',
                 ],
             },

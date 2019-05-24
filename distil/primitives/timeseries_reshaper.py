@@ -34,7 +34,7 @@ class TimeSeriesReshaperPrimitive(unsupervised_learning.UnsupervisedLearnerPrimi
                 'name': 'distil',
                 'contact': 'mailto:cbethune@uncharted.software',
                 'uris': [
-                    'https://github.com/uncharted-distil/distil-primitives/primitives/timeseries_reshaper.py',
+                    'https://github.com/uncharted-distil/distil-primitives/distil/primitives/timeseries_reshaper.py',
                     'https://github.com/uncharted-distil/distil-primitives',
                 ],
             },

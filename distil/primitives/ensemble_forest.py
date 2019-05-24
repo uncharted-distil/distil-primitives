@@ -45,7 +45,7 @@ class EnsembleForestPrimitive(PrimitiveBase[container.DataFrame, container.DataF
                 'name': 'distil',
                 'contact': 'mailto:cbethune@uncharted.software',
                 'uris': [
-                    'https://github.com/uncharted-distil/distil-primitives/primitives/ensemble_forest.py',
+                    'https://github.com/uncharted-distil/distil-primitives/distil/primitives/ensemble_forest.py',
                     'https://github.com/uncharted-distil/distil-primitives',
                 ],
             },

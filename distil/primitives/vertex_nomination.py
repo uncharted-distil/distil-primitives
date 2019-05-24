@@ -43,7 +43,7 @@ class DistilVertexNominationPrimitive(PrimitiveBase[container.List, container.Da
                 'name': 'distil',
                 'contact': 'mailto:fred@qntfy.com',
                 'uris': [
-                    'https://github.com/uncharted-distil/distil-primitives/vertex_nomination.py',
+                    'https://github.com/uncharted-distil/distil-primitives/distil/primitives/vertex_nomination.py',
                     'https://github.com/uncharted-distil/distil-primitives',
                 ],
             },
