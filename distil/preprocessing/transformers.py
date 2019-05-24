@@ -78,38 +78,6 @@ class SVMTextEncoder(BaseEstimator, TransformerMixin):
 
         return out
 
-# --
-# Dates
-
-def _detect_date(X, n_sample=1000):
-    try:
-        # raise Exception # !! Why was this here?
-        _ = pd.to_datetime(X.sample(n_sample, replace=True)) # Could also just look at schema
-        return True
-    except:
-        return False
-
-
-def enrich_dates(X_train, X_test):
-    cols = list(X_train.columns)
-    for c in cols:
-        if (X_train[c].dtype == np.object_) and _detect_date(X_train[c]):
-            print('-- detected date: %s' % c, file=sys.stderr)
-
-            # try:
-            train_seconds = (pd.to_datetime(X_train[c]) - pd.to_datetime('2000-01-01')).dt.total_seconds().values
-            test_seconds = (pd.to_datetime(X_test[c]) - pd.to_datetime('2000-01-01')).dt.total_seconds().values
-
-            sec_mean = train_seconds.mean()
-            sec_std  = train_seconds.std()
-
-            X_train['%s__seconds' % c] = (train_seconds - sec_mean) / sec_std
-            X_test['%s__seconds' % c]  = (test_seconds - sec_mean) / sec_std
-            # except:
-                # X_train['%s__seconds' % c] = 0
-                # X_test['%s__seconds' % c]  = 0
-
-    return X_train, X_test
 
 # --
 # Timeseries

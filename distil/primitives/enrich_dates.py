@@ -13,14 +13,23 @@ __all__ = ('EnrichDatesPrimitive',)
 
 logger = logging.getLogger(__name__)
 
+Inputs = container.DataFrame
+Outputs = container.DataFrame
+
 class Hyperparams(hyperparams.Hyperparams):
-    pass
+    use_columns = hyperparams.Set(
+        elements=hyperparams.Hyperparameter[int](-1),
+        default=(),
+        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
+        description="A set of column indices to force primitive to operate on. If any specified column cannot be parsed, it is skipped.",
+    )
 
-class EnrichDatesPrimitive(transformer.TransformerPrimitiveBase[container.DataFrame, container.DataFrame, Hyperparams]):
+class EnrichDatesPrimitive(transformer.TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
     """
-    A primitive that enriches dates.
+    Enriches dates by converting to seconds from a base time and computing Z scores.  The results
+    are appended to the existing dataset, and the original column is left in place for additional
+    downstream processing.
     """
-
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': 'b1367f5b-bab1-4dfc-a1a9-6a56430e516a',
@@ -42,13 +51,13 @@ class EnrichDatesPrimitive(transformer.TransformerPrimitiveBase[container.DataFr
                 ),
             }],
             'algorithm_types': [
-                metadata_base.PrimitiveAlgorithmType.ARRAY_SLICING,
+                metadata_base.PrimitiveAlgorithmType.ENCODE_BINARY,
             ],
             'primitive_family': metadata_base.PrimitiveFamily.DATA_TRANSFORMATION,
         },
     )
 
-    def produce(self, *, inputs: container.DataFrame, timeout: float = None, iterations: int = None) -> base.CallResult[container.DataFrame]:
+    def produce(self, *, inputs: Inputs, timeout: float = None, iterations: int = None) -> base.CallResult[Outputs]:
         logger.debug(f'Running {__name__}')
 
         outputs = inputs.copy()
@@ -58,30 +67,29 @@ class EnrichDatesPrimitive(transformer.TransformerPrimitiveBase[container.DataFr
 
         return base.CallResult(outputs)
 
-    @classmethod
-    def _detect_date(cls, X: container.DataFrame, n_sample: int = 1000) -> bool:
-        try:
-            # raise Exception # !! Why was this here?
-            _ = pd.to_datetime(X.sample(n_sample, replace=True)) # Could also just look at schema
-            return True
-        except:
-            return False
+    def _enrich_dates(self, inputs: Inputs) -> Outputs:
 
-    @classmethod
-    def _enrich_dates(cls, inputs: container.DataFrame) -> container.DataFrame:
-        cols = list(inputs.columns)
+        # use caller supplied columns if supplied
+        cols = set(self.hyperparams['use_columns'])
+        date_cols = set(inputs.metadata.list_columns_with_semantic_types(('http://schema.org/DateTime',)))
+        if len(cols) > 0:
+            cols = date_cols & cols
+        else:
+            cols = date_cols
+
+        date_num = 0
         for c in cols:
-            if (inputs[c].dtype == np.object_) and cls._detect_date(inputs[c]):
-
-                # try:
-                inputs_seconds = (pd.to_datetime(inputs[c]) - pd.to_datetime('2000-01-01')).dt.total_seconds().values
+            try:
+                inputs_seconds = (pd.to_datetime(inputs.iloc[:, c]) - pd.to_datetime('2000-01-01')).dt.total_seconds().values
 
                 sec_mean = inputs_seconds.mean()
                 sec_std  = inputs_seconds.std()
-
                 sec_val = 0.0
                 if sec_std != 0.0:
                     sec_val = (inputs_seconds - sec_mean) / sec_std
-                inputs['%s__seconds' % c] = sec_val
+                inputs[f'__date_{date_num}'] = sec_val
+                date_num += 1
+            except:
+                continue
 
         return inputs

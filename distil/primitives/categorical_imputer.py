@@ -27,9 +27,22 @@ class Hyperparams(hyperparams.Hyperparams):
         description="A set of column indices to force primitive to operate on. If any specified column cannot be parsed, it is skipped.",
     )
 
+    strategy = hyperparams.Enumeration[str](
+        default='most_frequent',
+        values=('most_frequent', 'constant'),
+        semantic_types=['https://metadata.datadrivendiscovery.org/types/TuningParameter'],
+        description="Replacement strategy.  'most_frequent' will replace missing values with the mode of the column, 'constant' uses 'fill_value'",
+    )
+
+    fill_value = hyperparams.Hyperparameter[str](
+        default=MISSING_VALUE_INDICATOR,
+        semantic_types=['https://metadata.datadrivendiscovery.org/types/TuningParameter'],
+        description="Value to replace missing values with.  Only applied when strategy is set to 'fill_value'"
+    )
+
 class CategoricalImputerPrimitive(transformer.TransformerPrimitiveBase[container.DataFrame, container.DataFrame, Hyperparams]):
     """
-    A primitive that imputes categoricals.
+    A primitive that imputes missing categorical values.  It can either replace with a constant value, or use the column mode.
     """
 
     metadata = metadata_base.PrimitiveMetadata(
@@ -53,7 +66,7 @@ class CategoricalImputerPrimitive(transformer.TransformerPrimitiveBase[container
                 ),
             }],
             'algorithm_types': [
-                metadata_base.PrimitiveAlgorithmType.ARRAY_SLICING,
+                metadata_base.PrimitiveAlgorithmType.IMPUTATION,
             ],
             'primitive_family': metadata_base.PrimitiveFamily.DATA_TRANSFORMATION,
         },
@@ -63,26 +76,27 @@ class CategoricalImputerPrimitive(transformer.TransformerPrimitiveBase[container
 
         logger.debug(f'Running {__name__}')
 
-        cols = list(self.hyperparams['use_columns'])
-        if cols is None or len(cols) is 0:
-            for idx, c in enumerate(inputs.columns):
-                if inputs[c].dtype == object: #and len(set(inputs[c])) > 1:
-                    cols.append(idx)
+        # use caller supplied columns if set
+        cols = set(self.hyperparams['use_columns'])
+        categorical_cols = set(inputs.metadata.list_columns_with_semantic_types(('https://metadata.datadrivendiscovery.org/types/CategoricalData',
+                                                                                 'https://metadata.datadrivendiscovery.org/types/OrdinalData')))
+        if len(cols) > 0:
+            cols = categorical_cols & cols
+        else:
+            cols = categorical_cols
 
         logger.debug(f'Found {len(cols)} categorical columns to evaluate')
 
         if len(cols) is 0:
             return base.CallResult(inputs)
 
-        input_cols = inputs.iloc[:,cols]
-
-        imputer = CategoricalImputer(strategy='constant', fill_value=MISSING_VALUE_INDICATOR)
-        imputer.fit(input_cols)
-        result = imputer.transform(input_cols)
-
+        imputer = CategoricalImputer(strategy=self.hyperparams['strategy'], fill_value=self.hyperparams['fill_value'], missing_values='')
         outputs = inputs.copy()
-        for idx, col_idx in enumerate(cols):
-            outputs.iloc[:,col_idx] = result[:,idx]
+        for c in cols:
+            input_col = inputs.iloc[:,c]
+            imputer.fit(input_col)
+            result = imputer.transform(input_col)
+            outputs.iloc[:,c] = result
 
         logger.debug(f'\n{outputs}')
 
