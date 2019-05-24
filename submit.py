@@ -26,12 +26,6 @@ def hypers(p):
 
 for primitive in primitives:
     f = primitive.replace('.py', '')
-    #print(f)
-    # Skip
-    #if [True for d in ['audio', 'seeded', 'vertex', 'community', 'bert', 'collaborative', 'link', 'text', 'timeseries'] if d in f]:
-    #    continue
-    if 'audio' in f:
-        continue
     lib = importlib.import_module('distil.primitives.' + f)
     for l in dir(lib):
         if 'Primitive' in l:
@@ -44,6 +38,3 @@ for primitive in primitives:
                     f.write(json.dumps(md, indent=4))
             except:
                 pass
-    
-
-# Create a directory 

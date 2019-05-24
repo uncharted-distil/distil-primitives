@@ -3,15 +3,11 @@ import sys
 import numpy as np
 from tqdm import tqdm
 
+from distil.third_party.audioset import vggish_input
+from distil.third_party.audioset import vggish_params
+from distil.third_party.audioset import vggish_postprocess
+from distil.third_party.audioset import vggish_slim
 
-BASE_PATH = '/app/third_party/audioset'
-MODEL_PATH = os.path.join(BASE_PATH, 'vggish_model.ckpt')
-
-sys.path.append(BASE_PATH)
-import vggish_input
-import vggish_params
-import vggish_postprocess
-import vggish_slim
 import tensorflow as tf
 
 from .base import DistilBaseModel

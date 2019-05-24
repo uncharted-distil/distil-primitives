@@ -41,7 +41,7 @@ class Params(params.Params):
 
 class ImageTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBase[container.DataFrame, container.DataFrame, Params, Hyperparams]):
     """
-    A primitive that encodes texts.
+    A primitive that images.
     """
 
     metadata = metadata_base.PrimitiveMetadata(
