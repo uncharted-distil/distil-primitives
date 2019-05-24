@@ -2,6 +2,13 @@ from distutils.core import setup
 
 from setuptools import find_packages
 
+import subprocess
+
+try:
+    subprocess.run(['pip', 'install', '-r', 'build_requirements.txt'])
+except Exception as e:
+    print(e)
+
 setup(
     name='DistilPrimitives',
     version='0.1.0',
@@ -23,6 +30,7 @@ setup(
         'frozendict>=1.2',
         'cython==0.29.3',
         'nose==1.3.7',
+        'python-prctl==1.7',
         'joblib==0.13.0',
         'fastdtw==0.3.2',
         'networkx==2.2.0',
@@ -31,7 +39,6 @@ setup(
         'sgm @ git+https://github.com/nowfred/sgm.git#egg=sgm',
         'basenet @ git+https://github.com/bkj/basenet.git@903756540b89809ef458f35257287b937b333417',
         'rescal @ git+https://github.com/mnick/rescal.py.git@69dddaa9157fc7bd24d5d7ecf0308cc412403c17'
-
     ],
     entry_points={
         'd3m.primitives': [

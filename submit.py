@@ -1,6 +1,5 @@
 """
-Utility to add primitives .json files 
-to d3m/primitives in adjacent directory 
+Utility to get primitives .json files 
 """
 import os
 import json
