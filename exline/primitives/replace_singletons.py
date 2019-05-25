@@ -4,7 +4,8 @@ import logging
 from d3m import container, utils as d3m_utils
 from d3m.metadata import base as metadata_base, hyperparams
 from d3m.primitive_interfaces import base, transformer
-from distil.preprocessing.utils import SINGLETON_INDICATOR
+from exline.primitives import utils
+from exline.primitives.utils import SINGLETON_INDICATOR, CATEGORICALS
 
 import typing
 import numpy as np
@@ -32,18 +33,18 @@ class ReplaceSingletonsPrimitive(transformer.TransformerPrimitiveBase[container.
             'id': '7cacc8b6-85ad-4c8f-9f75-360e0faee2b8',
             'version': '0.1.0',
             'name': "Replace singeltons",
-            'python_path': 'd3m.primitives.data_transformation.data_cleaning.DistilReplaceSingletons',
+            'python_path': 'd3m.primitives.data_transformation.data_cleaning.ExlineReplaceSingletons',
             'source': {
                 'name': 'Distil',
                 'contact': 'mailto:cbethune@uncharted.software',
                 'uris': [
-                    'https://github.com/uncharted-distil/distil-primitives/distil/primitives/replace_singletons.py',
+                    'https://github.com/uncharted-distil/distil-primitives/primitives/replace_singletons.py',
                     'https://github.com/uncharted-distil/distil-primitives',
                 ],
             },
             'installation': [{
                 'type': metadata_base.PrimitiveInstallationType.PIP,
-                'package_uri': 'git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=distil-primitives'.format(
+                'package_uri': 'git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=d3m-exline'.format(
                     git_commit=d3m_utils.current_git_commit(os.path.dirname(__file__)),
                 ),
             }],
@@ -60,14 +61,8 @@ class ReplaceSingletonsPrimitive(transformer.TransformerPrimitiveBase[container.
         # set values that only occur once to a special token
         outputs = inputs.copy()
 
-        # use caller supplied columns if supplied
-        cols = set(self.hyperparams['use_columns'])
-        categorical_cols = set(inputs.metadata.list_columns_with_semantic_types(('https://metadata.datadrivendiscovery.org/types/CategoricalData',
-                                                                                 'https://metadata.datadrivendiscovery.org/types/OrdinalData')))
-        if len(cols) > 0:
-            cols = categorical_cols & cols
-        else:
-            cols = categorical_cols
+        # determine columns to operate on
+        cols = utils.get_operating_columns(inputs, self.hyperparams['use_columns'], CATEGORICALS)
 
         for c in cols:
             vcs = pd.value_counts(list(inputs.iloc[:,c]))

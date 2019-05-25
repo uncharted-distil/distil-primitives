@@ -12,7 +12,8 @@ import numpy as np
 from sklearn_pandas import CategoricalImputer
 from sklearn import compose
 
-from distil.preprocessing.utils import MISSING_VALUE_INDICATOR
+from exline.primitives import utils
+from exline.primitives.utils import MISSING_VALUE_INDICATOR, CATEGORICALS
 
 
 __all__ = ('CategoricalImputerPrimitive',)
@@ -50,18 +51,18 @@ class CategoricalImputerPrimitive(transformer.TransformerPrimitiveBase[container
             'id': '0a9936f3-7784-4697-82f0-2a5fcc744c16',
             'version': '0.1.0',
             'name': "Categorical imputer",
-            'python_path': 'd3m.primitives.data_transformation.imputer.DistilCategoricalImputer',
+            'python_path': 'd3m.primitives.data_transformation.imputer.ExlineCategoricalImputer',
             'source': {
-                'name': 'Distil',
+                'name': 'exline',
                 'contact': 'mailto:cbethune@uncharted.software',
                 'uris': [
-                    'https://github.com/uncharted-distil/distil-primitives/distil/primitives/categorical_imputer.py',
+                    'https://github.com/uncharted-distil/distil-primitives/primitives/categorical_imputer.py',
                     'https://github.com/uncharted-distil/distil-primitives',
                 ],
             },
             'installation': [{
                 'type': metadata_base.PrimitiveInstallationType.PIP,
-                'package_uri': 'git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=distil-primitives'.format(
+                'package_uri': 'git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=d3m-exline'.format(
                     git_commit=d3m_utils.current_git_commit(os.path.dirname(__file__)),
                 ),
             }],
@@ -76,14 +77,8 @@ class CategoricalImputerPrimitive(transformer.TransformerPrimitiveBase[container
 
         logger.debug(f'Running {__name__}')
 
-        # use caller supplied columns if set
-        cols = set(self.hyperparams['use_columns'])
-        categorical_cols = set(inputs.metadata.list_columns_with_semantic_types(('https://metadata.datadrivendiscovery.org/types/CategoricalData',
-                                                                                 'https://metadata.datadrivendiscovery.org/types/OrdinalData')))
-        if len(cols) > 0:
-            cols = categorical_cols & cols
-        else:
-            cols = categorical_cols
+        # determine columns to operate on
+        cols = utils.get_operating_columns(inputs, self.hyperparams['use_columns'], CATEGORICALS)
 
         logger.debug(f'Found {len(cols)} categorical columns to evaluate')
 

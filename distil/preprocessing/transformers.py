@@ -8,7 +8,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import cross_val_predict
 from sklearn.cluster import KMeans, MiniBatchKMeans
 
-from .utils import MISSING_VALUE_INDICATOR, SINGLETON_INDICATOR
+from exline.primitives.utils import MISSING_VALUE_INDICATOR, SINGLETON_INDICATOR
 
 # --
 # Categorical

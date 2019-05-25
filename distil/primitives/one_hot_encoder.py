@@ -9,6 +9,9 @@ from d3m.primitive_interfaces import base, unsupervised_learning
 import pandas as pd
 import numpy as np
 
+from exline.primitives import utils
+from exline.primitives.utils import CATEGORICALS
+
 from sklearn import preprocessing
 from sklearn import compose
 
@@ -88,14 +91,8 @@ class OneHotEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
     def fit(self, *, timeout: float = None, iterations: int = None) -> base.CallResult[None]:
         logger.debug(f'Fitting {__name__}')
 
-        # use caller supplied columns if set
-        cols = set(self.hyperparams['use_columns'])
-        categorical_cols = set(self._inputs.metadata.list_columns_with_semantic_types(('https://metadata.datadrivendiscovery.org/types/CategoricalData',
-                                                                                       'https://metadata.datadrivendiscovery.org/types/OrdinalData')))
-        if len(cols) > 0:
-            cols = categorical_cols & cols
-        else:
-            cols = categorical_cols
+        # figure out columns to operate on
+        cols = utils.get_operating_columns(self._inputs, self.hyperparams['use_columns'], CATEGORICALS)
 
         filtered_cols: List[int] = []
         for c in cols:
@@ -103,9 +100,9 @@ class OneHotEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
             if num_labels <= self.hyperparams['max_one_hot']:
                 filtered_cols.append(c)
 
-        logger.debug(f'Found {len(cols)} columns to encode')
+        logger.debug(f'Found {len(filtered_cols)} columns to encode')
 
-        self._cols = list(cols)
+        self._cols = list(filtered_cols)
         self._encoder = None
         if len(cols) is 0:
             return base.CallResult(None)
@@ -126,11 +123,21 @@ class OneHotEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
         input_cols = inputs.iloc[:,self._cols]
         result = self._encoder.transform(input_cols)
 
-        # remove the source columns and append the result to the copy
+        # append the encoding columns and generate metadata
         outputs = inputs.copy()
+        encoded_cols: container.DataFrame = container.DataFrame()
+
         for i in range(result.shape[1]):
-            outputs[('__onehot_' + str(i))] = result[:,i]
-        outputs.drop(outputs.columns[self._cols], axis=1, inplace=True)
+            encoded_cols[f'__onehot_{str(i)}'] = result[:,i]
+        encoded_cols.metadata = encoded_cols.metadata.generate(encoded_cols)
+
+        for c in range(encoded_cols.shape[1]):
+            encoded_cols.metadata = encoded_cols.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, c), 'http://schema.org/Float')
+
+        outputs = outputs.append_columns(encoded_cols)
+
+        # drop the source columns
+        outputs = outputs.remove_columns(self._cols)
 
         logger.debug(f'\n{outputs}')
 

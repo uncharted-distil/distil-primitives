@@ -6,6 +6,8 @@ from d3m import container, utils as d3m_utils
 from d3m.metadata import base as metadata_base, hyperparams
 from d3m.primitive_interfaces import base, transformer
 
+from exline.primitives import utils
+
 import numpy as np
 import pandas as pd
 
@@ -69,27 +71,28 @@ class EnrichDatesPrimitive(transformer.TransformerPrimitiveBase[Inputs, Outputs,
 
     def _enrich_dates(self, inputs: Inputs) -> Outputs:
 
-        # use caller supplied columns if supplied
-        cols = set(self.hyperparams['use_columns'])
-        date_cols = set(inputs.metadata.list_columns_with_semantic_types(('http://schema.org/DateTime',)))
-        if len(cols) > 0:
-            cols = date_cols & cols
-        else:
-            cols = date_cols
+        # determine columns we need to operate on
+        cols = utils.get_operating_columns(inputs, self.hyperparams['use_columns'], ('http://schema.org/DateTime',))
 
         date_num = 0
         for c in cols:
             try:
+                # compute z scores for column members
                 inputs_seconds = (pd.to_datetime(inputs.iloc[:, c]) - pd.to_datetime('2000-01-01')).dt.total_seconds().values
-
                 sec_mean = inputs_seconds.mean()
                 sec_std  = inputs_seconds.std()
                 sec_val = 0.0
                 if sec_std != 0.0:
                     sec_val = (inputs_seconds - sec_mean) / sec_std
-                inputs[f'__date_{date_num}'] = sec_val
+
+                # append the results and update semantic types
+                result = container.DataFrame({f'__date_{date_num}': sec_val}, generate_metadata=True)
+                result.metadata = result.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, 0), 'http://schema.org/Float')
+                inputs = inputs.append_columns(result)
+
                 date_num += 1
             except:
                 continue
+
 
         return inputs

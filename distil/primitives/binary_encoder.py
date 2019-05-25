@@ -6,7 +6,8 @@ from d3m import container, utils as d3m_utils
 from d3m.metadata import base as metadata_base, hyperparams, params
 from d3m.primitive_interfaces import base, unsupervised_learning
 
-from exline.preprocessing.utils import CATEGORICALS
+from exline.primitives import utils
+from exline.primitives.utils import CATEGORICALS
 
 import pandas as pd
 import numpy as np
@@ -90,13 +91,8 @@ class BinaryEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
     def fit(self, *, timeout: float = None, iterations: int = None) -> base.CallResult[None]:
         logger.debug('Fitting binary encoder')
 
-        # use caller supplied columns if set
-        cols = set(self.hyperparams['use_columns'])
-        categorical_cols = set(self._inputs.metadata.list_columns_with_semantic_types(CATEGORICALS))
-        if len(cols) > 0:
-            cols = categorical_cols & cols
-        else:
-            cols = categorical_cols
+        # find columns to operate on
+        cols = utils.get_operating_columns(self._inputs, self.hyperparams['use_columns'], CATEGORICALS)
 
         filtered_cols: List[int] = []
         for c in cols:
@@ -123,14 +119,22 @@ class BinaryEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
         if len(self._cols) == 0:
             return base.CallResult(inputs)
 
-        # add the binary encoded columns and remove the source
+        # add the binary encoded columns and remove the source columns
         outputs = inputs.copy()
-        outputs.drop(outputs.columns[self._cols], axis=1, inplace=True)
+        encoded_cols = container.DataFrame()
         for i, c in enumerate(self._cols):
             categorical_inputs = outputs.iloc[:,c]
             result = self._encoders[i].transform(categorical_inputs)
             for j in range(result.shape[1]):
-                outputs[(f'__binary_{i * result.shape[1] + j}')] = result[:,j]
+                bin_idx = i * result.shape[1] + j
+                encoded_cols[(f'__binary_{bin_idx}')] = result[:,j]
+        encoded_cols.metadata = encoded_cols.metadata.generate(encoded_cols)
+
+        for c in range(encoded_cols.shape[1]):
+            encoded_cols.metadata = encoded_cols.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, c), 'http://schema.org/Integer')
+
+        outputs = outputs.append_columns(encoded_cols)
+        outputs = outputs.remove_columns(self._cols)
 
         logger.debug(f'\n{outputs}')
 
@@ -141,10 +145,3 @@ class BinaryEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
 
     def set_params(self, *, params: Params) -> None:
         return
-
-    @classmethod
-    def _detect_text(cls, X: container.DataFrame, thresh: int = 8) -> bool:
-        """ returns true if median entry has more than `thresh` tokens"""
-        X = X[X.notnull()]
-        n_toks = X.apply(lambda xx: len(str(xx).split(' '))).values
-        return np.median(n_toks) >= thresh

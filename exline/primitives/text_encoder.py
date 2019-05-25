@@ -1,6 +1,6 @@
 import os
 import logging
-from typing import List
+from typing import List, Sequence
 
 from d3m import container, utils as d3m_utils
 from d3m.metadata import base as metadata_base, hyperparams, params
@@ -9,7 +9,8 @@ from d3m.primitive_interfaces import base
 import pandas as pd
 import numpy as np
 
-from distil.preprocessing.transformers import SVMTextEncoder
+from exline.preprocessing.transformers import SVMTextEncoder
+from exline.primitives import utils
 
 
 __all__ = ('TextEncoderPrimitive',)
@@ -32,7 +33,7 @@ class Params(params.Params):
 
 class TextEncoderPrimitive(base.PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
     """
-    Encodes text fields using TFIDF scoring combined with a linear SVC classifier.  The original text field is removed
+    Encodes string fields using TFIDF scoring combined with a linear SVC classifier.  The original string field is removed
     and replaced with encoding columns.
     """
     metadata = metadata_base.PrimitiveMetadata(
@@ -40,18 +41,18 @@ class TextEncoderPrimitive(base.PrimitiveBase[Inputs, Outputs, Params, Hyperpara
             'id': '09f252eb-215d-4e0b-9a60-fcd967f5e708',
             'version': '0.1.0',
             'name': "Text encoder",
-            'python_path': 'd3m.primitives.data_transformation.encoder.DistilTextEncoder',
+            'python_path': 'd3m.primitives.data_transformation.encoder.ExlineTextEncoder',
             'source': {
                 'name': 'Distil',
                 'contact': 'mailto:cbethune@uncharted.software',
                 'uris': [
-                    'https://github.com/uncharted-distil/distil-primitives/distil/primitives/binary_encoder.py',
+                    'https://github.com/uncharted-distil/distil-primitives/exline/primitives/binary_encoder.py',
                     'https://github.com/uncharted-distil/distil-primitives',
                 ],
             },
             'installation': [{
                 'type': metadata_base.PrimitiveInstallationType.PIP,
-                'package_uri': 'git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=distil-primitives'.format(
+                'package_uri': 'git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=d3m-exline'.format(
                     git_commit=d3m_utils.current_git_commit(os.path.dirname(__file__)),
                 ),
             }],
@@ -85,12 +86,8 @@ class TextEncoderPrimitive(base.PrimitiveBase[Inputs, Outputs, Params, Hyperpara
     def fit(self, *, timeout: float = None, iterations: int = None) -> base.CallResult[None]:
         logger.debug(f'Fitting {__name__}')
 
-        cols = set(self.hyperparams['use_columns'])
-        text_cols = set(self._inputs.metadata.list_columns_with_semantic_types(('http://schema.org/Text',)))
-        if len(cols) > 0:
-            cols = text_cols & cols
-        else:
-            cols = text_cols
+        # determine columns to operate on
+        cols = utils.get_operating_columns(self._inputs, self.hyperparams['use_columns'], ('http://schema.org/Text',))
 
         logger.debug(f'Found {len(cols)} columns to encode')
 
@@ -100,7 +97,6 @@ class TextEncoderPrimitive(base.PrimitiveBase[Inputs, Outputs, Params, Hyperpara
         if len(cols) is 0:
             return base.CallResult(None)
 
-        # add the text encoded columns and remove the source
         for i, c in enumerate(self._cols):
             self._encoders.append(SVMTextEncoder())
             text_inputs = self._inputs.iloc[:,c]
@@ -114,15 +110,23 @@ class TextEncoderPrimitive(base.PrimitiveBase[Inputs, Outputs, Params, Hyperpara
         if len(self._cols) == 0:
             return base.CallResult(inputs)
 
-        # adds the encoded columns and removes the source
         outputs = inputs.copy()
+        encoded_cols = container.DataFrame()
+        # encode columns into a new dataframe
         for i, c in enumerate(self._cols):
             text_inputs = outputs.iloc[:,c]
             result = self._encoders[i].transform(text_inputs)
             for j in range(result.shape[1]):
-                outputs[(f'__text_{i * result.shape[1] + j}')] = result[:,j]
+                encoded_idx = i * result.shape[1] + j
+                encoded_cols[(f'__text_{encoded_idx}')] = result[:,j]
+        # generate metadata for encoded columns
+        encoded_cols.metadata = encoded_cols.metadata.generate(encoded_cols)
+        for c in range(encoded_cols.shape[1]):
+            encoded_cols.metadata = encoded_cols.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, encoded_idx), 'http://schema.org/Float')
 
-        outputs.drop(outputs.columns[self._cols], axis=1, inplace=True)
+        # append the encoded columns and remove the source columns
+        outputs = outputs.append_columns(encoded_cols)
+        outputs = outputs.remove_columns(self._cols)
 
         logger.debug(f'\n{outputs}')
 

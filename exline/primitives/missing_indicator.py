@@ -10,7 +10,7 @@ import numpy as np
 
 from sklearn.impute import MissingIndicator
 
-from distil.preprocessing.utils import MISSING_VALUE_INDICATOR
+from exline.primitives.utils import MISSING_VALUE_INDICATOR
 
 logger = logging.getLogger(__name__)
 
@@ -37,18 +37,18 @@ class MissingIndicatorPrimitive(unsupervised_learning.UnsupervisedLearnerPrimiti
             'id': '15587104-0e81-4970-add3-668da63be95b',
             'version': '0.1.0',
             'name': "Missing indicator",
-            'python_path': 'd3m.primitives.data_transformation.missing_indicator.DistilMissingIndicator',
+            'python_path': 'd3m.primitives.data_transformation.missing_indicator.ExlineMissingIndicator',
             'source': {
-                'name': 'Distil',
+                'name': 'exline',
                 'contact': 'mailto:cbethune@uncharted.software',
                 'uris': [
-                    'https://github.com/uncharted-distil/distil-primitives/distil/primitives/missing_indicator.py',
+                    'https://github.com/uncharted-distil/distil-primitives/primitives/missing_indicator.py',
                     'https://github.com/uncharted-distil/distil-primitives',
                 ],
             },
             'installation': [{
                 'type': metadata_base.PrimitiveInstallationType.PIP,
-                'package_uri': 'git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=distil-primitives'.format(
+                'package_uri': 'git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=d3m-exline'.format(
                     git_commit=d3m_utils.current_git_commit(os.path.dirname(__file__)),
                 ),
             }],
