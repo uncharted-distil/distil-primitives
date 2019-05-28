@@ -55,13 +55,13 @@ class AudioTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
                 'name': 'Distil',
                 'contact': 'mailto:cbethune@uncharted.software',
                 'uris': [
-                    'https://github.com/uncharted/distil-primitives/distil/primitives/audio_transfer.py',
-                    'https://github.com/cdbethune/distil-primitives',
+                    'https://github.com/uncharted-distil/distil-primitives/distil/primitives/audio_transfer.py',
+                    'https://github.com/uncharted-distil/distil-primitives',
                 ],
             },
             'installation': [{
                 'type': metadata_base.PrimitiveInstallationType.PIP,
-                'package_uri': 'git+https://github.com/uncharted/distil-primitives.git@{git_commit}#egg=distil-primitives'.format(
+                'package_uri': 'git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=distil-primitives'.format(
                     git_commit=d3m_utils.current_git_commit(os.path.dirname(__file__)),
                 ),
             }],
