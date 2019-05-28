@@ -21,11 +21,25 @@ logger = logging.getLogger(__name__)
 class Hyperparams(hyperparams.Hyperparams):
     metric = hyperparams.Hyperparameter[str](
         default='',
-        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter']
+        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
+        description="The D3M scoring metric to use during the fit phase.  This can be any of the regression, classification or " +
+                    "clustering metrics."
     )
-    fast = hyperparams.Hyperparameter[bool](
-        default=False,
-        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter']
+    small_dataset_threshold = hyperparams.Hyperparameter[int](
+        default=2000,
+        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
+        description="Controls the application of the 'small_dataset_fits' and 'large_dataset_fits' parameters - if the input dataset has " +
+                    "fewer rows than the threshold value, 'small_dateset_fits' will be used when fitting.  Otherwise, 'num_large_fits' is used."
+    )
+    small_dataset_fits = hyperparams.Hyperparameter[int](
+        default=5,
+        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
+        description="The number of random forests to fit when using small datasets."
+    )
+    large_dataset_fits = hyperparams.Hyperparameter[int](
+        default=1,
+        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
+        description="The number of random forests to fit when using large datasets."
     )
 
 class Params(params.Params):
@@ -33,7 +47,8 @@ class Params(params.Params):
 
 class EnsembleForestV2Primitive(PrimitiveBase[container.DataFrame, container.DataFrame, Params, Hyperparams]):
     """
-    A primitive that forests.
+    Generates an ensemble of random forests, with the number of internal models created controlled by the size of the
+    input dataframe.  Returns a dataframe consisting of predictions only.
     """
     metadata = metadata_base.PrimitiveMetadata(
         {
@@ -56,71 +71,37 @@ class EnsembleForestV2Primitive(PrimitiveBase[container.DataFrame, container.Dat
                 ),
             }],
             'algorithm_types': [
-                metadata_base.PrimitiveAlgorithmType.ARRAY_SLICING,
+                metadata_base.PrimitiveAlgorithmType.RANDOM_FOREST,
             ],
-            'primitive_family': metadata_base.PrimitiveFamily.DATA_TRANSFORMATION,
+            'primitive_family': metadata_base.PrimitiveFamily.LEARNER,
         },
     )
-
-    # threshold to test for num fits
-    _SMALL_DATASET_THRESH = 2000
-    _SMALL_DATASET_FITS = 5
-    _LARGE_DATASET_FITS = 1
-
-    # number of rows to limit to when in fast mode
-    _FAST_FIT_ROWS = 500
-
-    # grids to use when in fast mode
-    _FAST_GRIDS = {
-        "classification" : {
-            "estimator"        : ["RandomForest"],
-            "n_estimators"     : [32],
-            "min_samples_leaf" : [1],
-            "class_weight"     : [None],
-        },
-        "regression" : {
-            "estimator"        : ["ExtraTrees", "RandomForest"],
-            "bootstrap"        : [True],
-            "n_estimators"     : [32],
-            "min_samples_leaf" : [2],
-        }
-    }
 
     def __init__(self, *,
                  hyperparams: Hyperparams,
                  random_seed: int = 0) -> None:
 
         PrimitiveBase.__init__(self, hyperparams=hyperparams, random_seed=random_seed)
-
-        self._grid = self._get_grid_for_metric() if self.hyperparams['fast'] else None
-        self._model = ForestCV(self.hyperparams['metric'], param_grid=self._grid)
+        self._model = ForestCV(self.hyperparams['metric'])
 
     def __getstate__(self) -> dict:
         state = PrimitiveBase.__getstate__(self)
         state['models'] = self._model
-        state['grid'] = self._grid
         return state
 
     def __setstate__(self, state: dict) -> None:
         PrimitiveBase.__setstate__(self, state)
         self._model = state['models']
-        self._grid = state['grid']
 
     def set_training_data(self, *, inputs: container.DataFrame, outputs: container.DataFrame) -> None:
         self._inputs = inputs
         self._outputs = outputs
-        self._model.num_fits = self._LARGE_DATASET_FITS if self._inputs.shape[0] > self._SMALL_DATASET_THRESH else self._SMALL_DATASET_FITS
+        self._model.num_fits = self.hyperparams['large_dataset_fits'] \
+            if self._inputs.shape[0] > self.hyperparams['small_dataset_threshold'] else self.hyperparams['small_dataset_fits']
 
     def fit(self, *, timeout: float = None, iterations: int = None) -> CallResult[None]:
         logger.debug(f'Fitting {__name__}')
-        if self.hyperparams['fast']:
-            rows = len(self._inputs.index)
-            if rows > self._FAST_FIT_ROWS:
-                sampled_inputs = self._inputs.sample(n=self._FAST_FIT_ROWS, random_state=1)
-                sampled_outputs = self._outputs.loc[self._outputs.index.intersection(sampled_inputs.index), ]
-                self._model.fit(sampled_inputs, sampled_outputs)
-        else:
-            self._model.fit(self._inputs.values, self._outputs.values)
+        self._model.fit(self._inputs.values, self._outputs.values)
         return CallResult(None)
 
     def produce(self, *, inputs: container.DataFrame, timeout: float = None, iterations: int = None) -> CallResult[container.DataFrame]:
@@ -141,11 +122,3 @@ class EnsembleForestV2Primitive(PrimitiveBase[container.DataFrame, container.Dat
 
     def set_params(self, *, params: Params) -> None:
         return
-
-    def _get_grid_for_metric(self) -> Dict[str, Any]:
-        if self.hyperparams['metric'] in classification_metrics:
-            return self._FAST_GRIDS['classification']
-        elif self.hyperparams['metric'] in regression_metrics:
-            return self._FAST_GRIDS['regression']
-        else:
-            raise Exception('ForestCV: unknown metric')
