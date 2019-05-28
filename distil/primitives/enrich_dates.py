@@ -6,7 +6,7 @@ from d3m import container, utils as d3m_utils
 from d3m.metadata import base as metadata_base, hyperparams
 from d3m.primitive_interfaces import base, transformer
 
-from exline.primitives import utils
+from distil.primitives import utils
 
 import numpy as np
 import pandas as pd

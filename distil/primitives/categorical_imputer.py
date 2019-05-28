@@ -12,8 +12,8 @@ import numpy as np
 from sklearn_pandas import CategoricalImputer
 from sklearn import compose
 
-from exline.primitives import utils
-from exline.primitives.utils import MISSING_VALUE_INDICATOR, CATEGORICALS
+from distil.primitives import utils
+from distil.primitives.utils import MISSING_VALUE_INDICATOR, CATEGORICALS
 
 
 __all__ = ('CategoricalImputerPrimitive',)
@@ -51,18 +51,18 @@ class CategoricalImputerPrimitive(transformer.TransformerPrimitiveBase[container
             'id': '0a9936f3-7784-4697-82f0-2a5fcc744c16',
             'version': '0.1.0',
             'name': "Categorical imputer",
-            'python_path': 'd3m.primitives.data_transformation.imputer.ExlineCategoricalImputer',
+            'python_path': 'd3m.primitives.data_transformation.imputer.DistilCategoricalImputer',
             'source': {
-                'name': 'exline',
+                'name': 'Distil',
                 'contact': 'mailto:cbethune@uncharted.software',
                 'uris': [
-                    'https://github.com/uncharted-distil/distil-primitives/primitives/categorical_imputer.py',
+                    'https://github.com/uncharted-distil/distil-primitives/distil/primitives/categorical_imputer.py',
                     'https://github.com/uncharted-distil/distil-primitives',
                 ],
             },
             'installation': [{
                 'type': metadata_base.PrimitiveInstallationType.PIP,
-                'package_uri': 'git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=d3m-exline'.format(
+                'package_uri': 'git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=distil-primitives'.format(
                     git_commit=d3m_utils.current_git_commit(os.path.dirname(__file__)),
                 ),
             }],

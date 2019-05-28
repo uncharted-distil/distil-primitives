@@ -4,8 +4,8 @@ import logging
 from d3m import container, utils as d3m_utils
 from d3m.metadata import base as metadata_base, hyperparams
 from d3m.primitive_interfaces import base, transformer
-from exline.primitives import utils
-from exline.primitives.utils import SINGLETON_INDICATOR, CATEGORICALS
+from distil.primitives import utils
+from distil.primitives.utils import SINGLETON_INDICATOR, CATEGORICALS
 
 import typing
 import numpy as np
@@ -33,7 +33,7 @@ class ReplaceSingletonsPrimitive(transformer.TransformerPrimitiveBase[container.
             'id': '7cacc8b6-85ad-4c8f-9f75-360e0faee2b8',
             'version': '0.1.0',
             'name': "Replace singeltons",
-            'python_path': 'd3m.primitives.data_transformation.data_cleaning.ExlineReplaceSingletons',
+            'python_path': 'd3m.primitives.data_transformation.data_cleaning.DistilReplaceSingletons',
             'source': {
                 'name': 'Distil',
                 'contact': 'mailto:cbethune@uncharted.software',
@@ -44,7 +44,7 @@ class ReplaceSingletonsPrimitive(transformer.TransformerPrimitiveBase[container.
             },
             'installation': [{
                 'type': metadata_base.PrimitiveInstallationType.PIP,
-                'package_uri': 'git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=d3m-exline'.format(
+                'package_uri': 'git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=distil-primitives'.format(
                     git_commit=d3m_utils.current_git_commit(os.path.dirname(__file__)),
                 ),
             }],

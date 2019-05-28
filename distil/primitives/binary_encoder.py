@@ -6,8 +6,8 @@ from d3m import container, utils as d3m_utils
 from d3m.metadata import base as metadata_base, hyperparams, params
 from d3m.primitive_interfaces import base, unsupervised_learning
 
-from exline.primitives import utils
-from exline.primitives.utils import CATEGORICALS
+from distil.primitives import utils
+from distil.primitives.utils import CATEGORICALS
 
 import pandas as pd
 import numpy as np
@@ -49,7 +49,7 @@ class BinaryEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
             'name': "Binary encoder",
             'python_path': 'd3m.primitives.data_transformation.encoder.DistilBinaryEncoder',
             'source': {
-                'name': 'Distil',
+                'name': 'distil',
                 'contact': 'mailto:cbethune@uncharted.software',
                 'uris': [
                     'https://github.com/uncharted-distil/distil-primitives/distil/primitives/binary_encoder.py',

@@ -8,8 +8,8 @@ from d3m.primitive_interfaces import base, transformer
 from d3m.primitive_interfaces.supervised_learning import PrimitiveBase
 from d3m.primitive_interfaces.base import CallResult
 
-from exline.modeling.forest import ForestCV
-from exline.modeling.metrics import classification_metrics, regression_metrics
+from distil.modeling.forest import ForestCV
+from distil.modeling.metrics import classification_metrics, regression_metrics
 
 import pandas as pd
 import numpy as np
@@ -55,18 +55,18 @@ class EnsembleForestV2Primitive(PrimitiveBase[container.DataFrame, container.Dat
             'id': 'e0ad06ce-b484-46b0-a478-c567e1ea7e02',
             'version': '0.2.0',
             'name': "EnsembleForestV2",
-            'python_path': 'd3m.primitives.learner.random_forest.ExlineEnsembleForestV2',
+            'python_path': 'd3m.primitives.learner.random_forest.DistilEnsembleForestV2',
             'source': {
-                'name': 'exline',
+                'name': 'distil',
                 'contact': 'mailto:cbethune@uncharted.software',
                 'uris': [
-                    'https://github.com/uncharted-distil/distil-primitives/primitives/ensemble_forest_v2.py',
+                    'https://github.com/uncharted-distil/distil-primitives/distil/primitives/ensemble_forest_v2.py',
                     'https://github.com/uncharted-distil/distil-primitives',
                 ],
             },
             'installation': [{
                 'type': metadata_base.PrimitiveInstallationType.PIP,
-                'package_uri': 'git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=d3m-exline'.format(
+                'package_uri': 'git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=distil-primitives'.format(
                     git_commit=d3m_utils.current_git_commit(os.path.dirname(__file__)),
                 ),
             }],

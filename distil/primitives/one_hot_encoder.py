@@ -9,8 +9,8 @@ from d3m.primitive_interfaces import base, unsupervised_learning
 import pandas as pd
 import numpy as np
 
-from exline.primitives import utils
-from exline.primitives.utils import CATEGORICALS
+from distil.primitives import utils
+from distil.primitives.utils import CATEGORICALS
 
 from sklearn import preprocessing
 from sklearn import compose

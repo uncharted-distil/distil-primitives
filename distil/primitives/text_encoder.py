@@ -9,8 +9,8 @@ from d3m.primitive_interfaces import base
 import pandas as pd
 import numpy as np
 
-from exline.preprocessing.transformers import SVMTextEncoder
-from exline.primitives import utils
+from distil.preprocessing.transformers import SVMTextEncoder
+from distil.primitives import utils
 
 
 __all__ = ('TextEncoderPrimitive',)
@@ -41,18 +41,18 @@ class TextEncoderPrimitive(base.PrimitiveBase[Inputs, Outputs, Params, Hyperpara
             'id': '09f252eb-215d-4e0b-9a60-fcd967f5e708',
             'version': '0.1.0',
             'name': "Text encoder",
-            'python_path': 'd3m.primitives.data_transformation.encoder.ExlineTextEncoder',
+            'python_path': 'd3m.primitives.data_transformation.encoder.DistilTextEncoder',
             'source': {
                 'name': 'Distil',
                 'contact': 'mailto:cbethune@uncharted.software',
                 'uris': [
-                    'https://github.com/uncharted-distil/distil-primitives/exline/primitives/binary_encoder.py',
+                    'https://github.com/uncharted-distil/distil-primitives/distil/primitives/text_encoder.py',
                     'https://github.com/uncharted-distil/distil-primitives',
                 ],
             },
             'installation': [{
                 'type': metadata_base.PrimitiveInstallationType.PIP,
-                'package_uri': 'git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=d3m-exline'.format(
+                'package_uri': 'git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=distil-primitives'.format(
                     git_commit=d3m_utils.current_git_commit(os.path.dirname(__file__)),
                 ),
             }],
