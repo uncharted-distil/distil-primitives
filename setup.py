@@ -10,7 +10,7 @@ except Exception as e:
     print(e)
 
 setup(
-    name='DistilPrimitives',
+    name='distil-primitives',
     version='0.1.0',
     description='Distil primitives as a single library (temporary)',
     packages=find_packages(),
