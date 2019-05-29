@@ -10,7 +10,7 @@ import numpy as np
 
 from sklearn.preprocessing import StandardScaler
 
-from distil.preprocessing.utils import MISSING_VALUE_INDICATOR
+from distil.primitives.utils import MISSING_VALUE_INDICATOR
 
 logger = logging.getLogger(__name__)
 

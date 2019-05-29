@@ -12,7 +12,7 @@ except Exception as e:
 setup(
     name='distil-primitives',
     version='0.1.0',
-    description='Distil primitives as a single library (temporary)',
+    description='Distil primitives as a single library',
     packages=find_packages(),
     keywords=['d3m_primitive'],
     install_requires=[
@@ -53,6 +53,7 @@ setup(
             'data_transformation.imputer.DistilCategoricalImputer = distil.primitives.categorical_imputer:CategoricalImputerPrimitive',
             'data_transformation.data_cleaning.DistilEnrichDates = distil.primitives.enrich_dates:EnrichDatesPrimitive',
             'learner.random_forest.DistilEnsembleForest = distil.primitives.ensemble_forest:EnsembleForestPrimitive',
+            'learner.random_forest.DistilEnsembleForestV2 = distil.primitives.ensemble_forest_v2:EnsembleForestV2Primitive',
             'learner.random_forest.DistilBertClassification = distil.primitives.bert_classification:BertClassificationPrimitive',
             'learner.random_forest.DistilCollaborativeFiltering = distil.primitives.collaborative_filtering:CollaborativeFilteringPrimitive',
             'data_transformation.standard_scaler.DistilStandardScaler = distil.primitives.standard_scaler:StandardScalerPrimitive',

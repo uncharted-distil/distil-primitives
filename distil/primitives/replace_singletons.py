@@ -4,7 +4,8 @@ import logging
 from d3m import container, utils as d3m_utils
 from d3m.metadata import base as metadata_base, hyperparams
 from d3m.primitive_interfaces import base, transformer
-from distil.preprocessing.utils import SINGLETON_INDICATOR
+from distil.primitives import utils
+from distil.primitives.utils import SINGLETON_INDICATOR, CATEGORICALS
 
 import typing
 import numpy as np
@@ -15,17 +16,18 @@ __all__ = ('ReplaceSingletonsPrimitive',)
 logger = logging.getLogger(__name__)
 
 class Hyperparams(hyperparams.Hyperparams):
-    keep_text = hyperparams.Hyperparameter[bool](
-        default=True,
+    use_columns = hyperparams.Set(
+        elements=hyperparams.Hyperparameter[int](-1),
+        default=(),
         semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
-        description='keeps text')
+        description="A set of column indices to force primitive to operate on. If any specified column cannot be parsed, it is skipped.",
+    )
 
 
 class ReplaceSingletonsPrimitive(transformer.TransformerPrimitiveBase[container.DataFrame, container.DataFrame, Hyperparams]):
     """
-    A primitive that replaces singletons.
+    Replaces category members with a count of one with a shared singleton token value.
     """
-
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': '7cacc8b6-85ad-4c8f-9f75-360e0faee2b8',
@@ -36,7 +38,7 @@ class ReplaceSingletonsPrimitive(transformer.TransformerPrimitiveBase[container.
                 'name': 'Distil',
                 'contact': 'mailto:cbethune@uncharted.software',
                 'uris': [
-                    'https://github.com/uncharted-distil/distil-primitives/distil/primitives/replace_singletons.py',
+                    'https://github.com/uncharted-distil/distil-primitives/primitives/replace_singletons.py',
                     'https://github.com/uncharted-distil/distil-primitives',
                 ],
             },
@@ -47,7 +49,7 @@ class ReplaceSingletonsPrimitive(transformer.TransformerPrimitiveBase[container.
                 ),
             }],
             'algorithm_types': [
-                metadata_base.PrimitiveAlgorithmType.ARRAY_SLICING,
+                metadata_base.PrimitiveAlgorithmType.ENCODE_BINARY,
             ],
             'primitive_family': metadata_base.PrimitiveFamily.DATA_TRANSFORMATION,
         },
@@ -56,24 +58,18 @@ class ReplaceSingletonsPrimitive(transformer.TransformerPrimitiveBase[container.
     def produce(self, *, inputs: container.DataFrame, timeout: float = None, iterations: int = None) -> base.CallResult[container.DataFrame]:
         logger.debug(f'Running {__name__}')
 
-        """ set values that only occur once to a special token """
-        cols: typing.List[container.DataFrame] = list(inputs.columns)
+        # set values that only occur once to a special token
         outputs = inputs.copy()
+
+        # determine columns to operate on
+        cols = utils.get_operating_columns(inputs, self.hyperparams['use_columns'], CATEGORICALS)
+
         for c in cols:
-            if inputs[c].dtype == object:
-                if not self.hyperparams['keep_text'] or not self._detect_text(inputs[c]):
-                    vcs = pd.value_counts(list(inputs[c]))
-                    singletons = set(vcs[vcs == 1].index)
-                    if singletons:
-                        outputs[c][outputs[c].isin(singletons)] = SINGLETON_INDICATOR
+            vcs = pd.value_counts(list(inputs.iloc[:,c]))
+            singletons = set(vcs[vcs == 1].index)
+            if singletons:
+                outputs.iloc[:,c][outputs.iloc[:,c].isin(singletons)] = SINGLETON_INDICATOR
 
         logger.debug(f'\n{outputs}')
 
         return base.CallResult(outputs)
-
-    @classmethod
-    def _detect_text(cls, X: container.DataFrame, thresh: int = 8) -> bool:
-        """ returns true if median entry has more than `thresh` tokens"""
-        X = X[X.notnull()]
-        n_toks = X.apply(lambda xx: len(str(xx).split(' '))).values
-        return np.median(n_toks) >= thresh

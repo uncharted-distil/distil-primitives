@@ -10,7 +10,7 @@ import numpy as np
 
 from sklearn.impute import MissingIndicator
 
-from distil.preprocessing.utils import MISSING_VALUE_INDICATOR
+from distil.primitives.utils import MISSING_VALUE_INDICATOR
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +42,7 @@ class MissingIndicatorPrimitive(unsupervised_learning.UnsupervisedLearnerPrimiti
                 'name': 'Distil',
                 'contact': 'mailto:cbethune@uncharted.software',
                 'uris': [
-                    'https://github.com/uncharted-distil/distil-primitives/distil/primitives/missing_indicator.py',
+                    'https://github.com/uncharted-distil/distil-primitives/primitives/missing_indicator.py',
                     'https://github.com/uncharted-distil/distil-primitives',
                 ],
             },
