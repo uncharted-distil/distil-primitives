@@ -39,7 +39,7 @@ class Params(params.Params):
 class OneHotEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBase[container.DataFrame, container.DataFrame, Params, Hyperparams]):
     """
     One-hot encodes categorical columns that equal or fall below a caller specified cardinality.  The source columns will be replaced by the
-    encoding columns.
+    encoding columns.  Categorical columns currently include those with the semantic type Categorical, Ordinal or DateTime.
     """
 
     metadata = metadata_base.PrimitiveMetadata(

@@ -33,3 +33,18 @@ def get_operating_columns(inputs: container.DataFrame, use_columns: Sequence[int
     else:
         cols = type_cols
     return list(cols)
+
+def get_operating_columns_structural_type(inputs: container.DataFrame, use_columns: Sequence[int],
+                                          structural_types: Sequence[str], require_attribute: bool = True) -> Sequence[int]:
+    # use caller supplied columns if supplied
+    cols = set(use_columns)
+    type_cols = set(inputs.metadata.list_columns_with_structural_types(structural_types))
+    if require_attribute:
+        attributes = set(inputs.metadata.list_columns_with_semantic_types(('https://metadata.datadrivendiscovery.org/types/Attribute',)))
+        type_cols = type_cols & attributes
+
+    if len(cols) > 0:
+        cols = type_cols & cols
+    else:
+        cols = type_cols
+    return list(cols)

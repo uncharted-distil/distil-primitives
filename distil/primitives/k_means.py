@@ -5,6 +5,8 @@ from d3m import container, utils as d3m_utils
 from d3m.metadata import base as metadata_base, hyperparams, params
 from d3m.primitive_interfaces import unsupervised_learning, transformer, base
 
+from distil.primitives import utils
+
 import pandas as pd
 import numpy as np
 from sklearn.cluster import KMeans
@@ -36,7 +38,8 @@ class Params(params.Params):
 
 class KMeansPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBase[container.DataFrame, container.DataFrame, Params, Hyperparams]):
     """
-    A primitive that scales standards.
+    A wrapper for scikit learn k-means that takes in a dataframe as input and returns a dataframe of (d3mIndex, cluster numbers) tuples as its
+    output.  It will ignore columns with a string structural type.
     """
 
     metadata = metadata_base.PrimitiveMetadata(
@@ -87,15 +90,8 @@ class KMeansPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBase[con
         logger.debug(f'Fitting {__name__}')
 
         # find candidate columns
-        cols = list(self.hyperparams['use_columns'])
-        if cols is None or len(cols) is 0:
-            cols = []
-            for idx, c in enumerate(self._inputs.columns):
-                if (self._inputs[c].dtype == int or self._inputs[c].dtype == float or self._inputs[c].dtype == bool):
-                    cols.append(idx)
-
-        logger.debug(f'Found {len(cols)} cols to use for clustering')
-        self._cols = cols
+        self._cols = utils.get_operating_columns_structural_type(self._inputs, self.hyperparams['use_columns'], ('bool', 'int', 'float'), False)
+        logger.debug(f'Found {len(self._cols)} cols to use for clustering')
         return base.CallResult(None)
 
     def produce(self, *, inputs: container.DataFrame, timeout: float = None, iterations: int = None) -> base.CallResult[container.DataFrame]:
@@ -106,7 +102,9 @@ class KMeansPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBase[con
 
         numerical_inputs = inputs.iloc[:,self._cols]
         k_means = KMeans(n_clusters = self.hyperparams['n_clusters'])
-        result_df = container.DataFrame(k_means.fit_predict(numerical_inputs), generate_metadata=True)
+        result = k_means.fit_predict(numerical_inputs)
+        result_df = container.DataFrame({'__cluster': result}, generate_metadata=True)
+        result_df.metadata = result_df.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, 0), 'https://metadata.datadrivendiscovery.org/types/PredictedTarget')
 
         logger.debug(f'\n{result_df}')
 

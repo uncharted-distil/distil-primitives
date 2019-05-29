@@ -40,6 +40,7 @@ class BinaryEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
     """
     Performs a binary encoding of categorical columns that are above a caller specified cardinality.  The source columns will be replaced by the
     encoding columns.  Some information is lost in comparison to a one-hot encoding, but the number of dimensions used is reduced.
+    Categorical columns currently include those with the semantic type Categorical, Ordinal or DateTime.
     """
 
     metadata = metadata_base.PrimitiveMetadata(
