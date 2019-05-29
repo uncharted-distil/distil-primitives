@@ -31,6 +31,11 @@ class Hyperparams(hyperparams.Hyperparams):
         semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
         description="Number of clusters to generate",
     )
+    cluster_col_name = hyperparams.Hyperparameter[str](
+        default = '__cluster',
+        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
+        description="The name of created cluster column in the returned dataframe",
+    )
 
 
 class Params(params.Params):
@@ -103,7 +108,7 @@ class KMeansPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBase[con
         numerical_inputs = inputs.iloc[:,self._cols]
         k_means = KMeans(n_clusters = self.hyperparams['n_clusters'])
         result = k_means.fit_predict(numerical_inputs)
-        result_df = container.DataFrame({'__cluster': result}, generate_metadata=True)
+        result_df = container.DataFrame({self.hyperparams['cluster_col_name']: result}, generate_metadata=True)
         result_df.metadata = result_df.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, 0), 'https://metadata.datadrivendiscovery.org/types/PredictedTarget')
 
         logger.debug(f'\n{result_df}')
