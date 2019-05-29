@@ -35,5 +35,6 @@ for primitive in primitives:
                 name = md['python_path']
                 with open('annotations/' + name + '.json', 'w') as f:
                     f.write(json.dumps(md, indent=4))
+                    f.write('\n')
             except:
                 pass
