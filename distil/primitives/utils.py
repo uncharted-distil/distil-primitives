@@ -6,8 +6,8 @@ import numpy as np
 from d3m.metadata import base
 from d3m import container
 
-MISSING_VALUE_INDICATOR = '__miss_salt%d' % np.random.choice(int(1e6))
-SINGLETON_INDICATOR     = '__sing_salt%d' % np.random.choice(int(1e6))
+MISSING_VALUE_INDICATOR = '__miss_salt_8acf6447-fd14-480e-9cfb-0cb46accfafd'
+SINGLETON_INDICATOR     = '__sing_salt_6df854b8-a0ba-41ba-b598-ddeba2edfb53'
 
 CATEGORICALS = ('https://metadata.datadrivendiscovery.org/types/CategoricalData',
                 'https://metadata.datadrivendiscovery.org/types/OrdinalData',
