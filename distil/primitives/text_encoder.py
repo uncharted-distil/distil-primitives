@@ -1,6 +1,6 @@
 import os
 import logging
-from typing import List
+from typing import List, Sequence
 
 from d3m import container, utils as d3m_utils
 from d3m.metadata import base as metadata_base, hyperparams, params
@@ -10,11 +10,15 @@ import pandas as pd
 import numpy as np
 
 from distil.preprocessing.transformers import SVMTextEncoder
+from distil.primitives import utils
 
 
 __all__ = ('TextEncoderPrimitive',)
 
 logger = logging.getLogger(__name__)
+
+Inputs = container.DataFrame
+Outputs = container.DataFrame
 
 class Hyperparams(hyperparams.Hyperparams):
     use_columns = hyperparams.Set(
@@ -27,11 +31,11 @@ class Hyperparams(hyperparams.Hyperparams):
 class Params(params.Params):
     pass
 
-class TextEncoderPrimitive(base.PrimitiveBase[container.DataFrame, container.DataFrame, Params, Hyperparams]):
+class TextEncoderPrimitive(base.PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
     """
-    A primitive that encodes texts.
+    Encodes string fields using TFIDF scoring combined with a linear SVC classifier.  The original string field is removed
+    and replaced with encoding columns.
     """
-
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': '09f252eb-215d-4e0b-9a60-fcd967f5e708',
@@ -42,7 +46,7 @@ class TextEncoderPrimitive(base.PrimitiveBase[container.DataFrame, container.Dat
                 'name': 'Distil',
                 'contact': 'mailto:cbethune@uncharted.software',
                 'uris': [
-                    'https://github.com/uncharted-distil/distil-primitives/distil/primitives/binary_encoder.py',
+                    'https://github.com/uncharted-distil/distil-primitives/distil/primitives/text_encoder.py',
                     'https://github.com/uncharted-distil/distil-primitives',
                 ],
             },
@@ -53,7 +57,7 @@ class TextEncoderPrimitive(base.PrimitiveBase[container.DataFrame, container.Dat
                 ),
             }],
             'algorithm_types': [
-                metadata_base.PrimitiveAlgorithmType.ARRAY_SLICING,
+                metadata_base.PrimitiveAlgorithmType.ENCODE_BINARY,
             ],
             'primitive_family': metadata_base.PrimitiveFamily.DATA_TRANSFORMATION,
         },
@@ -75,30 +79,24 @@ class TextEncoderPrimitive(base.PrimitiveBase[container.DataFrame, container.Dat
         self._encoders = state['models']
         self._cols = state['columns']
 
-    def set_training_data(self, *, inputs: container.DataFrame, outputs: container.DataFrame) -> None:
+    def set_training_data(self, *, inputs: Inputs, outputs: Outputs) -> None:
         self._inputs = inputs
         self._outputs = outputs
 
     def fit(self, *, timeout: float = None, iterations: int = None) -> base.CallResult[None]:
         logger.debug(f'Fitting {__name__}')
 
-        cols = list(self.hyperparams['use_columns'])
-
-        if cols is None or len(cols) is 0:
-            cols = []
-            for idx, c in enumerate(self._inputs.columns):
-                if self._inputs[c].dtype == object and self._detect_text(self._inputs[c]):
-                    cols.append(idx)
+        # determine columns to operate on
+        cols = utils.get_operating_columns(self._inputs, self.hyperparams['use_columns'], ('http://schema.org/Text',))
 
         logger.debug(f'Found {len(cols)} columns to encode')
 
-        self._cols = cols
+        self._cols = list(cols)
         self._encoders: List[SVMTextEncoder] = []
         self._encoder: None
         if len(cols) is 0:
             return base.CallResult(None)
 
-        # add the text encoded columns and remove the source
         for i, c in enumerate(self._cols):
             self._encoders.append(SVMTextEncoder())
             text_inputs = self._inputs.iloc[:,c]
@@ -106,21 +104,29 @@ class TextEncoderPrimitive(base.PrimitiveBase[container.DataFrame, container.Dat
 
         return base.CallResult(None)
 
-    def produce(self, *, inputs: container.DataFrame, timeout: float = None, iterations: int = None) -> base.CallResult[container.DataFrame]:
+    def produce(self, *, inputs: Inputs, timeout: float = None, iterations: int = None) -> base.CallResult[Outputs]:
         logger.debug(f'Producing {__name__}')
 
         if len(self._cols) == 0:
             return base.CallResult(inputs)
 
-        # add the binary encoded columns and remove the source
         outputs = inputs.copy()
+        encoded_cols = container.DataFrame()
+        # encode columns into a new dataframe
         for i, c in enumerate(self._cols):
             text_inputs = outputs.iloc[:,c]
             result = self._encoders[i].transform(text_inputs)
             for j in range(result.shape[1]):
-                outputs[(f'__text_{i * result.shape[1] + j}')] = result[:,j]
+                encoded_idx = i * result.shape[1] + j
+                encoded_cols[(f'__text_{encoded_idx}')] = result[:,j]
+        # generate metadata for encoded columns
+        encoded_cols.metadata = encoded_cols.metadata.generate(encoded_cols)
+        for c in range(encoded_cols.shape[1]):
+            encoded_cols.metadata = encoded_cols.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, encoded_idx), 'http://schema.org/Float')
 
-        outputs.drop(outputs.columns[self._cols], axis=1, inplace=True)
+        # append the encoded columns and remove the source columns
+        outputs = outputs.append_columns(encoded_cols)
+        outputs = outputs.remove_columns(self._cols)
 
         logger.debug(f'\n{outputs}')
 
@@ -131,10 +137,3 @@ class TextEncoderPrimitive(base.PrimitiveBase[container.DataFrame, container.Dat
 
     def set_params(self, *, params: Params) -> None:
         return
-
-    @classmethod
-    def _detect_text(cls, X: container.DataFrame, thresh: int = 8) -> bool:
-        """ returns true if median entry has more than `thresh` tokens"""
-        X = X[X.notnull()]
-        n_toks = X.apply(lambda xx: len(str(xx).split(' '))).values
-        return np.median(n_toks) >= thresh

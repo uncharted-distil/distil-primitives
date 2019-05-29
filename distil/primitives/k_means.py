@@ -11,7 +11,7 @@ from sklearn.cluster import KMeans
 
 
 
-from distil.preprocessing.utils import MISSING_VALUE_INDICATOR
+from distil.primitives.utils import MISSING_VALUE_INDICATOR
 
 logger = logging.getLogger(__name__)
 

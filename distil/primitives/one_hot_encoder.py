@@ -1,5 +1,5 @@
 import os
-from typing import List, Set, Any
+from typing import List, Set, Any, Sequence
 import logging
 
 from d3m import container, utils as d3m_utils
@@ -8,6 +8,9 @@ from d3m.primitive_interfaces import base, unsupervised_learning
 
 import pandas as pd
 import numpy as np
+
+from distil.primitives import utils
+from distil.primitives.utils import CATEGORICALS
 
 from sklearn import preprocessing
 from sklearn import compose
@@ -26,8 +29,8 @@ class Hyperparams(hyperparams.Hyperparams):
 
     max_one_hot = hyperparams.Hyperparameter[int](
         default=16,
-        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
-        description="Max number of labels for one hot encoding",
+        semantic_types=['https://metadata.datadrivendiscovery.org/types/TuningParameter'],
+        description="Max number of unique labels a column can have for encoding.  If the value is surpassed, the column is skipped.",
     )
 
 class Params(params.Params):
@@ -35,7 +38,8 @@ class Params(params.Params):
 
 class OneHotEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBase[container.DataFrame, container.DataFrame, Params, Hyperparams]):
     """
-    A primitive that encodes one hots.
+    One-hot encodes categorical columns that equal or fall below a caller specified cardinality.  The source columns will be replaced by the
+    encoding columns.
     """
 
     metadata = metadata_base.PrimitiveMetadata(
@@ -59,7 +63,7 @@ class OneHotEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
                 ),
             }],
             'algorithm_types': [
-                metadata_base.PrimitiveAlgorithmType.ARRAY_SLICING,
+                metadata_base.PrimitiveAlgorithmType.ENCODE_ONE_HOT,
             ],
             'primitive_family': metadata_base.PrimitiveFamily.DATA_TRANSFORMATION,
         },
@@ -87,24 +91,23 @@ class OneHotEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
     def fit(self, *, timeout: float = None, iterations: int = None) -> base.CallResult[None]:
         logger.debug(f'Fitting {__name__}')
 
-        cols = list(self.hyperparams['use_columns'])
+        # figure out columns to operate on
+        cols = utils.get_operating_columns(self._inputs, self.hyperparams['use_columns'], CATEGORICALS)
 
-        if cols is None or len(cols) is 0:
-            cols = []
-            for idx, c in enumerate(self._inputs.columns):
-                if self._inputs[c].dtype == object:
-                    num_labels = len(set(self._inputs[c]))
-                    if num_labels <= self.hyperparams['max_one_hot'] and not self._detect_text(self._inputs[c]):
-                        cols.append(idx)
+        filtered_cols: List[int] = []
+        for c in cols:
+            num_labels = len(set(self._inputs.iloc[:,c]))
+            if num_labels <= self.hyperparams['max_one_hot']:
+                filtered_cols.append(c)
 
-        logger.debug(f'Found {len(cols)} columns to encode')
+        logger.debug(f'Found {len(filtered_cols)} columns to encode')
 
-        self._cols = cols
+        self._cols = list(filtered_cols)
         self._encoder = None
         if len(cols) is 0:
             return base.CallResult(None)
 
-        input_cols = self._inputs.iloc[:,cols]
+        input_cols = self._inputs.iloc[:,self._cols]
         self._encoder = preprocessing.OneHotEncoder(sparse=False, handle_unknown='ignore')
         self._encoder.fit(input_cols)
 
@@ -120,11 +123,21 @@ class OneHotEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
         input_cols = inputs.iloc[:,self._cols]
         result = self._encoder.transform(input_cols)
 
-        # remove the source columns and append the result to the copy
+        # append the encoding columns and generate metadata
         outputs = inputs.copy()
+        encoded_cols: container.DataFrame = container.DataFrame()
+
         for i in range(result.shape[1]):
-            outputs[('__onehot_' + str(i))] = result[:,i]
-        outputs.drop(outputs.columns[self._cols], axis=1, inplace=True)
+            encoded_cols[f'__onehot_{str(i)}'] = result[:,i]
+        encoded_cols.metadata = encoded_cols.metadata.generate(encoded_cols)
+
+        for c in range(encoded_cols.shape[1]):
+            encoded_cols.metadata = encoded_cols.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, c), 'http://schema.org/Float')
+
+        outputs = outputs.append_columns(encoded_cols)
+
+        # drop the source columns
+        outputs = outputs.remove_columns(self._cols)
 
         logger.debug(f'\n{outputs}')
 
