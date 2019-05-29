@@ -48,7 +48,8 @@ class Params(params.Params):
 class EnsembleForestV2Primitive(PrimitiveBase[container.DataFrame, container.DataFrame, Params, Hyperparams]):
     """
     Generates an ensemble of random forests, with the number of internal models created controlled by the size of the
-    input dataframe.  Returns a dataframe consisting of predictions only.
+    input dataframe.  It accepts a dataframe as input, and returns a dataframe consisting of prediction values only as output.
+    Columns with string structural types are ignored.
     """
     metadata = metadata_base.PrimitiveMetadata(
         {

@@ -26,7 +26,8 @@ class Hyperparams(hyperparams.Hyperparams):
 
 class ReplaceSingletonsPrimitive(transformer.TransformerPrimitiveBase[container.DataFrame, container.DataFrame, Hyperparams]):
     """
-    Replaces category members with a count of one with a shared singleton token value.
+    Replaces category members with a count of one with a shared singleton token value.  Currently applies to columns
+    with semantic type Categorical, Ordinal or DateTime.
     """
     metadata = metadata_base.PrimitiveMetadata(
         {
