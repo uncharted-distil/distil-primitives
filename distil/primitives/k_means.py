@@ -103,7 +103,7 @@ class KMeansPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBase[con
         numerical_inputs = inputs.iloc[:,self._cols]
         k_means = KMeans(n_clusters = self.hyperparams['n_clusters'])
         result = k_means.fit_predict(numerical_inputs)
-        result_df = container.DataFrame(result, generate_metadata=True)
+        result_df = container.DataFrame({'__cluster': result}, generate_metadata=True)
         result_df.metadata = result_df.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, 0), 'https://metadata.datadrivendiscovery.org/types/PredictedTarget')
 
         logger.debug(f'\n{result_df}')
