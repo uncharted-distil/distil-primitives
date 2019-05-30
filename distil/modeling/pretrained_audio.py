@@ -38,7 +38,7 @@ def audioarray2mel(data, sample_rate):
     return ret_val
 
 
-def audio2vec(X):
+def audio2vec(X, MODEL_PATH:
     with tf.Graph().as_default(), tf.Session() as sess:
         vggish_slim.define_vggish_slim(training=False)
         vggish_slim.load_vggish_slim_checkpoint(sess, MODEL_PATH)
@@ -61,13 +61,15 @@ class AudiosetModel(DistilBaseModel):
 
     def __init__(self, target_metric=None):
         self.target_metric = target_metric
+        self.MODEL_PATH = '../../../vggish_model.ckpt'
+
 
     def _featurize(self, A):
 
         jobs = [delayed(audioarray2mel)(xx.data, xx.sample_rate) for xx in A]
         mel_feats = Parallel(n_jobs=32, backend='multiprocessing', verbose=10)(jobs)
 
-        vec_feats = audio2vec(mel_feats)
+        vec_feats = audio2vec(mel_feats, self.MODEL_PATH)
 
         return np.vstack([f.max(axis=0) for f in vec_feats])
 
