@@ -85,7 +85,6 @@ class Img2Vec():
             with open(model_path, 'rb') as f:
                 model = torch.load(f)
             if layer == 'default':
-                print("GETTING THIS NONSENSE")
                 layer = model._modules.get('avgpool')
                 self.layer_output_size = 512
             else:
