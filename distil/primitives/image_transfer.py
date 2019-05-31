@@ -58,12 +58,20 @@ class ImageTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
                     'https://github.com/uncharted-distil/distil-primitives',
                 ],
             },
-            'installation': [{
+            'installation': [
+                {
                 'type': metadata_base.PrimitiveInstallationType.PIP,
                 'package_uri': 'git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=distil-primitives'.format(
                     git_commit=d3m_utils.current_git_commit(os.path.dirname(__file__)),
                 ),
-            }],
+                },
+                {
+                    "type": "FILE",
+                    "key": "resnet18-5c106cde",
+                    "file_uri": "http://public.datadrivendiscovery.org/resnet18-5c106cde.pth",
+                    "file_digest": "5c106cde386e87d4033832f2996f5493238eda96ccf559d1d62760c4de0613f8",
+                }
+            ],
             'algorithm_types': [
                 metadata_base.PrimitiveAlgorithmType.ARRAY_SLICING,
             ],
@@ -73,11 +81,15 @@ class ImageTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
 
 
     def __init__(self, *,
-                 hyperparams: Hyperparams, random_seed: int=0) -> None:
+                 hyperparams: Hyperparams, 
+                 random_seed: int=0,
+                 volumes: Dict[str, str] = None) -> None:
 
-        PrimitiveBase.__init__(self, hyperparams=hyperparams, random_seed=random_seed)
+        PrimitiveBase.__init__(self, hyperparams=hyperparams, random_seed=random_seed, volumes=volumes)
 
-        self.img2vec = Img2Vec()
+        self.volumes = volumes
+        self.img2vec = Img2Vec(model_path=self.volumes["resnet18-5c106cde"])
+       
 
     def __getstate__(self) -> dict:
         state = PrimitiveBase.__getstate__(self)

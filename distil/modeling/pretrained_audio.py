@@ -38,10 +38,10 @@ def audioarray2mel(data, sample_rate):
     return ret_val
 
 
-def audio2vec(X, MODEL_PATH:
+def audio2vec(X, model_path):
     with tf.Graph().as_default(), tf.Session() as sess:
         vggish_slim.define_vggish_slim(training=False)
-        vggish_slim.load_vggish_slim_checkpoint(sess, MODEL_PATH)
+        vggish_slim.load_vggish_slim_checkpoint(sess, model_path)
 
         feat_ = sess.graph.get_tensor_by_name(vggish_params.INPUT_TENSOR_NAME)
         emb_ = sess.graph.get_tensor_by_name(vggish_params.OUTPUT_TENSOR_NAME)
@@ -59,9 +59,9 @@ def audio2vec(X, MODEL_PATH:
 
 class AudiosetModel(DistilBaseModel):
 
-    def __init__(self, target_metric=None):
+    def __init__(self, model_path, target_metric=None):
         self.target_metric = target_metric
-        self.MODEL_PATH = '../../../vggish_model.ckpt'
+        self.model_path = model_path
 
 
     def _featurize(self, A):
@@ -69,7 +69,7 @@ class AudiosetModel(DistilBaseModel):
         jobs = [delayed(audioarray2mel)(xx.data, xx.sample_rate) for xx in A]
         mel_feats = Parallel(n_jobs=32, backend='multiprocessing', verbose=10)(jobs)
 
-        vec_feats = audio2vec(mel_feats, self.MODEL_PATH)
+        vec_feats = audio2vec(mel_feats, self.model_path)
 
         return np.vstack([f.max(axis=0) for f in vec_feats])
 
