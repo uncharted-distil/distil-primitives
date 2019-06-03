@@ -64,7 +64,14 @@ class AudioTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
                 'package_uri': 'git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=distil-primitives'.format(
                     git_commit=d3m_utils.current_git_commit(os.path.dirname(__file__)),
                 ),
-            }],
+                },
+                {
+                    "type": "FILE",
+                    "key": "vggish_model",
+                    "file_uri": "http://public.datadrivendiscovery.org/vggish_model.ckpt",
+                    "file_digest": "0962b1914e3e053922d957c45bc84a78c985765641dc6bceeeb3a7d8dfecfdf6",
+                }
+            ],
             'algorithm_types': [
                 metadata_base.PrimitiveAlgorithmType.ARRAY_SLICING,
             ],
@@ -74,11 +81,13 @@ class AudioTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
 
 
     def __init__(self, *,
-                 hyperparams: Hyperparams, random_seed: int=0) -> None:
+                 hyperparams: Hyperparams, 
+                 random_seed: int=0,
+                 volumes: Dict[str, str] = None) -> None:
 
-        PrimitiveBase.__init__(self, hyperparams=hyperparams, random_seed=random_seed)
-
-        self.audio_set = AudiosetModel()
+        PrimitiveBase.__init__(self, hyperparams=hyperparams, random_seed=random_seed, volumes=volumes)
+        self.volumes = volumes
+        self.audio_set = AudiosetModel(model_path=self.volumes["vggish_model"])
 
     def __getstate__(self) -> dict:
         state = PrimitiveBase.__getstate__(self)
@@ -91,7 +100,6 @@ class AudioTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
 
     def set_training_data(self, *, inputs: container.List) -> None:
         self._inputs = inputs
-
 
 
     def _transform_inputs(self, inputs):

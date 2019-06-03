@@ -29,6 +29,7 @@ for primitive in primitives:
     for l in dir(lib):
         if 'Primitive' in l:
             pp = getattr(lib, l)
+            print(l)
             try:
                 item = pp(hyperparams=hypers(pp))
                 md = item.metadata.to_json_structure()
