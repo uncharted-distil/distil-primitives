@@ -3,7 +3,7 @@ from urllib import parse as url_parse
 
 import frozendict  # type: ignore
 
-from d3m import exceptions, utils as d3m_utils
+from d3m import exceptions, utils 
 from d3m.metadata import base as metadata_base
 
 import common_primitives
@@ -43,7 +43,7 @@ class TextReaderPrimitive(base.FileReaderPrimitiveBase):
             'installation': [{
                 'type': metadata_base.PrimitiveInstallationType.PIP,
                 'package_uri': 'git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=distil-primitives'.format(
-                    git_commit=d3m_utils.current_git_commit(os.path.dirname(__file__)),
+                    git_commit=utils.current_git_commit(os.path.dirname(__file__)),
                 ),
             }],
             'algorithm_types': [

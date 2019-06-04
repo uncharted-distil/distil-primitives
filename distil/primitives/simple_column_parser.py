@@ -3,7 +3,7 @@ import io
 from typing import List, Sequence
 import logging
 
-from d3m import container, utils as d3m_utils
+from d3m import container, utils
 from d3m.metadata import base as metadata_base, hyperparams
 from d3m.primitive_interfaces import base, transformer
 from common_primitives import utils as common_utils
@@ -39,7 +39,7 @@ class SimpleColumnParserPrimitive(transformer.TransformerPrimitiveBase[container
             'installation': [{
                 'type': metadata_base.PrimitiveInstallationType.PIP,
                 'package_uri': 'git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=distil-primitives'.format(
-                    git_commit=d3m_utils.current_git_commit(os.path.dirname(__file__)),
+                    git_commit=utils.current_git_commit(os.path.dirname(__file__)),
                 ),
             }],
             'algorithm_types': [
