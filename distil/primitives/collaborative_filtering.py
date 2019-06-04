@@ -104,16 +104,13 @@ class CollaborativeFilteringPrimitive(PrimitiveBase[container.DataFrame, contain
 
 
     def set_training_data(self, *, inputs: container.DataFrame, outputs: container.DataFrame) -> None:
-        num_rows = inputs.shape[0]
-        select_rows = random.sample(range(0, num_rows-1), int(num_rows-1*0.01))
-        self._inputs = inputs.iloc[select_rows,:]
-        self._outputs = outputs.iloc[select_rows,:]
+        self._inputs = inputs
+        self._outputs = outputs
         self._encoders: Mapping[str, preprocessing.LabelEncoder] = defaultdict(preprocessing.LabelEncoder)
 
 
     def fit(self, *, timeout: float = None, iterations: int = None) -> base.CallResult[None]:
         logger.debug(f'Fitting {__name__}')
-
         if torch.cuda.is_available():
             if self.hyperparams['force_cpu']:
                 logger.info("Detected CUDA support - forcing use of CPU")
@@ -140,9 +137,8 @@ class CollaborativeFilteringPrimitive(PrimitiveBase[container.DataFrame, contain
 
     def produce(self, *, inputs: container.DataFrame, timeout: float = None, iterations: int = None) -> base.CallResult[container.DataFrame]:
         logger.debug(f'Producing {__name__}')
-
         # extract and encode user and item columns
-        inputs = self._inputs.iloc[(self.hyperparams['user_col'], self.hyperparams['item_col'])]
+        inputs = inputs.iloc[:, [self.hyperparams['user_col'], self.hyperparams['item_col']]]
         inputs = inputs.apply(lambda x: self._encoders[x.name].transform(x))
         # predict ratings
         result = self._model.predict(inputs)
