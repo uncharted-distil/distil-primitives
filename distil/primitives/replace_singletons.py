@@ -4,7 +4,7 @@ import logging
 from d3m import container, utils 
 from d3m.metadata import base as metadata_base, hyperparams
 from d3m.primitive_interfaces import base, transformer
-from distil.primitives import utils
+from distil.primitives import utils as distil_utils
 from distil.primitives.utils import SINGLETON_INDICATOR, CATEGORICALS
 
 import typing
@@ -63,7 +63,7 @@ class ReplaceSingletonsPrimitive(transformer.TransformerPrimitiveBase[container.
         outputs = inputs.copy()
 
         # determine columns to operate on
-        cols = utils.get_operating_columns(inputs, self.hyperparams['use_columns'], CATEGORICALS)
+        cols = distil_utils.get_operating_columns(inputs, self.hyperparams['use_columns'], CATEGORICALS)
 
         for c in cols:
             vcs = pd.value_counts(list(inputs.iloc[:,c]))

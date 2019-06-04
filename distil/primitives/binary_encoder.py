@@ -6,7 +6,7 @@ from d3m import container, utils
 from d3m.metadata import base as metadata_base, hyperparams, params
 from d3m.primitive_interfaces import base, unsupervised_learning
 
-from distil.primitives import utils
+from distil.primitives import utils as distil_utils
 from distil.primitives.utils import CATEGORICALS
 
 import pandas as pd
@@ -93,7 +93,7 @@ class BinaryEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
         logger.debug('Fitting binary encoder')
 
         # find columns to operate on
-        cols = utils.get_operating_columns(self._inputs, self.hyperparams['use_columns'], CATEGORICALS)
+        cols = distil_utils.get_operating_columns(self._inputs, self.hyperparams['use_columns'], CATEGORICALS)
 
         filtered_cols: List[int] = []
         for c in cols:

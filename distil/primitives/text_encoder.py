@@ -10,7 +10,7 @@ import pandas as pd
 import numpy as np
 
 from distil.preprocessing.transformers import SVMTextEncoder
-from distil.primitives import utils
+from distil.primitives import utils as distil_utils
 
 
 __all__ = ('TextEncoderPrimitive',)

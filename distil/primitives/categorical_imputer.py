@@ -12,7 +12,7 @@ import numpy as np
 from sklearn_pandas import CategoricalImputer
 from sklearn import compose
 
-from distil.primitives import utils
+from distil.primitives import utils as distil_utils
 from distil.primitives.utils import MISSING_VALUE_INDICATOR, CATEGORICALS
 
 
@@ -78,7 +78,7 @@ class CategoricalImputerPrimitive(transformer.TransformerPrimitiveBase[container
         logger.debug(f'Running {__name__}')
 
         # determine columns to operate on
-        cols = utils.get_operating_columns(inputs, self.hyperparams['use_columns'], CATEGORICALS)
+        cols = distil_utils.get_operating_columns(inputs, self.hyperparams['use_columns'], CATEGORICALS)
 
         logger.debug(f'Found {len(cols)} categorical columns to evaluate')
 

@@ -5,7 +5,7 @@ from d3m import container, utils
 from d3m.metadata import base as metadata_base, hyperparams, params
 from d3m.primitive_interfaces import unsupervised_learning, transformer, base
 
-from distil.primitives import utils
+from distil.primitives import utils as distil_utils as distil_utils
 
 import pandas as pd
 import numpy as np
@@ -95,7 +95,7 @@ class KMeansPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBase[con
         logger.debug(f'Fitting {__name__}')
 
         # find candidate columns
-        self._cols = utils.get_operating_columns_structural_type(self._inputs, self.hyperparams['use_columns'], ('bool', 'int', 'float'), False)
+        self._cols = distil_utils.get_operating_columns_structural_type(self._inputs, self.hyperparams['use_columns'], ('bool', 'int', 'float'), False)
         logger.debug(f'Found {len(self._cols)} cols to use for clustering')
         return base.CallResult(None)
 

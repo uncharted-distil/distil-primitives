@@ -6,7 +6,7 @@ from d3m import container, utils
 from d3m.metadata import base as metadata_base, hyperparams
 from d3m.primitive_interfaces import base, transformer
 
-from distil.primitives import utils
+from distil.primitives import utils as distil_utils
 
 import numpy as np
 import pandas as pd
@@ -72,7 +72,7 @@ class EnrichDatesPrimitive(transformer.TransformerPrimitiveBase[Inputs, Outputs,
     def _enrich_dates(self, inputs: Inputs) -> Outputs:
 
         # determine columns we need to operate on
-        cols = utils.get_operating_columns(inputs, self.hyperparams['use_columns'], ('http://schema.org/DateTime',))
+        cols = distil_utils.get_operating_columns(inputs, self.hyperparams['use_columns'], ('http://schema.org/DateTime',))
 
         date_num = 0
         for c in cols:
