@@ -1,3 +1,4 @@
+import os
 import numpy as np
 from joblib import Parallel, delayed
 import torch
@@ -79,13 +80,19 @@ class Img2Vec():
         :param layer: layer as a string for resnet-18 or int for alexnet
         :returns: pytorch model, selected layer
         """
+        # This is obnoxious - rename the static file to be useful
+        # Set env var
+        static_dir = os.getenv('D3MSTATICDIR', '/static')
+        os.environ['TORCH_MODEL_ZOO'] = static_dir
+        os.rename(model_path, static_dir + '/resnet18-5c106cde.pth')
+
         if model_name == 'resnet-18':
             # Cannot load this way anymore
-            # model = models.resnet18(pretrained=True)
-            print(model_path)
-            print("MODEL_PATH")
-            with open(model_path, 'rb') as f:
-                model = torch.load(f)
+            model = models.resnet18()
+            #print(model_path)
+            #print("MODEL_PATH")
+            #with open(model_path, 'rb') as f:
+            #    model = torch.load(f)
             if layer == 'default':
                 layer = model._modules.get('avgpool')
                 self.layer_output_size = 512
