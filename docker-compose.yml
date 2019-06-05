@@ -4,3 +4,4 @@ services:
     build: .
     volumes:
       - ./annotations/:/annotations/
+      - ./static:/static
