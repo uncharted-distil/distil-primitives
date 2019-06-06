@@ -105,9 +105,7 @@ class ImageTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
 
     def _img_to_vec(self, image_array):
         image_array = image_array.squeeze()
-        if image_array.ndim == 2:
-            image_array = image_array.reshape([1] + list(image_array.shape))
-        return self.img2vec.get_vec(Image.fromarray(image_array))
+        return self.img2vec.get_vec(Image.fromarray(image_array).convert('RGB'))
 
     def _transform_inputs(self, inputs):
         result = inputs.copy()
