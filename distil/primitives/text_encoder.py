@@ -87,7 +87,7 @@ class TextEncoderPrimitive(base.PrimitiveBase[Inputs, Outputs, Params, Hyperpara
         logger.debug(f'Fitting {__name__}')
 
         # determine columns to operate on
-        cols = utils.get_operating_columns(self._inputs, self.hyperparams['use_columns'], ('http://schema.org/Text',))
+        cols = distil_utils.get_operating_columns(self._inputs, self.hyperparams['use_columns'], ('http://schema.org/Text',))
 
         logger.debug(f'Found {len(cols)} columns to encode')
 
