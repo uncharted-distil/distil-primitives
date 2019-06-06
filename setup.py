@@ -55,7 +55,7 @@ setup(
             'data_transformation.data_cleaning.DistilEnrichDates = distil.primitives.enrich_dates:EnrichDatesPrimitive',
             'learner.random_forest.DistilEnsembleForest = distil.primitives.ensemble_forest:EnsembleForestPrimitive',
             'learner.random_forest.DistilEnsembleForestOld = distil.primitives.ensemble_forest_old:EnsembleForestOldPrimitive',
-            'learner.bert_classification.DistilBertClassification = distil.primitives.bert_classification:BertClassificationPrimitive',
+            'classification.bert_classifier.DistilBertPairClassification = distil.primitives.bert_classification:BertPairClassificationPrimitive',
             'learner.collaborative_filtering_link_prediction.DistilCollaborativeFiltering = distil.primitives.collaborative_filtering:CollaborativeFilteringPrimitive',
             'data_transformation.one_hot_encoder.DistilOneHotEncoder = distil.primitives.one_hot_encoder:OneHotEncoderPrimitive',
             'data_transformation.encoder.DistilBinaryEncoder = distil.primitives.binary_encoder:BinaryEncoderPrimitive',

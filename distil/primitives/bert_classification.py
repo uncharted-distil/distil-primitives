@@ -14,7 +14,7 @@ import torch
 from distil.modeling.bert_models import BERTPairClassification
 
 
-_all__ = ('BertClassification',)
+_all__ = ('BertPairClassification',)
 
 logger = logging.getLogger(__name__)
 
@@ -24,15 +24,15 @@ class Hyperparams(hyperparams.Hyperparams):
         semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
         description='scoring metric to use'
     )
-    col_0 = hyperparams.Hyperparameter[int](
+    doc_col_0 = hyperparams.Hyperparameter[int](
         default=0,
         semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
-        description='The index of the column containing the first elements in the classification pairs.'
+        description='The index of the column containing the first documents in the classification pairs.'
     )
-    col_1 = hyperparams.Hyperparameter[int](
+    doc_col_1 = hyperparams.Hyperparameter[int](
         default=1,
         semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
-        description='The index of the column containing the second elements in the classification pairs.'
+        description='The index of the column containing the second documents in the classification pairs.'
     )
     force_cpu = hyperparams.Hyperparameter[bool](
         default=False,
@@ -44,9 +44,11 @@ class Params(params.Params):
     pass
 
 
-class BertClassificationPrimitive(PrimitiveBase[container.DataFrame, container.DataFrame, Params, Hyperparams]):
+class BertPairClassificationPrimitive(PrimitiveBase[container.DataFrame, container.DataFrame, Params, Hyperparams]):
     """
-    A primitive that classifies berts.
+    Uses a pre-trained pytorch BERT model to predict a label of 0 or 1 for a pair of documents, given training samples
+    of document pairs labelled 0/1.  Takes a datrame of documents and a dataframe of labels as inputs, and returns
+    a dataframe containing the predictions as a result.
     """
 
     metadata = metadata_base.PrimitiveMetadata(
@@ -54,7 +56,7 @@ class BertClassificationPrimitive(PrimitiveBase[container.DataFrame, container.D
             'id': '7c305f3a-442a-41ad-b9db-8c437753b119',
             'version': '0.1.0',
             'name': "BERT pair classification",
-            'python_path': 'd3m.primitives.learner.bert_classification.DistilBertClassification',
+            'python_path': 'd3m.primitives.classification.bert_classifier.DistilBertPairClassification',
             'source': {
                 'name': 'Distil',
                 'contact': 'mailto:cbethune@uncharted.software',
@@ -114,7 +116,7 @@ class BertClassificationPrimitive(PrimitiveBase[container.DataFrame, container.D
 
         # lazy init because we needed data to be set
         if not self._model:
-            columns = (self._inputs.columns[self.hyperparams['col_0']], self._inputs.columns[self.hyperparams['col_1']])
+            columns = (self._inputs.columns[self.hyperparams['doc_col_0']], self._inputs.columns[self.hyperparams['doc_col_1']])
             if torch.cuda.is_available():
                 if self.hyperparams['force_cpu']:
                     logger.info("Detected CUDA support - forcing use of CPU")
