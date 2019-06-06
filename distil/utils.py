@@ -1,4 +1,5 @@
 import os
+import shutil
 import numpy as np
 from joblib import Parallel, delayed
 import torch
@@ -80,12 +81,16 @@ class Img2Vec():
         :param layer: layer as a string for resnet-18 or int for alexnet
         :returns: pytorch model, selected layer
         """
+        static_dir = os.getenv('D3MSTATICDIR', '/static')
+        shutil.copy(model_path, static_dir + '/resnet18-5c106cde.pth')
 
         if model_name == 'resnet-18':
-            model = models.resnet18()
-            with open(model_path, 'rb') as f:
-                state_dict = torch.load(f)
-            model.load_state_dict(state_dict)
+            #model = models.resnet18()
+            #with open(model_path, 'rb') as f:
+            #    state_dict = torch.load(f)
+            #model.load_state_dict(state_dict)
+            url = 'http://public.datadrivendiscovery.org/resnet18-5c106cde.pth'
+            model = torch.utils.model_zoo.load_url(url, model_dir=static_dir)
             if layer == 'default':
                 layer = model._modules.get('avgpool')
                 self.layer_output_size = 512
