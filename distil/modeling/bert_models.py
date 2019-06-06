@@ -116,7 +116,7 @@ class QAModel(PreTrainedBertModel):
 
 class BERTPairClassification(DistilBaseModel):
 
-    def __init__(self, target_metric, columns=['question', 'sentence'],
+    def __init__(self, target_metric, model_path, columns=['question', 'sentence'],
         batch_size=32, learning_rate=5e-5, epochs=3, warmup_proportion=0.1, seed=123):
 
         assert target_metric in classification_metrics
@@ -129,7 +129,7 @@ class BERTPairClassification(DistilBaseModel):
         self.epochs            = epochs
         self.warmup_proportion = warmup_proportion
 
-        self.bert_model        = 'bert-base-uncased'
+        self.bert_model        = model_path
         self.do_lower_case     = True
 
         if torch.cuda.is_available():
