@@ -108,8 +108,8 @@ class BertPairClassificationPrimitive(PrimitiveBase[container.DataFrame, contain
         self._model = state['model']
 
     def set_training_data(self, *, inputs: container.DataFrame, outputs: container.DataFrame) -> None:
-        self._inputs = inputs.head(100)
-        self._outputs = outputs.head(100)
+        self._inputs = inputs
+        self._outputs = outputs
 
     def fit(self, *, timeout: float = None, iterations: int = None) -> base.CallResult[None]:
         logger.debug(f'Fitting {__name__}')
@@ -142,7 +142,7 @@ class BertPairClassificationPrimitive(PrimitiveBase[container.DataFrame, contain
     def produce(self, *, inputs: container.DataFrame, timeout: float = None, iterations: int = None) -> base.CallResult[container.DataFrame]:
         logger.debug(f'Producing {__name__}')
 
-        inputs = inputs.head(100)
+        inputs = inputs
 
         # create dataframe to hold result
         result = self._model.predict(inputs)
