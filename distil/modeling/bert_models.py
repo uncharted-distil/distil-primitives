@@ -139,6 +139,8 @@ class BERTPairClassification(DistilBaseModel):
             logger.info("CUDA does not appear to be supported - using CPU.")
             self.device = torch.device("cpu")
 
+        print('self.bert_model')
+        print(self.bert_model)
         self.tokenizer = BertTokenizer.from_pretrained(self.bert_model, do_lower_case=self.do_lower_case)
 
         _ = np.random.seed(seed)
