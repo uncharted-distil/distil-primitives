@@ -89,9 +89,9 @@ class Img2Vec():
         if model_name == 'resnet-18':
             # Cannot load this way anymore
             model = models.resnet18()
-            model.load_state_dict(model_path)
-            #print(model_path)
-            #print("MODEL_PATH")
+            with open(model_path, 'rb') as f:
+                state_dict = torch.load(f)
+            model.load_state_dict(state_dict)
             #with open(model_path, 'rb') as f:
             #    model = torch.load(f)
             if layer == 'default':
