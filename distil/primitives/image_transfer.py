@@ -103,12 +103,18 @@ class ImageTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
     def set_training_data(self, *, inputs: container.DataFrame) -> None:
         self._inputs = inputs
 
+    def _img_to_vec(self, image_array):
+        image_array = image_array.squeeze()
+        if image_array.ndim == 2:
+            image_array = image_array.reshape([1] + list(image_array.shape))
+        return self.img2vec.get_vec(Image.fromarray(image_array))
 
     def _transform_inputs(self, inputs):
         result = inputs.copy()
+       
         result['image_vec'] = (
             result['filename']
-                .apply(lambda image_file: self.img2vec.get_vec(Image.fromarray(image_file.squeeze()))) #self.img2vec.get_vec(image_file))
+                .apply(lambda image_file: self._img_to_vec(image_file))) #self.img2vec.get_vec(image_file))
         )
 
         df = pd.DataFrame(result['image_vec'].values.tolist())
