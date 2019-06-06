@@ -82,13 +82,14 @@ class Img2Vec():
         """
         # This is obnoxious - rename the static file to be useful
         # Set env var
-        static_dir = os.getenv('D3MSTATICDIR', '/static')
-        os.environ['TORCH_MODEL_ZOO'] = static_dir
-        os.rename(model_path, static_dir + '/resnet18-5c106cde.pth')
+        #static_dir = os.getenv('D3MSTATICDIR', '/static')
+        #os.environ['TORCH_MODEL_ZOO'] = static_dir
+        #os.rename(model_path, static_dir + '/resnet18-5c106cde.pth')
 
         if model_name == 'resnet-18':
             # Cannot load this way anymore
             model = models.resnet18()
+            model.load_state_dict(model_path)
             #print(model_path)
             #print("MODEL_PATH")
             #with open(model_path, 'rb') as f:
