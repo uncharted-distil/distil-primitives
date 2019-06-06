@@ -2,13 +2,14 @@ import os
 import logging
 from typing import List, Dict
 
-from d3m import container, utils 
+from d3m import container, utils
 from d3m.metadata import base as metadata_base, hyperparams, params
 from d3m.primitive_interfaces import base
 from d3m.primitive_interfaces.supervised_learning import PrimitiveBase
 
 import pandas as pd
 import numpy as np
+import torch
 
 from distil.modeling.bert_models import BERTPairClassification
 
@@ -23,10 +24,20 @@ class Hyperparams(hyperparams.Hyperparams):
         semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
         description='scoring metric to use'
     )
-    sample = hyperparams.Hyperparameter[float](
-        default=1.0,
+    col_0 = hyperparams.Hyperparameter[int](
+        default=0,
         semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
-        description='pct of data to use - for debugging purposes only, takes first n rows'
+        description='The index of the column containing the first elements in the classification pairs.'
+    )
+    col_1 = hyperparams.Hyperparameter[int](
+        default=1,
+        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
+        description='The index of the column containing the second elements in the classification pairs.'
+    )
+    force_cpu = hyperparams.Hyperparameter[bool](
+        default=False,
+        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
+        description='Force CPU execution regardless of GPU availability.'
     )
 
 class Params(params.Params):
@@ -35,15 +46,15 @@ class Params(params.Params):
 
 class BertClassificationPrimitive(PrimitiveBase[container.DataFrame, container.DataFrame, Params, Hyperparams]):
     """
-    A primitive that berts.
+    A primitive that classifies berts.
     """
 
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': '7c305f3a-442a-41ad-b9db-8c437753b119',
             'version': '0.1.0',
-            'name': "Bert models",
-            'python_path': 'd3m.primitives.learner.random_forest.DistilBertClassification',
+            'name': "BERT pair classification",
+            'python_path': 'd3m.primitives.learner.bert_classification.DistilBertClassification',
             'source': {
                 'name': 'Distil',
                 'contact': 'mailto:cbethune@uncharted.software',
@@ -65,9 +76,9 @@ class BertClassificationPrimitive(PrimitiveBase[container.DataFrame, container.D
                     "file_digest": "57f8763c92909d8ab1b0d2a059d27c9259cf3f2ca50f7683edfa11aee1992a59",
             }],
             'algorithm_types': [
-                metadata_base.PrimitiveAlgorithmType.ARRAY_SLICING,
+                metadata_base.PrimitiveAlgorithmType.BERT,
             ],
-            'primitive_family': metadata_base.PrimitiveFamily.DATA_TRANSFORMATION,
+            'primitive_family': metadata_base.PrimitiveFamily.CLASSIFICATION,
         },
     )
 
@@ -89,33 +100,41 @@ class BertClassificationPrimitive(PrimitiveBase[container.DataFrame, container.D
         self._model = state['model']
 
     def set_training_data(self, *, inputs: container.DataFrame, outputs: container.DataFrame) -> None:
-        rows = int(inputs.shape[0]*self.hyperparams['sample'])
-        if self.hyperparams['sample'] < 1.0:
-            logger.debug(f'sampling the first {rows} rows of the data')
-
-        self._inputs = inputs.head(rows)
-        self._outputs = outputs.head(rows)
+        self._inputs = inputs.head(100)
+        self._outputs = outputs.head(100)
 
     def fit(self, *, timeout: float = None, iterations: int = None) -> base.CallResult[None]:
         logger.debug(f'Fitting {__name__}')
+
+        if torch.cuda.is_available():
+            if self.hyperparams['force_cpu']:
+                logger.info("Detected CUDA support - forcing use of CPU")
+                device = "cpu"
+            else:
+                logger.info("Detected CUDA support - using GPU")
+                device = "cuda"
+        else:
+            logger.info("CUDA does not appear to be supported - using CPU.")
+            device = "cpu"
+
+        columns = (self._inputs.columns[self.hyperparams['col_0']], self._inputs.columns[self.hyperparams['col_1']])
+        self._model = BERTPairClassification(self.hyperparams['metric'], device=device, columns=columns)
         self._model.fit(self._inputs, self._outputs)
         return base.CallResult(None)
 
     def produce(self, *, inputs: container.DataFrame, timeout: float = None, iterations: int = None) -> base.CallResult[container.DataFrame]:
         logger.debug(f'Producing {__name__}')
 
-        rows = int(inputs.shape[0]*self.hyperparams['sample'])
-        inputs = inputs.head(rows)
+        inputs = inputs.head(100)
 
-        # create dataframe to hold d3mIndex and result
+        # create dataframe to hold result
         result = self._model.predict(inputs)
         result =np.array([self._model.label_list[r] for r in result]) # decode labels
 
-        result_df = container.DataFrame({inputs.index.name: inputs.index, self._outputs.columns[0]: result}, generate_metadata=True)
+        result_df = container.DataFrame({self._outputs.columns[0]: result}, generate_metadata=True)
 
         # mark the semantic types on the dataframe
-        result_df.metadata = result_df.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, 0), 'https://metadata.datadrivendiscovery.org/types/PrimaryKey')
-        result_df.metadata = result_df.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, 1), 'https://metadata.datadrivendiscovery.org/types/PredictedTarget')
+        result_df.metadata = result_df.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, 0), 'https://metadata.datadrivendiscovery.org/types/PredictedTarget')
 
         logger.debug(f'\n{result_df}')
 

@@ -117,7 +117,7 @@ class QAModel(PreTrainedBertModel):
 class BERTPairClassification(DistilBaseModel):
 
     def __init__(self, target_metric, model_path, columns=['question', 'sentence'],
-        batch_size=32, learning_rate=5e-5, epochs=3, warmup_proportion=0.1, seed=123):
+        batch_size=32, learning_rate=5e-5, epochs=3, warmup_proportion=0.1, seed=123, device='cuda'):
 
         assert target_metric in classification_metrics
 
@@ -132,12 +132,7 @@ class BERTPairClassification(DistilBaseModel):
         self.bert_model        = model_path
         self.do_lower_case     = True
 
-        if torch.cuda.is_available():
-            logger.info("Detect CUDA support")
-            self.device = torch.device("cuda")
-        else:
-            logger.info("CUDA does not appear to be supported - using CPU.")
-            self.device = torch.device("cpu")
+        self.device = device
 
         self.tokenizer = BertTokenizer.from_pretrained(self.bert_model, do_lower_case=self.do_lower_case)
 
@@ -158,11 +153,6 @@ class BERTPairClassification(DistilBaseModel):
         }
 
     def fit(self, X_train, y_train, U_train=None):
-
-        # CDB: This can't be hardcoded.  System needs to infer on its own, or the user needs to mark the columns
-        # for pairwise matching.
-        assert 'question' in X_train.columns
-        assert 'sentence' in X_train.columns
 
         # --
         # Prep
