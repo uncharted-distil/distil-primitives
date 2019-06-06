@@ -2,7 +2,7 @@ import os
 import logging
 from typing import Set, List, Dict, Any, Optional
 
-from d3m import container, utils 
+from d3m import container, utils
 from d3m.metadata import base as metadata_base, hyperparams, params
 from d3m.primitive_interfaces import base, unsupervised_learning
 from d3m.primitive_interfaces.supervised_learning import PrimitiveBase
@@ -81,7 +81,7 @@ class ImageTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
 
 
     def __init__(self, *,
-                 hyperparams: Hyperparams, 
+                 hyperparams: Hyperparams,
                  random_seed: int=0,
                  volumes: Dict[str, str] = None) -> None:
 
@@ -89,7 +89,7 @@ class ImageTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
 
         self.volumes = volumes
         self.img2vec = Img2Vec(model_path=self.volumes["resnet18-5c106cde"])
-       
+
 
     def __getstate__(self) -> dict:
         state = PrimitiveBase.__getstate__(self)
@@ -111,11 +111,11 @@ class ImageTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
 
     def _transform_inputs(self, inputs):
         result = inputs.copy()
-       
+
         result['image_vec'] = (
             result['filename']
                 .apply(lambda image_file: self._img_to_vec(image_file))) #self.img2vec.get_vec(image_file))
-        )
+
 
         df = pd.DataFrame(result['image_vec'].values.tolist())
         df.columns = ['v{}'.format(i) for i in range(0, df.shape[1])]
