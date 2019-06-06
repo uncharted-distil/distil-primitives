@@ -57,7 +57,13 @@ class BertClassificationPrimitive(PrimitiveBase[container.DataFrame, container.D
                 'package_uri': 'git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=distil-primitives'.format(
                     git_commit=utils.current_git_commit(os.path.dirname(__file__)),
                 ),
-            }],
+            },
+                            {
+                    "type": "FILE",
+                    "key": "bert-base-uncased.tar.gz",
+                    "file_uri": "https://s3.amazonaws.com/models.huggingface.co/bert/bert-base-uncased.tar.gz",
+                    "file_digest": "57f8763c92909d8ab1b0d2a059d27c9259cf3f2ca50f7683edfa11aee1992a59",
+                }],
             'algorithm_types': [
                 metadata_base.PrimitiveAlgorithmType.ARRAY_SLICING,
             ],
