@@ -1,6 +1,6 @@
 import os
 import logging
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 from d3m import container, utils
 from d3m.metadata import base as metadata_base, hyperparams, params
@@ -71,9 +71,15 @@ class BertClassificationPrimitive(PrimitiveBase[container.DataFrame, container.D
             },
             {
                     "type": "FILE",
-                    "key": "bert-base-uncased.tar.gz",
+                    "key": "bert-base-uncased-model",
                     "file_uri": "https://s3.amazonaws.com/models.huggingface.co/bert/bert-base-uncased.tar.gz",
                     "file_digest": "57f8763c92909d8ab1b0d2a059d27c9259cf3f2ca50f7683edfa11aee1992a59",
+            },
+            {
+                    "type": "FILE",
+                    "key": "bert-base-uncased-vocab",
+                    "file_uri": "https://s3.amazonaws.com/models.huggingface.co/bert/bert-base-uncased-vocab.txt",
+                    "file_digest": "07eced375cec144d27c900241f3e339478dec958f92fddbc551f295c992038a3",
             }],
             'algorithm_types': [
                 metadata_base.PrimitiveAlgorithmType.BERT,
@@ -86,9 +92,9 @@ class BertClassificationPrimitive(PrimitiveBase[container.DataFrame, container.D
                  hyperparams: Hyperparams,
                  random_seed: int = 0,
                  volumes: Dict[str, str] = None) -> None:
-        base.PrimitiveBase.__init__(self, hyperparams=hyperparams, random_seed=random_seed)
-        self.volumes = volumes
-        self._model = BERTPairClassification(target_metric=self.hyperparams['metric'], model_path=self.volumes['bert-base-uncased.tar.gz'])
+        base.PrimitiveBase.__init__(self, hyperparams=hyperparams, random_seed=random_seed, volumes=volumes)
+        self._volumes = volumes
+        self._model: Optional[BERTPairClassification] = None
 
     def __getstate__(self) -> dict:
         state = base.PrimitiveBase.__getstate__(self)
@@ -106,19 +112,28 @@ class BertClassificationPrimitive(PrimitiveBase[container.DataFrame, container.D
     def fit(self, *, timeout: float = None, iterations: int = None) -> base.CallResult[None]:
         logger.debug(f'Fitting {__name__}')
 
-        if torch.cuda.is_available():
-            if self.hyperparams['force_cpu']:
-                logger.info("Detected CUDA support - forcing use of CPU")
-                device = "cpu"
+        # lazy init because we needed data to be set
+        if not self._model:
+            columns = (self._inputs.columns[self.hyperparams['col_0']], self._inputs.columns[self.hyperparams['col_1']])
+            if torch.cuda.is_available():
+                if self.hyperparams['force_cpu']:
+                    logger.info("Detected CUDA support - forcing use of CPU")
+                    device = "cpu"
+                else:
+                    logger.info("Detected CUDA support - using GPU")
+                    device = "cuda"
             else:
-                logger.info("Detected CUDA support - using GPU")
-                device = "cuda"
-        else:
-            logger.info("CUDA does not appear to be supported - using CPU.")
-            device = "cpu"
+                logger.info("CUDA does not appear to be supported - using CPU.")
+                device = "cpu"
 
-        columns = (self._inputs.columns[self.hyperparams['col_0']], self._inputs.columns[self.hyperparams['col_1']])
-        self._model = BERTPairClassification(self.hyperparams['metric'], device=device, columns=columns)
+            if self._volumes:
+                model_path = self._volumes['bert-base-uncased-model']
+                vocab_path = self._volumes['bert-base-uncased-vocab']
+            else:
+                raise ValueError("No volumes supplied for primitive - static models cannot be loaded.")
+
+            self._model = BERTPairClassification(self.hyperparams['metric'], model_path=model_path, vocab_path=vocab_path, device=device, columns=columns)
+
         self._model.fit(self._inputs, self._outputs)
         return base.CallResult(None)
 

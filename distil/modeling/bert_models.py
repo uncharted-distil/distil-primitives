@@ -116,7 +116,7 @@ class QAModel(PreTrainedBertModel):
 
 class BERTPairClassification(DistilBaseModel):
 
-    def __init__(self, target_metric, model_path, columns=['question', 'sentence'],
+    def __init__(self, target_metric, model_path, vocab_path, columns=['question', 'sentence'],
         batch_size=32, learning_rate=5e-5, epochs=3, warmup_proportion=0.1, seed=123, device='cuda'):
 
         assert target_metric in classification_metrics
@@ -129,12 +129,12 @@ class BERTPairClassification(DistilBaseModel):
         self.epochs            = epochs
         self.warmup_proportion = warmup_proportion
 
-        self.bert_model        = model_path
+        self.model_path        = model_path
         self.do_lower_case     = True
 
         self.device = device
 
-        self.tokenizer = BertTokenizer.from_pretrained(self.bert_model, do_lower_case=self.do_lower_case)
+        self.tokenizer = BertTokenizer.from_pretrained(vocab_path, do_lower_case=self.do_lower_case)
 
         _ = np.random.seed(seed)
         _ = torch.manual_seed(seed + 1)
@@ -185,7 +185,7 @@ class BERTPairClassification(DistilBaseModel):
         # Define model
 
         self.model = QAModel.from_pretrained(
-            self.bert_model,
+            f'{self.model_path}',
             num_labels=self.num_labels,
             # weights=[0.1, 1],
         ).to(self.device)
