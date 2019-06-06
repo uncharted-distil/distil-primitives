@@ -23,7 +23,7 @@ def parmap(fn, x, n_jobs=32, backend='multiprocessing', verbose=1, **kwargs):
 
 class Img2Vec():
 
-    def __init__(self, model_path='.', cuda=False, model='resnet-18', layer='default', layer_output_size=512):
+    def __init__(self, model_path, cuda=False, model='resnet-18', layer='default', layer_output_size=512):
         """ Img2Vec
         :param cuda: If set to True, will run forward pass on GPU
         :param model: String name of requested model
@@ -80,10 +80,8 @@ class Img2Vec():
         :returns: pytorch model, selected layer
         """
         if model_name == 'resnet-18':
-            # Cannot load this way anymore
-            # model = models.resnet18(pretrained=True)
-            with open(model_path, 'rb') as f:
-                model = torch.load(f)
+            model = models.resnet18()
+            model.load_state_dict(torch.load(model_path))
             if layer == 'default':
                 layer = model._modules.get('avgpool')
                 self.layer_output_size = 512

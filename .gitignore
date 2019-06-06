@@ -10,5 +10,4 @@ static_resources
 TODO.md
 DistilPrimitives.egg-info
 *.pth
-
-
+static

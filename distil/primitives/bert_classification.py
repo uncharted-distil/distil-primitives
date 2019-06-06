@@ -1,6 +1,6 @@
 import os
 import logging
-from typing import List
+from typing import List, Dict
 
 from d3m import container, utils 
 from d3m.metadata import base as metadata_base, hyperparams, params
@@ -57,6 +57,12 @@ class BertClassificationPrimitive(PrimitiveBase[container.DataFrame, container.D
                 'package_uri': 'git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=distil-primitives'.format(
                     git_commit=utils.current_git_commit(os.path.dirname(__file__)),
                 ),
+            },
+            {
+                    "type": "FILE",
+                    "key": "bert-base-uncased.tar.gz",
+                    "file_uri": "https://s3.amazonaws.com/models.huggingface.co/bert/bert-base-uncased.tar.gz",
+                    "file_digest": "57f8763c92909d8ab1b0d2a059d27c9259cf3f2ca50f7683edfa11aee1992a59",
             }],
             'algorithm_types': [
                 metadata_base.PrimitiveAlgorithmType.ARRAY_SLICING,
@@ -67,9 +73,11 @@ class BertClassificationPrimitive(PrimitiveBase[container.DataFrame, container.D
 
     def __init__(self, *,
                  hyperparams: Hyperparams,
-                 random_seed: int = 0) -> None:
+                 random_seed: int = 0,
+                 volumes: Dict[str, str] = None) -> None:
         base.PrimitiveBase.__init__(self, hyperparams=hyperparams, random_seed=random_seed)
-        self._model = BERTPairClassification(self.hyperparams['metric'])
+        self.volumes = volumes
+        self._model = BERTPairClassification(target_metric=self.hyperparams['metric'], model_path=self.volumes['bert-base-uncased.tar.gz'])
 
     def __getstate__(self) -> dict:
         state = base.PrimitiveBase.__getstate__(self)
