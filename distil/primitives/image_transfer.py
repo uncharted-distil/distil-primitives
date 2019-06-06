@@ -114,8 +114,7 @@ class ImageTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
        
         result['image_vec'] = (
             result['filename']
-                .apply(lambda image_file: self._img_to_vec(image_file))) #self.img2vec.get_vec(image_file))
-        )
+                .apply(lambda image_file: self._img_to_vec(image_file))) #self.img2vec.get_vec(image_file)
 
         df = pd.DataFrame(result['image_vec'].values.tolist())
         df.columns = ['v{}'.format(i) for i in range(0, df.shape[1])]
