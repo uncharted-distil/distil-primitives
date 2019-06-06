@@ -108,7 +108,7 @@ class ImageTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
         result = inputs.copy()
         result['image_vec'] = (
             result['filename']
-                .apply(lambda image_file: self.img2vec.get_vec(Image.fromarray(image_file).squeeze())) #self.img2vec.get_vec(image_file))
+                .apply(lambda image_file: self.img2vec.get_vec(Image.fromarray(image_file.squeeze()))) #self.img2vec.get_vec(image_file))
         )
 
         df = pd.DataFrame(result['image_vec'].values.tolist())
