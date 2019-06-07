@@ -11,6 +11,8 @@ from common_primitives import base
 
 from d3m import container
 
+__all__ = ('TextReaderPrimitive',)
+
 class TextReaderPrimitive(base.FileReaderPrimitiveBase):
     """
     A primitive which reads columns referencing plain text files.

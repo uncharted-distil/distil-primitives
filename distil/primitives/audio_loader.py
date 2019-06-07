@@ -21,7 +21,7 @@ import tempfile
 
 from scipy.io import wavfile
 
-__all__ = ('AudioDatasetLoader',)
+__all__ = ('AudioDatasetLoaderPrimitive',)
 
 logger = logging.getLogger(__name__)
 

@@ -45,7 +45,7 @@ class Params(params.Params):
 
 class TextClassifierPrimitive(base.PrimitiveBase[container.DataFrame, container.DataFrame, Params, Hyperparams]):
     """
-    This primitive takes a dataframe containing input texts, TFIDF's this text, and then builds a classifier using 
+    This primitive takes a dataframe containing input texts, performs TFIDF on this text, and then builds a classifier using 
     these features.
     """
 
