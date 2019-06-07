@@ -96,7 +96,7 @@ def convert_load_file(fileuri, start, end):
 
 class AudioDatasetLoaderPrimitive(transformer.TransformerPrimitiveBase[container.Dataset, container.List, Hyperparams]):
     """
-    A primitive that loads ragged datasets.
+    A primitive that loads audio datasets.
     """
 
     metadata = metadata_base.PrimitiveMetadata(

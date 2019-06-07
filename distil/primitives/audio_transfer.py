@@ -42,7 +42,7 @@ class Params(params.Params):
 
 class AudioTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBase[container.List, container.DataFrame, Params, Hyperparams]):
     """
-    A primitive that encodes texts.
+    A primitive that converts an input audio waveform to a vector of VGGish features.
     """
 
     metadata = metadata_base.PrimitiveMetadata(

@@ -41,7 +41,7 @@ class Params(params.Params):
 
 class ImageTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBase[container.DataFrame, container.DataFrame, Params, Hyperparams]):
     """
-    A primitive that images.
+    A primitive that converts an input image to a vector of 512 numerical features.
     """
 
     metadata = metadata_base.PrimitiveMetadata(
@@ -73,7 +73,7 @@ class ImageTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
                 }
             ],
             'algorithm_types': [
-                metadata_base.PrimitiveAlgorithmType.IMAGE_TRANSFORM,
+                metadata_base.PrimitiveAlgorithmType.CONVOLUTIONAL_NEURAL_NETWORK,
             ],
             'primitive_family': metadata_base.PrimitiveFamily.FEATURE_EXTRACTION,
         },
