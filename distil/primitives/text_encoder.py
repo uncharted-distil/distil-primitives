@@ -57,7 +57,7 @@ class TextEncoderPrimitive(base.PrimitiveBase[Inputs, Outputs, Params, Hyperpara
                 ),
             }],
             'algorithm_types': [
-                metadata_base.PrimitiveAlgorithmType.ENCODE_BINARY,
+                metadata_base.PrimitiveAlgorithmType.TFIDF,
             ],
             'primitive_family': metadata_base.PrimitiveFamily.DATA_TRANSFORMATION,
         },

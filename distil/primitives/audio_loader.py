@@ -104,7 +104,7 @@ class AudioDatasetLoaderPrimitive(transformer.TransformerPrimitiveBase[container
             'id': 'f2a0cf71-0f61-41a7-a0ad-b907083ae56c',
             'version': '0.1.0',
             'name': "Load audio collection from dataset into a single dataframe",
-            'python_path': 'd3m.primitives.data_transformation.data_cleaning.DistilAudioDatasetLoader',
+            'python_path': 'd3m.primitives.data_preprocessing.audio_loader.DistilAudioDatasetLoader',
             'source': {
                 'name': 'Distil',
                 'contact': 'mailto:cbethune@uncharted.software',
@@ -120,9 +120,9 @@ class AudioDatasetLoaderPrimitive(transformer.TransformerPrimitiveBase[container
                 ),
             }],
             'algorithm_types': [
-                metadata_base.PrimitiveAlgorithmType.ARRAY_SLICING,
+                metadata_base.PrimitiveAlgorithmType.FILE_MANIPULATION,
             ],
-            'primitive_family': metadata_base.PrimitiveFamily.DATA_TRANSFORMATION,
+            'primitive_family': metadata_base.PrimitiveFamily.DATA_PREPROCESSING,
         },
     )
 

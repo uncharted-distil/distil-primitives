@@ -50,7 +50,7 @@ class AudioTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
             'id': 'f2f149c8-a984-4f5b-8a9b-2f13ee0cf16d',
             'version': '0.1.0',
             'name': "Audio Transfer",
-            'python_path': 'd3m.primitives.data_transformation.encoder.DistilAudioTransfer',
+            'python_path': 'd3m.primitives.feature_extraction.audio_transfer.DistilAudioTransfer',
             'source': {
                 'name': 'Distil',
                 'contact': 'mailto:cbethune@uncharted.software',
@@ -73,9 +73,9 @@ class AudioTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
                 }
             ],
             'algorithm_types': [
-                metadata_base.PrimitiveAlgorithmType.ARRAY_SLICING,
+                metadata_base.PrimitiveAlgorithmType.AUDIO_STREAM_MANIPULATION,
             ],
-            'primitive_family': metadata_base.PrimitiveFamily.DATA_TRANSFORMATION,
+            'primitive_family': metadata_base.PrimitiveFamily.FEATURE_EXTRACTION,
         },
     )
 

@@ -31,7 +31,7 @@ class TextReaderPrimitive(base.FileReaderPrimitiveBase):
             'id': '8837cc45-457e-4e9d-84c9-09050f6c2070',
             'version': '0.1.0',
             'name': 'Columns text reader',
-            'python_path': 'd3m.primitives.data_transformation.encoder.DistilTextReader',
+            'python_path': 'd3m.primitives.data_preprocessing.text_reader.DistilTextReader',
             'source': {
                 'name': 'Distil',
                 'contact': 'mailto:cbethune@uncharted.software',
@@ -47,9 +47,9 @@ class TextReaderPrimitive(base.FileReaderPrimitiveBase):
                 ),
             }],
             'algorithm_types': [
-                metadata_base.PrimitiveAlgorithmType.ARRAY_SLICING,
+                metadata_base.PrimitiveAlgorithmType.FILE_MANIPULATION,
             ],
-            'primitive_family': metadata_base.PrimitiveFamily.DATA_TRANSFORMATION,
+            'primitive_family': metadata_base.PrimitiveFamily.DATA_PREPROCESSING,
         },
     )
 

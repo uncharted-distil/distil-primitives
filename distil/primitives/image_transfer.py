@@ -49,7 +49,7 @@ class ImageTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
             'id': '782e261e-8e23-4184-9258-5a412c9b32d4',
             'version': '0.1.0',
             'name': "Image Transfer",
-            'python_path': 'd3m.primitives.data_transformation.encoder.DistilImageTransfer',
+            'python_path': 'd3m.primitives.feature_extraction.image_transfer.DistilImageTransfer',
             'source': {
                 'name': 'Distil',
                 'contact': 'mailto:cbethune@uncharted.software',
@@ -73,9 +73,9 @@ class ImageTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
                 }
             ],
             'algorithm_types': [
-                metadata_base.PrimitiveAlgorithmType.ARRAY_SLICING,
+                metadata_base.PrimitiveAlgorithmType.IMAGE_TRANSFORM,
             ],
-            'primitive_family': metadata_base.PrimitiveFamily.DATA_TRANSFORMATION,
+            'primitive_family': metadata_base.PrimitiveFamily.FEATURE_EXTRACTION,
         },
     )
 
