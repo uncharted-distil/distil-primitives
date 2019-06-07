@@ -53,7 +53,7 @@ class TextClassifierPrimitive(base.PrimitiveBase[container.DataFrame, container.
             'id': '24f51246-7487-454e-8d69-7cdf289994d1',
             'version': '0.1.0',
             'name': "Text Classifier",
-            'python_path': 'd3m.primitives.data_transformation.encoder.DistilTextClassifier',
+            'python_path': 'd3m.primitives.learner.text_classifier.DistilTextClassifier',
             'source': {
                 'name': 'Distil',
                 'contact': 'mailto:cbethune@uncharted.software',
@@ -69,9 +69,9 @@ class TextClassifierPrimitive(base.PrimitiveBase[container.DataFrame, container.
                 ),
             }],
             'algorithm_types': [
-                metadata_base.PrimitiveAlgorithmType.ARRAY_SLICING,
+                metadata_base.PrimitiveAlgorithmType.RANDOM_FOREST,
             ],
-            'primitive_family': metadata_base.PrimitiveFamily.DATA_TRANSFORMATION,
+            'primitive_family': metadata_base.PrimitiveFamily.LEARNER,
         },
     )
 
