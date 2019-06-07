@@ -45,7 +45,8 @@ class Params(params.Params):
 
 class TextClassifierPrimitive(base.PrimitiveBase[container.DataFrame, container.DataFrame, Params, Hyperparams]):
     """
-    A primitive that encodes texts.
+    This primitive takes a dataframe containing input texts, TFIDF's this text, and then builds a classifier using 
+    these features.
     """
 
     metadata = metadata_base.PrimitiveMetadata(
