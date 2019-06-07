@@ -73,7 +73,7 @@ class AudioTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
                 }
             ],
             'algorithm_types': [
-                metadata_base.PrimitiveAlgorithmType.AUDIO_STREAM_MANIPULATION,
+                metadata_base.PrimitiveAlgorithmType.CONVOLUTIONAL_NEURAL_NETWORK,
             ],
             'primitive_family': metadata_base.PrimitiveFamily.FEATURE_EXTRACTION,
         },

@@ -41,7 +41,7 @@ class TextEncoderPrimitive(base.PrimitiveBase[Inputs, Outputs, Params, Hyperpara
             'id': '09f252eb-215d-4e0b-9a60-fcd967f5e708',
             'version': '0.1.0',
             'name': "Text encoder",
-            'python_path': 'd3m.primitives.data_transformation.encoder.DistilTextEncoder',
+            'python_path': 'd3m.primitives.data_transformation.text_encoder.DistilTextEncoder',
             'source': {
                 'name': 'Distil',
                 'contact': 'mailto:cbethune@uncharted.software',
