@@ -42,7 +42,7 @@ class Params(params.Params):
 
 class AudioTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBase[container.List, container.DataFrame, Params, Hyperparams]):
     """
-    A primitive that encodes texts.
+    A primitive that determines features from processed audio files. 
     """
 
     metadata = metadata_base.PrimitiveMetadata(
@@ -73,9 +73,9 @@ class AudioTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
                 }
             ],
             'algorithm_types': [
-                metadata_base.PrimitiveAlgorithmType.ARRAY_SLICING,
+                metadata_base.PrimitiveAlgorithmType.CONVOLUTIONAL_NEURAL_NETWORK,
             ],
-            'primitive_family': metadata_base.PrimitiveFamily.DATA_TRANSFORMATION,
+            'primitive_family': metadata_base.PrimitiveFamily.FEATURE_EXTRACTION,
         },
     )
 
