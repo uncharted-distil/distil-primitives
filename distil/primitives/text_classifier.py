@@ -140,6 +140,8 @@ class TextClassifierPrimitive(base.PrimitiveBase[container.DataFrame, container.
 
         # create dataframe to hold d3mIndex and result
         logger.debug(inputs)
+        logger.debug(inputs.index)
+        logger.debug(inputs.head().T)
         result = self._model.predict(self._format_text(inputs))
         result_df = container.DataFrame({inputs.index.name: inputs.index, self._outputs.columns[0]: result}, generate_metadata=True)
 
