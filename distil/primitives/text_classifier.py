@@ -124,6 +124,8 @@ class TextClassifierPrimitive(base.PrimitiveBase[container.DataFrame, container.
 
     def fit(self, *, timeout: float = None, iterations: int = None) -> CallResult[None]:
         logger.debug(f'Fitting {__name__}')
+        logger.debug(self._outputs.index)
+        logger.debug(self._outputs.index.name)
         if self.hyperparams['fast']:
             rows = self._inputs.shape[0] #len(self._inputs.index)
             if rows > self._FAST_FIT_ROWS:
