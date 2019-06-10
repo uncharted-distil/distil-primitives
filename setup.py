@@ -68,7 +68,6 @@ setup(
             'data_transformation.encoder.DistilTextClassifier = distil.primitives.text_classifier:TextClassifierPrimitive',
             'data_transformation.encoder.DistilImageTransfer = distil.primitives.image_transfer:ImageTransferPrimitive',
             'data_transformation.encoder.DistilAudioTransfer = distil.primitives.audio_transfer:AudioTransferPrimitive',
-            'data_transformation.encoder.DistilTextReader = distil.primitives.text_reader:TextReaderPrimitive',
             'data_transformation.data_cleaning.DistilAudioDatasetLoader = distil.primitives.audio_loader:AudioDatasetLoaderPrimitive',
             'clustering.k_means.DistilKMeans = distil.primitives.k_means:KMeansPrimitive'
         ],
