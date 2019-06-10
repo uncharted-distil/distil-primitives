@@ -139,7 +139,7 @@ class TextClassifierPrimitive(base.PrimitiveBase[container.DataFrame, container.
         logger.debug(f'Producing {__name__}')
 
         # create dataframe to hold d3mIndex and result
-
+        logger.debug(inputs)
         result = self._model.predict(self._format_text(inputs))
         result_df = container.DataFrame({inputs.index.name: inputs.index, self._outputs.columns[0]: result}, generate_metadata=True)
 
