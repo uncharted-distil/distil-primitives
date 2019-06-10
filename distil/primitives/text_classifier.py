@@ -117,7 +117,7 @@ class TextClassifierPrimitive(base.PrimitiveBase[container.DataFrame, container.
         self._outputs = outputs
 
     def _format_text(self, inputs):
-        return np.array([text[0] for text in inputs['filename']])  # text reader has an odd format
+        return inputs['filename'].values # text reader has an odd format
 
     def _format_output(self, outputs):
         return outputs.astype(int)
