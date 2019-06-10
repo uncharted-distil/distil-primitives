@@ -21,7 +21,7 @@ setup(
         #'scikit-learn==0.20.2',
         #'torchvision==0.2.2.post3',
         #'fastai==1.0.52',
-        #'joblib==0.13.0',
+        'joblib==0.13.0',
         'scipy==1.2.1',
         'numpy==1.15.4',
         'pandas==0.23.4',
