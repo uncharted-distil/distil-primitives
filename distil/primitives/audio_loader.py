@@ -96,7 +96,7 @@ def convert_load_file(fileuri, start, end):
 
 class AudioDatasetLoaderPrimitive(transformer.TransformerPrimitiveBase[container.Dataset, container.List, Hyperparams]):
     """
-    A primitive that loads ragged datasets.
+    A primitive that loads audio collections into a single dataframe.
     """
 
     metadata = metadata_base.PrimitiveMetadata(
@@ -120,9 +120,9 @@ class AudioDatasetLoaderPrimitive(transformer.TransformerPrimitiveBase[container
                 ),
             }],
             'algorithm_types': [
-                metadata_base.PrimitiveAlgorithmType.ARRAY_SLICING,
+                metadata_base.PrimitiveAlgorithmType.DATA_DENORMALIZATION,
             ],
-            'primitive_family': metadata_base.PrimitiveFamily.DATA_TRANSFORMATION,
+            'primitive_family': metadata_base.PrimitiveFamily.DATA_WRANGLING,
         },
     )
 

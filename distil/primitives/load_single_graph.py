@@ -36,7 +36,8 @@ class Hyperparams(hyperparams.Hyperparams):
 
 class DistilSingleGraphLoaderPrimitive(transformer.TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
     """
-    A primitive which loads.
+    A primitive which passes both the networkX loaded graph object and
+    th associated dataframe to the next primitive.
     """
 
     metadata = metadata_base.PrimitiveMetadata(

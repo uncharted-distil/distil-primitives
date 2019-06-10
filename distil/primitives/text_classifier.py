@@ -69,9 +69,9 @@ class TextClassifierPrimitive(base.PrimitiveBase[container.DataFrame, container.
                 ),
             }],
             'algorithm_types': [
-                metadata_base.PrimitiveAlgorithmType.ARRAY_SLICING,
+                metadata_base.PrimitiveAlgorithmType.TFIDF,
             ],
-            'primitive_family': metadata_base.PrimitiveFamily.DATA_TRANSFORMATION,
+            'primitive_family': metadata_base.PrimitiveFamily.CLASSIFICATION,
         },
     )
 

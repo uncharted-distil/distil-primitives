@@ -31,7 +31,7 @@ class Params(params.Params):
 
 class DistilLinkPredictionPrimitive(PrimitiveBase[container.List, container.DataFrame, Params, Hyperparams]):
     """
-    A primitive that predicts links.
+    A primitive that uses RESCAL to predict links in graphs. 
     """
     metadata = metadata_base.PrimitiveMetadata(
         {
@@ -56,7 +56,7 @@ class DistilLinkPredictionPrimitive(PrimitiveBase[container.List, container.Data
             'algorithm_types': [
                 metadata_base.PrimitiveAlgorithmType.ARRAY_SLICING,
             ],
-            'primitive_family': metadata_base.PrimitiveFamily.DATA_TRANSFORMATION,
+            'primitive_family': metadata_base.PrimitiveFamily.LINK_PREDICTION,
         },
     )
 
