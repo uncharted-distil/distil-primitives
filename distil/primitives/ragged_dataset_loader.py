@@ -30,7 +30,7 @@ class Hyperparams(hyperparams.Hyperparams):
 
 class RaggedDatasetLoaderPrimitive(transformer.TransformerPrimitiveBase[container.Dataset, container.List, Hyperparams]):
     """
-    A primitive that loads ragged datasets.
+    A primitive that loads multiple data into a single dataframe. 
     """
 
     metadata = metadata_base.PrimitiveMetadata(
@@ -54,9 +54,9 @@ class RaggedDatasetLoaderPrimitive(transformer.TransformerPrimitiveBase[containe
                 ),
             }],
             'algorithm_types': [
-                metadata_base.PrimitiveAlgorithmType.ARRAY_SLICING,
+                metadata_base.PrimitiveAlgorithmType.DATA_NORMALIZATION,
             ],
-            'primitive_family': metadata_base.PrimitiveFamily.DATA_TRANSFORMATION,
+            'primitive_family': metadata_base.PrimitiveFamily.DATA_WRANGLING,
         },
     )
 

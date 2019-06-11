@@ -31,7 +31,8 @@ class Params(params.Params):
 
 class DistilVertexNominationPrimitive(PrimitiveBase[container.List, container.DataFrame, Params, Hyperparams]):
     """
-    A primitive that matches seeded graphs.
+    A primitive that uses random forest to solve vertext nomination
+    problems.
     """
     metadata = metadata_base.PrimitiveMetadata(
         {
@@ -54,9 +55,9 @@ class DistilVertexNominationPrimitive(PrimitiveBase[container.List, container.Da
                 ),
             }],
             'algorithm_types': [
-                metadata_base.PrimitiveAlgorithmType.ARRAY_SLICING,
+                metadata_base.PrimitiveAlgorithmType.RANDOM_FOREST,
             ],
-            'primitive_family': metadata_base.PrimitiveFamily.DATA_TRANSFORMATION,
+            'primitive_family': metadata_base.PrimitiveFamily.VERTEX_NOMINATION,
         },
     )
 

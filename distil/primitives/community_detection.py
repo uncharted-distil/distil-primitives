@@ -31,7 +31,7 @@ class Params(params.Params):
 
 class DistilCommunityDetectionPrimitive(PrimitiveBase[container.List, container.DataFrame, Params, Hyperparams]):
     """
-    A primitive that detects communities.
+    A primitive that wraps a null model handling of community detection.
     """
     metadata = metadata_base.PrimitiveMetadata(
         {
@@ -56,7 +56,7 @@ class DistilCommunityDetectionPrimitive(PrimitiveBase[container.List, container.
             'algorithm_types': [
                 metadata_base.PrimitiveAlgorithmType.ARRAY_SLICING,
             ],
-            'primitive_family': metadata_base.PrimitiveFamily.DATA_TRANSFORMATION,
+            'primitive_family': metadata_base.PrimitiveFamily.COMMUNITY_DETECTION,
         },
     )
 

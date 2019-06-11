@@ -76,6 +76,7 @@ class ImageTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
                 metadata_base.PrimitiveAlgorithmType.CONVOLUTIONAL_NEURAL_NETWORK,
             ],
             'primitive_family': metadata_base.PrimitiveFamily.FEATURE_EXTRACTION,
+
         },
     )
 

@@ -56,7 +56,7 @@ class DistilSeededGraphMatchingPrimitive(PrimitiveBase[container.List, container
             'algorithm_types': [
                 metadata_base.PrimitiveAlgorithmType.ARRAY_SLICING,
             ],
-            'primitive_family': metadata_base.PrimitiveFamily.DATA_TRANSFORMATION,
+            'primitive_family': metadata_base.PrimitiveFamily.GRAPH_MATCHING,
         },
     )
 

@@ -70,9 +70,10 @@ class TextClassifierPrimitive(base.PrimitiveBase[container.DataFrame, container.
                 ),
             }],
             'algorithm_types': [
+
                 metadata_base.PrimitiveAlgorithmType.RANDOM_FOREST,
             ],
-            'primitive_family': metadata_base.PrimitiveFamily.LEARNER,
+            'primitive_family': metadata_base.PrimitiveFamily.CLASSIFICATION,
         },
     )
 
@@ -125,6 +126,7 @@ class TextClassifierPrimitive(base.PrimitiveBase[container.DataFrame, container.
 
     def fit(self, *, timeout: float = None, iterations: int = None) -> CallResult[None]:
         logger.debug(f'Fitting {__name__}')
+
         if self.hyperparams['fast']:
             rows = self._inputs.shape[0] #len(self._inputs.index)
             if rows > self._FAST_FIT_ROWS:
@@ -140,15 +142,14 @@ class TextClassifierPrimitive(base.PrimitiveBase[container.DataFrame, container.
         logger.debug(f'Producing {__name__}')
 
         # create dataframe to hold d3mIndex and result
-
+        
         result = self._model.predict(self._format_text(inputs))
-        result_df = container.DataFrame({inputs.index.name: inputs.index, self._outputs.columns[0]: result}, generate_metadata=True)
+        result_df = container.DataFrame({self._outputs.columns[0]: result}, generate_metadata=True)
 
         # mark the semantic types on the dataframe
-        result_df.metadata = result_df.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, 0), 'https://metadata.datadrivendiscovery.org/types/PrimaryKey')
-        result_df.metadata = result_df.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, 1), 'https://metadata.datadrivendiscovery.org/types/PredictedTarget')
+        #result_df.metadata = result_df.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, 0), 'https://metadata.datadrivendiscovery.org/types/PrimaryKey')
+        result_df.metadata = result_df.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, 0), 'https://metadata.datadrivendiscovery.org/types/PredictedTarget')
 
-        logger.debug(f'\n{result_df}')
         return base.CallResult(result_df)
 
     def get_params(self) -> Params:

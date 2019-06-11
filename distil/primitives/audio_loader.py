@@ -105,6 +105,7 @@ class AudioDatasetLoaderPrimitive(transformer.TransformerPrimitiveBase[container
 
     The shape of numpy arrays is S x C. S is the number of samples, C is the number of
     channels in an audio (e.g., C = 1 for mono, C = 2 for stereo). dtype is float32.
+
     """
 
 
