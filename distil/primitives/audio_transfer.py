@@ -42,7 +42,8 @@ class Params(params.Params):
 
 class AudioTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBase[container.List, container.DataFrame, Params, Hyperparams]):
     """
-    A primitive that determines features from processed audio files. 
+    A primitive that converts an input audio waveform to a vector of VGGish features.
+
     """
 
     metadata = metadata_base.PrimitiveMetadata(
@@ -50,7 +51,7 @@ class AudioTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
             'id': 'f2f149c8-a984-4f5b-8a9b-2f13ee0cf16d',
             'version': '0.1.0',
             'name': "Audio Transfer",
-            'python_path': 'd3m.primitives.data_transformation.encoder.DistilAudioTransfer',
+            'python_path': 'd3m.primitives.feature_extraction.audio_transfer.DistilAudioTransfer',
             'source': {
                 'name': 'Distil',
                 'contact': 'mailto:cbethune@uncharted.software',

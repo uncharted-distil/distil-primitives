@@ -65,10 +65,10 @@ setup(
             'data_transformation.data_cleaning.DistilRaggedDatasetLoader = distil.primitives.ragged_dataset_loader:RaggedDatasetLoaderPrimitive',
             'data_transformation.data_cleaning.DistilTimeSeriesReshaper = distil.primitives.timeseries_reshaper:TimeSeriesReshaperPrimitive',
             'learner.random_forest.DistilTimeSeriesNeighboursPrimitive = distil.primitives.timeseries_neighbours:TimeSeriesNeighboursPrimitive',
-            'data_transformation.encoder.DistilTextClassifier = distil.primitives.text_classifier:TextClassifierPrimitive',
-            'data_transformation.encoder.DistilImageTransfer = distil.primitives.image_transfer:ImageTransferPrimitive',
-            'data_transformation.encoder.DistilAudioTransfer = distil.primitives.audio_transfer:AudioTransferPrimitive',
-            'data_transformation.data_cleaning.DistilAudioDatasetLoader = distil.primitives.audio_loader:AudioDatasetLoaderPrimitive',
+            'learner.text_classifier.DistilTextClassifier = distil.primitives.text_classifier:TextClassifierPrimitive',
+            'feature_extraction.image_transfer.DistilImageTransfer = distil.primitives.image_transfer:ImageTransferPrimitive',
+            'feature_extraction.audio_transfer.DistilAudioTransfer = distil.primitives.audio_transfer:AudioTransferPrimitive',
+            'data_preprocessing.audio_loader.DistilAudioDatasetLoader = distil.primitives.audio_loader:AudioDatasetLoaderPrimitive',
             'clustering.k_means.DistilKMeans = distil.primitives.k_means:KMeansPrimitive'
         ],
     }

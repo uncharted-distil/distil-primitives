@@ -21,7 +21,7 @@ import tempfile
 
 from scipy.io import wavfile
 
-__all__ = ('AudioDatasetLoader',)
+__all__ = ('AudioDatasetLoaderPrimitive',)
 
 logger = logging.getLogger(__name__)
 
@@ -96,15 +96,25 @@ def convert_load_file(fileuri, start, end):
 
 class AudioDatasetLoaderPrimitive(transformer.TransformerPrimitiveBase[container.Dataset, container.List, Hyperparams]):
     """
-    A primitive that loads audio collections into a single dataframe.
+    A primitive which reads columns referencing audio files.
+
+    Each column which has ``https://metadata.datadrivendiscovery.org/types/FileName`` semantic type
+    and a valid media type (``audio/aiff``, ``audio/flac``, ``audio/ogg``, ``audio/wav``, ``audio/mpeg``)
+    has every filename read into an audio represented as a numpy array. By default the resulting column
+    with read arrays is appended to existing columns.
+
+    The shape of numpy arrays is S x C. S is the number of samples, C is the number of
+    channels in an audio (e.g., C = 1 for mono, C = 2 for stereo). dtype is float32.
+
     """
+
 
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': 'f2a0cf71-0f61-41a7-a0ad-b907083ae56c',
             'version': '0.1.0',
             'name': "Load audio collection from dataset into a single dataframe",
-            'python_path': 'd3m.primitives.data_transformation.data_cleaning.DistilAudioDatasetLoader',
+            'python_path': 'd3m.primitives.data_preprocessing.audio_loader.DistilAudioDatasetLoader',
             'source': {
                 'name': 'Distil',
                 'contact': 'mailto:cbethune@uncharted.software',
@@ -120,9 +130,9 @@ class AudioDatasetLoaderPrimitive(transformer.TransformerPrimitiveBase[container
                 ),
             }],
             'algorithm_types': [
-                metadata_base.PrimitiveAlgorithmType.DATA_DENORMALIZATION,
+                metadata_base.PrimitiveAlgorithmType.FILE_MANIPULATION,
             ],
-            'primitive_family': metadata_base.PrimitiveFamily.DATA_WRANGLING,
+            'primitive_family': metadata_base.PrimitiveFamily.DATA_PREPROCESSING,
         },
     )
 
