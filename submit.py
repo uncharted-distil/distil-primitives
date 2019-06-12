@@ -20,7 +20,7 @@ def hypers(p):
         for h,v in p.metadata.query()[a][b][c].defaults().items():
             hp[h] = v
     except Exception as e:
-        print(e)
+        pass
     return hp
 
 for primitive in primitives:
@@ -39,4 +39,4 @@ for primitive in primitives:
                     f.write(json.dumps(md, indent=4))
                     f.write('\n')
             except Exception as e:
-                print(e)
+                pass
