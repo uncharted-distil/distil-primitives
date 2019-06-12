@@ -2,7 +2,7 @@ import os
 import logging
 from typing import Set, List, Dict, Any, Optional
 
-from d3m import container, utils 
+from d3m import container, utils
 from d3m.metadata import base as metadata_base, hyperparams, params
 from d3m.primitive_interfaces import base, transformer
 from d3m.primitive_interfaces.supervised_learning import PrimitiveBase
@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 class Hyperparams(hyperparams.Hyperparams):
     metric = hyperparams.Hyperparameter[str](
-        default='',
+        default='f1Macro',
         semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
         description="The D3M scoring metric to use during the fit phase.  This can be any of the regression, classification or " +
                     "clustering metrics."
@@ -54,11 +54,11 @@ class EnsembleForestPrimitive(PrimitiveBase[container.DataFrame, container.DataF
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': 'e0ad06ce-b484-46b0-a478-c567e1ea7e02',
-            'version': '0.2.0',
+            'version': '0.1.0',
             'name': "EnsembleForest",
             'python_path': 'd3m.primitives.learner.random_forest.DistilEnsembleForest',
             'source': {
-                'name': 'distil',
+                'name': 'Distil',
                 'contact': 'mailto:cbethune@uncharted.software',
                 'uris': [
                     'https://github.com/uncharted-distil/distil-primitives/distil/primitives/ensemble_forest.py',
