@@ -31,7 +31,7 @@ setup(
         'sklearn_pandas==1.8.0',
         'tensorflow-gpu==1.12.2',
         'frozendict>=1.2',
-        'cython==0.29.3',
+        'cython==0.29.7',
         'nose==1.3.7',
         'python-prctl==1.7',
         'fastdtw==0.3.2',
