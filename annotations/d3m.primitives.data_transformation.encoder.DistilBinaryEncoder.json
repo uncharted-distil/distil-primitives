@@ -14,7 +14,7 @@
     "installation": [
         {
             "type": "PIP",
-            "package_uri": "git+https://github.com/uncharted-distil/distil-primitives.git@c6eb4645663f4edd97b901ef4c7ed3dbfb21f7a7#egg=distil-primitives"
+            "package_uri": "git+https://github.com/uncharted-distil/distil-primitives.git@6c92d07963dcf971eaedcada22294ccb4a90bb85#egg=distil-primitives"
         }
     ],
     "algorithm_types": [
@@ -30,7 +30,7 @@
             "Params": "distil.primitives.binary_encoder.Params",
             "Hyperparams": "distil.primitives.binary_encoder.Hyperparams"
         },
-        "interfaces_version": "2019.5.8",
+        "interfaces_version": "2019.6.7",
         "interfaces": [
             "unsupervised_learning.UnsupervisedLearnerPrimitiveBase",
             "base.PrimitiveBase"
@@ -203,5 +203,5 @@
     },
     "structural_type": "distil.primitives.binary_encoder.BinaryEncoderPrimitive",
     "description": "Performs a binary encoding of categorical columns that are above a caller specified cardinality.  The source columns will be replaced by the\nencoding columns.  Some information is lost in comparison to a one-hot encoding, but the number of dimensions used is reduced.\nCategorical columns currently include those with the semantic type Categorical, Ordinal or DateTime.\n\nAttributes\n----------\nmetadata : PrimitiveMetadata\n    Primitive's metadata. Available as a class attribute.\nlogger : Logger\n    Primitive's logger. Available as a class attribute.\nhyperparams : Hyperparams\n    Hyperparams passed to the constructor.\nrandom_seed : int\n    Random seed passed to the constructor.\ndocker_containers : Dict[str, DockerContainer]\n    A dict mapping Docker image keys from primitive's metadata to (named) tuples containing\n    container's address under which the container is accessible by the primitive, and a\n    dict mapping exposed ports to ports on that address.\nvolumes : Dict[str, str]\n    A dict mapping volume keys from primitive's metadata to file and directory paths\n    where downloaded and extracted files are available to the primitive.\ntemporary_directory : str\n    An absolute path to a temporary directory a primitive can use to store any files\n    for the duration of the current pipeline run phase. Directory is automatically\n    cleaned up after the current pipeline run phase finishes.",
-    "digest": "bae20a2d35a428ccefc8f6f7eeeb5eb4c0114dfd5d4e18aef3b20ed6ccd44c09"
+    "digest": "fef8797aa88ea6a031786c6914b667b618851283a411ddf4a4e37adcd08e52bd"
 }

@@ -14,13 +14,13 @@
     "installation": [
         {
             "type": "PIP",
-            "package_uri": "git+https://github.com/uncharted-distil/distil-primitives.git@c6eb4645663f4edd97b901ef4c7ed3dbfb21f7a7#egg=distil-primitives"
+            "package_uri": "git+https://github.com/uncharted-distil/distil-primitives.git@6c92d07963dcf971eaedcada22294ccb4a90bb85#egg=distil-primitives"
         }
     ],
     "algorithm_types": [
-        "ARRAY_SLICING"
+        "DATA_NORMALIZATION"
     ],
-    "primitive_family": "DATA_TRANSFORMATION",
+    "primitive_family": "DATA_WRANGLING",
     "schema": "https://metadata.datadrivendiscovery.org/schemas/v0/primitive.json",
     "original_python_path": "distil.primitives.ragged_dataset_loader.RaggedDatasetLoaderPrimitive",
     "primitive_code": {
@@ -30,7 +30,7 @@
             "Hyperparams": "distil.primitives.ragged_dataset_loader.Hyperparams",
             "Params": "NoneType"
         },
-        "interfaces_version": "2019.5.8",
+        "interfaces_version": "2019.6.7",
         "interfaces": [
             "transformer.TransformerPrimitiveBase",
             "base.PrimitiveBase"
@@ -221,6 +221,6 @@
         }
     },
     "structural_type": "distil.primitives.ragged_dataset_loader.RaggedDatasetLoaderPrimitive",
-    "description": "A primitive that loads ragged datasets.\n\nAttributes\n----------\nmetadata : PrimitiveMetadata\n    Primitive's metadata. Available as a class attribute.\nlogger : Logger\n    Primitive's logger. Available as a class attribute.\nhyperparams : Hyperparams\n    Hyperparams passed to the constructor.\nrandom_seed : int\n    Random seed passed to the constructor.\ndocker_containers : Dict[str, DockerContainer]\n    A dict mapping Docker image keys from primitive's metadata to (named) tuples containing\n    container's address under which the container is accessible by the primitive, and a\n    dict mapping exposed ports to ports on that address.\nvolumes : Dict[str, str]\n    A dict mapping volume keys from primitive's metadata to file and directory paths\n    where downloaded and extracted files are available to the primitive.\ntemporary_directory : str\n    An absolute path to a temporary directory a primitive can use to store any files\n    for the duration of the current pipeline run phase. Directory is automatically\n    cleaned up after the current pipeline run phase finishes.",
-    "digest": "5b14247c852537ef4f7782c6ce9c7b9c00dfda13239d2a2e4d61c4a7df4e4a1c"
+    "description": "A primitive that loads multiple data into a single dataframe.\n\nAttributes\n----------\nmetadata : PrimitiveMetadata\n    Primitive's metadata. Available as a class attribute.\nlogger : Logger\n    Primitive's logger. Available as a class attribute.\nhyperparams : Hyperparams\n    Hyperparams passed to the constructor.\nrandom_seed : int\n    Random seed passed to the constructor.\ndocker_containers : Dict[str, DockerContainer]\n    A dict mapping Docker image keys from primitive's metadata to (named) tuples containing\n    container's address under which the container is accessible by the primitive, and a\n    dict mapping exposed ports to ports on that address.\nvolumes : Dict[str, str]\n    A dict mapping volume keys from primitive's metadata to file and directory paths\n    where downloaded and extracted files are available to the primitive.\ntemporary_directory : str\n    An absolute path to a temporary directory a primitive can use to store any files\n    for the duration of the current pipeline run phase. Directory is automatically\n    cleaned up after the current pipeline run phase finishes.",
+    "digest": "c1a1bc70eb984fe6e08ee2bd0f19e21644f837c38f525180605a4e98c1b87762"
 }

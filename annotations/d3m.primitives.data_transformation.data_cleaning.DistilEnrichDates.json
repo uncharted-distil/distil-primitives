@@ -14,7 +14,7 @@
     "installation": [
         {
             "type": "PIP",
-            "package_uri": "git+https://github.com/uncharted-distil/distil-primitives.git@c6eb4645663f4edd97b901ef4c7ed3dbfb21f7a7#egg=distil-primitives"
+            "package_uri": "git+https://github.com/uncharted-distil/distil-primitives.git@6c92d07963dcf971eaedcada22294ccb4a90bb85#egg=distil-primitives"
         }
     ],
     "algorithm_types": [
@@ -30,7 +30,7 @@
             "Hyperparams": "distil.primitives.enrich_dates.Hyperparams",
             "Params": "NoneType"
         },
-        "interfaces_version": "2019.5.8",
+        "interfaces_version": "2019.6.7",
         "interfaces": [
             "transformer.TransformerPrimitiveBase",
             "base.PrimitiveBase"
@@ -210,5 +210,5 @@
     },
     "structural_type": "distil.primitives.enrich_dates.EnrichDatesPrimitive",
     "description": "Enriches dates by converting to seconds from a base time and computing Z scores.  The results\nare appended to the existing dataset, and the original column is left in place for additional\ndownstream processing.\n\nAttributes\n----------\nmetadata : PrimitiveMetadata\n    Primitive's metadata. Available as a class attribute.\nlogger : Logger\n    Primitive's logger. Available as a class attribute.\nhyperparams : Hyperparams\n    Hyperparams passed to the constructor.\nrandom_seed : int\n    Random seed passed to the constructor.\ndocker_containers : Dict[str, DockerContainer]\n    A dict mapping Docker image keys from primitive's metadata to (named) tuples containing\n    container's address under which the container is accessible by the primitive, and a\n    dict mapping exposed ports to ports on that address.\nvolumes : Dict[str, str]\n    A dict mapping volume keys from primitive's metadata to file and directory paths\n    where downloaded and extracted files are available to the primitive.\ntemporary_directory : str\n    An absolute path to a temporary directory a primitive can use to store any files\n    for the duration of the current pipeline run phase. Directory is automatically\n    cleaned up after the current pipeline run phase finishes.",
-    "digest": "c9c50fe8129fc7f6b06fa704a8e949992657584c6ba70f4b5fc57ce718e39874"
+    "digest": "19c01913c3b633527040738fe6df37a18cbcb5bd304a878c8635e1427499550c"
 }

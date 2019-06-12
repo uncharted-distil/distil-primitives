@@ -14,13 +14,13 @@
     "installation": [
         {
             "type": "PIP",
-            "package_uri": "git+https://github.com/uncharted-distil/distil-primitives.git@16af4249cfca3cb4315dc3fc838a9bd8b7ea3b91#egg=distil-primitives"
+            "package_uri": "git+https://github.com/uncharted-distil/distil-primitives.git@6c92d07963dcf971eaedcada22294ccb4a90bb85#egg=distil-primitives"
         }
     ],
     "algorithm_types": [
         "ARRAY_SLICING"
     ],
-    "primitive_family": "DATA_TRANSFORMATION",
+    "primitive_family": "GRAPH_MATCHING",
     "schema": "https://metadata.datadrivendiscovery.org/schemas/v0/primitive.json",
     "original_python_path": "distil.primitives.seeded_graph_matcher.DistilSeededGraphMatchingPrimitive",
     "primitive_code": {
@@ -30,7 +30,7 @@
             "Params": "distil.primitives.seeded_graph_matcher.Params",
             "Hyperparams": "distil.primitives.seeded_graph_matcher.Hyperparams"
         },
-        "interfaces_version": "2019.5.8",
+        "interfaces_version": "2019.6.7",
         "interfaces": [
             "base.PrimitiveBase"
         ],
@@ -190,5 +190,5 @@
     },
     "structural_type": "distil.primitives.seeded_graph_matcher.DistilSeededGraphMatchingPrimitive",
     "description": "A primitive that matches seeded graphs.\n\nAttributes\n----------\nmetadata : PrimitiveMetadata\n    Primitive's metadata. Available as a class attribute.\nlogger : Logger\n    Primitive's logger. Available as a class attribute.\nhyperparams : Hyperparams\n    Hyperparams passed to the constructor.\nrandom_seed : int\n    Random seed passed to the constructor.\ndocker_containers : Dict[str, DockerContainer]\n    A dict mapping Docker image keys from primitive's metadata to (named) tuples containing\n    container's address under which the container is accessible by the primitive, and a\n    dict mapping exposed ports to ports on that address.\nvolumes : Dict[str, str]\n    A dict mapping volume keys from primitive's metadata to file and directory paths\n    where downloaded and extracted files are available to the primitive.\ntemporary_directory : str\n    An absolute path to a temporary directory a primitive can use to store any files\n    for the duration of the current pipeline run phase. Directory is automatically\n    cleaned up after the current pipeline run phase finishes.",
-    "digest": "47734e4e67775e19c831309a5667283da8a0caada1bd3bb591badbb66bd0976a"
+    "digest": "8678c6ec51b3839ae19345213c3b60ab4e241a34d34a594a9bf53eb3c6da26d3"
 }

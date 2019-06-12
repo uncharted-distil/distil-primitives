@@ -14,11 +14,11 @@
     "installation": [
         {
             "type": "PIP",
-            "package_uri": "git+https://github.com/uncharted-distil/distil-primitives.git@c6eb4645663f4edd97b901ef4c7ed3dbfb21f7a7#egg=distil-primitives"
+            "package_uri": "git+https://github.com/uncharted-distil/distil-primitives.git@6c92d07963dcf971eaedcada22294ccb4a90bb85#egg=distil-primitives"
         }
     ],
     "algorithm_types": [
-        "ARRAY_SLICING"
+        "RANDOM_FOREST"
     ],
     "primitive_family": "DATA_TRANSFORMATION",
     "schema": "https://metadata.datadrivendiscovery.org/schemas/v0/primitive.json",
@@ -30,7 +30,7 @@
             "Params": "distil.primitives.timeseries_neighbours.Params",
             "Hyperparams": "distil.primitives.timeseries_neighbours.Hyperparams"
         },
-        "interfaces_version": "2019.5.8",
+        "interfaces_version": "2019.6.7",
         "interfaces": [
             "base.PrimitiveBase"
         ],
@@ -190,5 +190,5 @@
     },
     "structural_type": "distil.primitives.timeseries_neighbours.TimeSeriesNeighboursPrimitive",
     "description": "A primitive that filters collaboratives.\n\nAttributes\n----------\nmetadata : PrimitiveMetadata\n    Primitive's metadata. Available as a class attribute.\nlogger : Logger\n    Primitive's logger. Available as a class attribute.\nhyperparams : Hyperparams\n    Hyperparams passed to the constructor.\nrandom_seed : int\n    Random seed passed to the constructor.\ndocker_containers : Dict[str, DockerContainer]\n    A dict mapping Docker image keys from primitive's metadata to (named) tuples containing\n    container's address under which the container is accessible by the primitive, and a\n    dict mapping exposed ports to ports on that address.\nvolumes : Dict[str, str]\n    A dict mapping volume keys from primitive's metadata to file and directory paths\n    where downloaded and extracted files are available to the primitive.\ntemporary_directory : str\n    An absolute path to a temporary directory a primitive can use to store any files\n    for the duration of the current pipeline run phase. Directory is automatically\n    cleaned up after the current pipeline run phase finishes.",
-    "digest": "970f9752a71707e8852c814c3157a191045912187fbe112aa5fef133cc6740de"
+    "digest": "6d6af9d0b4acea5ec84d4c57049a2b4d5701239655753fed0f4c21803c65576d"
 }

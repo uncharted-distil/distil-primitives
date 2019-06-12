@@ -14,7 +14,7 @@
     "installation": [
         {
             "type": "PIP",
-            "package_uri": "git+https://github.com/uncharted-distil/distil-primitives.git@16af4249cfca3cb4315dc3fc838a9bd8b7ea3b91#egg=distil-primitives"
+            "package_uri": "git+https://github.com/uncharted-distil/distil-primitives.git@6c92d07963dcf971eaedcada22294ccb4a90bb85#egg=distil-primitives"
         }
     ],
     "algorithm_types": [
@@ -30,7 +30,7 @@
             "Params": "distil.primitives.k_means.Params",
             "Hyperparams": "distil.primitives.k_means.Hyperparams"
         },
-        "interfaces_version": "2019.5.8",
+        "interfaces_version": "2019.6.7",
         "interfaces": [
             "unsupervised_learning.UnsupervisedLearnerPrimitiveBase",
             "base.PrimitiveBase"
@@ -61,6 +61,15 @@
                     "https://metadata.datadrivendiscovery.org/types/ControlParameter"
                 ],
                 "description": "Number of clusters to generate"
+            },
+            "cluster_col_name": {
+                "type": "d3m.metadata.hyperparams.Hyperparameter",
+                "default": "__cluster",
+                "structural_type": "str",
+                "semantic_types": [
+                    "https://metadata.datadrivendiscovery.org/types/ControlParameter"
+                ],
+                "description": "The name of created cluster column in the returned dataframe"
             }
         },
         "arguments": {
@@ -203,5 +212,5 @@
     },
     "structural_type": "distil.primitives.k_means.KMeansPrimitive",
     "description": "A wrapper for scikit learn k-means that takes in a dataframe as input and returns a dataframe of (d3mIndex, cluster numbers) tuples as its\noutput.  It will ignore columns with a string structural type.\n\nAttributes\n----------\nmetadata : PrimitiveMetadata\n    Primitive's metadata. Available as a class attribute.\nlogger : Logger\n    Primitive's logger. Available as a class attribute.\nhyperparams : Hyperparams\n    Hyperparams passed to the constructor.\nrandom_seed : int\n    Random seed passed to the constructor.\ndocker_containers : Dict[str, DockerContainer]\n    A dict mapping Docker image keys from primitive's metadata to (named) tuples containing\n    container's address under which the container is accessible by the primitive, and a\n    dict mapping exposed ports to ports on that address.\nvolumes : Dict[str, str]\n    A dict mapping volume keys from primitive's metadata to file and directory paths\n    where downloaded and extracted files are available to the primitive.\ntemporary_directory : str\n    An absolute path to a temporary directory a primitive can use to store any files\n    for the duration of the current pipeline run phase. Directory is automatically\n    cleaned up after the current pipeline run phase finishes.",
-    "digest": "705dd18a485dc46410f9f0f0283a7a2053488345288dc0ee4bbef86564d52715"
+    "digest": "ff8fa05e9bebc61d9d6d16b3cd0e0ff921a6b2f9a53d498e9d4ba25687922e6f"
 }
