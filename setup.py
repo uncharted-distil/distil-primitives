@@ -40,7 +40,9 @@ setup(
         'soundfile==0.10.2',
         'sgm @ git+https://github.com/nowfred/sgm.git@v1.0.3#egg=sgm',
         'basenet @ git+https://github.com/bkj/basenet.git@903756540b89809ef458f35257287b937b333417',
-        'rescal @ git+https://github.com/mnick/rescal.py.git@69dddaa9157fc7bd24d5d7ecf0308cc412403c17'
+        'rescal @ git+https://github.com/mnick/rescal.py.git@69dddaa9157fc7bd24d5d7ecf0308cc412403c17',
+        'apex @ git+https://github.com/NVIDIA/apex.git@47e3367fcd6636db6cd549bbb385a6e06a3861d0'
+
     ],
     entry_points={
         'd3m.primitives': [
