@@ -31,7 +31,10 @@ class Params(params.Params):
 
 class TimeSeriesNeighboursPrimitive(PrimitiveBase[container.ndarray, container.DataFrame, Params, Hyperparams]):
     """
-    A primitive that filters collaboratives.
+    Performs regression or classification on time series data based on the caller supplied metric.  Trains
+    random forest, 1 nearest-neighbour classifier and diffiusion on KNN graph on input data, ensembles and
+    resolves via votiing.  Input is a list of equal length numpy arrays containing the series data, and
+    a dataframe containing the target values.  Output is a dataframe consisting only of predicted values
     """
 
     metadata = metadata_base.PrimitiveMetadata(
@@ -57,7 +60,7 @@ class TimeSeriesNeighboursPrimitive(PrimitiveBase[container.ndarray, container.D
             'algorithm_types': [
                 metadata_base.PrimitiveAlgorithmType.RANDOM_FOREST,
             ],
-            'primitive_family': metadata_base.PrimitiveFamily.DATA_TRANSFORMATION,
+            'primitive_family': metadata_base.PrimitiveFamily.LEARNER,
         },
     )
 
