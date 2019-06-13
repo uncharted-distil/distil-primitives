@@ -95,7 +95,7 @@ class DistilLinkPredictionPrimitive(PrimitiveBase[container.List, container.Data
 
         X_train, _, _ = inputs
         X_train = X_train.value
-        result = self._model.predict(X_train)
+        result = self._model.predict(X_train).astype(int)
 
         # create dataframe to hold d3mIndex and result
         result_df = container.DataFrame({X_train.index.name: X_train.index, self._outputs.columns[0]: result})
