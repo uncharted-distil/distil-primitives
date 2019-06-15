@@ -2,7 +2,7 @@ import os
 import logging
 from typing import Set, List, Dict, Any, Optional
 
-from d3m import container, utils 
+from d3m import container, utils
 from d3m.metadata import base as metadata_base, hyperparams, params
 from d3m.primitive_interfaces import base, unsupervised_learning
 from d3m.primitive_interfaces.supervised_learning import PrimitiveBase
@@ -61,16 +61,24 @@ class AudioTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
                 ],
             },
             'installation': [{
-                'type': metadata_base.PrimitiveInstallationType.PIP,
-                'package_uri': 'git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=distil-primitives'.format(
-                    git_commit=utils.current_git_commit(os.path.dirname(__file__)),
-                ),
-                },
-                {
+                    'type': metadata_base.PrimitiveInstallationType.PIP,
+                    'package_uri': 'git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=distil-primitives'.format(
+                        git_commit=utils.current_git_commit(os.path.dirname(__file__)),
+                    ),
+                }, {
                     "type": "FILE",
                     "key": "vggish_model",
                     "file_uri": "http://public.datadrivendiscovery.org/vggish_model.ckpt",
                     "file_digest": "0962b1914e3e053922d957c45bc84a78c985765641dc6bceeeb3a7d8dfecfdf6",
+                }, {
+                    # "python-prctl" requires "build-essential" and "libcap-dev". We list it here instead of
+                    'type': metadata_base.PrimitiveInstallationType.UBUNTU,
+                    'package': 'build-essential',
+                    'version': '12.4ubuntu1',
+                }, {
+                    'type': metadata_base.PrimitiveInstallationType.UBUNTU,
+                    'package': 'libcap-dev',
+                    'version': '1:2.25-1.1',
                 }
             ],
             'algorithm_types': [
@@ -82,7 +90,7 @@ class AudioTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
 
 
     def __init__(self, *,
-                 hyperparams: Hyperparams, 
+                 hyperparams: Hyperparams,
                  random_seed: int=0,
                  volumes: Dict[str, str] = None) -> None:
 
