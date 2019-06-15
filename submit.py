@@ -4,39 +4,21 @@ Utility to get primitives .json files
 import os
 import json
 import importlib
+import inspect
 
 # List all the primitives
 PRIMITIVES_DIR = 'distil/primitives'
 primitives = os.listdir(PRIMITIVES_DIR)
 
-def hypers(p):
-    a = 'primitive_code'
-    b = 'class_type_arguments'
-    c = 'Hyperparams'
-
-    hp = {}
-    try:
-        # Get default hypers
-        for h,v in p.metadata.query()[a][b][c].defaults().items():
-            hp[h] = v
-    except Exception as e:
-        pass
-    return hp
-
 for primitive in primitives:
     f = primitive.replace('.py', '')
     lib = importlib.import_module('distil.primitives.' + f)
     for l in dir(lib):
-
-        if 'Primitive' in l:
+        if 'Primitive' in l and l != 'PrimitiveBase':
             pp = getattr(lib, l)
-            print(l)
-            try:
-                item = pp(hyperparams=hypers(pp))
-                md = item.metadata.to_json_structure()
-                name = md['python_path']
-                with open('annotations/' + name + '.json', 'w') as f:
-                    f.write(json.dumps(md, indent=4))
-                    f.write('\n')
-            except Exception as e:
-                pass
+            print(f'Extracting {l}')
+            md = pp.metadata.to_json_structure()
+            name = md['python_path']
+            with open('annotations/' + name + '.json', 'w') as f:
+                f.write(json.dumps(md, indent=4))
+                f.write('\n')
