@@ -39,7 +39,7 @@ setup(
         'soundfile==0.10.2',
         'sgm @ git+https://github.com/nowfred/sgm.git@v1.0.3#egg=sgm',
         'basenet @ git+https://github.com/bkj/basenet.git@903756540b89809ef458f35257287b937b333417',
-        'rescal @ git+https://github.com/mnick/rescal.py.git@69dddaa9157fc7bd24d5d7ecf0308cc412403c17',
+        'rescal @ git+https://github.com/cdbethune/rescal.py.git@af2091c1d5521c987edd3be41627b9c563582fe8',
         'apex @ git+https://github.com/NVIDIA/apex.git@47e3367fcd6636db6cd549bbb385a6e06a3861d0'
 
     ],
