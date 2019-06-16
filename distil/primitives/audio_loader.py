@@ -6,7 +6,7 @@ import logging
 import copy
 
 from common_primitives import utils as common_utils
-from d3m import container, utils 
+from d3m import container, utils
 from d3m.base import utils as base_utils
 from d3m.metadata import base as metadata_base, hyperparams
 from d3m.primitive_interfaces import base, transformer
@@ -71,8 +71,6 @@ def convert_load_file(fileuri, start, end):
         except subprocess.CalledProcessError as error:
             logger.error("Error running ffmpeg: %(stderr)s", {'stderr': error.stderr})
             raise
-
-        logger.warning("Finished running ffmpeg: %(stderr)s", {'stderr': result.stderr})
 
         info = sf.info(output_file.name)
 
@@ -162,7 +160,6 @@ class AudioDatasetLoaderPrimitive(transformer.TransformerPrimitiveBase[container
 
         # find the target column and remove all others
 
-
         num_cols = outputs.metadata.query((metadata_base.ALL_ELEMENTS,))['dimension']['length']
         target_idx = -1
         suggested_target_idx = -1
@@ -199,8 +196,6 @@ class AudioDatasetLoaderPrimitive(transformer.TransformerPrimitiveBase[container
         # get the learning data (the dataset entry point)
         learning_id, learning_df = common_utils.get_tabular_resource(inputs, None, pick_entry_point=True)
 
-        logger.warning(learning_df)
-
         learning_df = learning_df.head(int(learning_df.shape[0]*self.hyperparams['sample']))
         learning_df.metadata = self._update_metadata(inputs.metadata, learning_id, learning_df)
 
@@ -211,13 +206,8 @@ class AudioDatasetLoaderPrimitive(transformer.TransformerPrimitiveBase[container
                 resource_id = column_metadata['foreign_key']['resource_id']
                 file_column_idx = column_metadata['foreign_key']['column_index']
 
-        logger.warning(learning_df.metadata.query((metadata_base.ALL_ELEMENTS,)))
-
         # get the learning data (the dataset entry point)
         collection_id, collection_df = common_utils.get_tabular_resource(inputs, resource_id)
-
-        logger.warning(collection_df)
-        logger.warning('collectiondf is {}'.format(len(collection_df)))
 
         collection_df = collection_df.head(learning_df.shape[0])
         collection_df.metadata = self._update_metadata(inputs.metadata, collection_id, collection_df)
@@ -282,7 +272,6 @@ class AudioDatasetLoaderPrimitive(transformer.TransformerPrimitiveBase[container
     def _audio_load(cls, files_in: Sequence[Tuple]) -> List:
         files_out = []
         for f in files_in:
-            logger.warning(f)
             try:
                 files_out.append(convert_load_file(f[0], float(f[1]), float(f[2])))
             except:
