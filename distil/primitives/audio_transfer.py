@@ -71,7 +71,6 @@ class AudioTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
                     "file_uri": "http://public.datadrivendiscovery.org/vggish_model.ckpt",
                     "file_digest": "0962b1914e3e053922d957c45bc84a78c985765641dc6bceeeb3a7d8dfecfdf6",
                 }, {
-                    # "python-prctl" requires "build-essential" and "libcap-dev". We list it here instead of
                     'type': metadata_base.PrimitiveInstallationType.UBUNTU,
                     'package': 'build-essential',
                     'version': '12.4ubuntu1',
@@ -79,6 +78,13 @@ class AudioTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
                     'type': metadata_base.PrimitiveInstallationType.UBUNTU,
                     'package': 'libcap-dev',
                     'version': '1:2.25-1.1',
+                },  {
+                    # "python-prctl" requires "build-essential" and "libcap-dev". We list it here instead of
+                    # "setup.py" to not have to list these system dependencies for every common primitive (because
+                    # we cannot assure this primitive annotation gets installed first).
+                    'type': metadata_base.PrimitiveInstallationType.PIP,
+                    'package': 'python-prctl',
+                    'version': '1.7',
                 }
             ],
             'algorithm_types': [

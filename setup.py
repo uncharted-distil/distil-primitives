@@ -32,7 +32,7 @@ setup(
         'tensorflow-gpu==1.12.2',
         'frozendict>=1.2',
         'nose==1.3.7',
-        'python-prctl==1.7',
+        #'python-prctl==1.7', Needs to be installed in the primitive install section
         'fastdtw==0.3.2',
         'networkx==2.2.0',
         'resampy==0.2.1',
