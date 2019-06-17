@@ -134,7 +134,7 @@ class BERTPairClassification(DistilBaseModel):
 
         self.device = device
 
-        self.tokenizer = BertTokenizer.from_pretrained('bert-base-uncased', do_lower_case=self.do_lower_case)
+        self.tokenizer = BertTokenizer.from_pretrained(vocab_path, do_lower_case=self.do_lower_case)
 
         _ = np.random.seed(seed)
         _ = torch.manual_seed(seed + 1)
@@ -185,7 +185,7 @@ class BERTPairClassification(DistilBaseModel):
         # Define model
 
         self.model = QAModel.from_pretrained(
-            'bert-base-uncased',
+            self.model_path,
             num_labels=self.num_labels,
             # weights=[0.1, 1],
         ).to(self.device)
