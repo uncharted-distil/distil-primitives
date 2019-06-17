@@ -166,8 +166,8 @@ class BERTPairClassification(DistilBaseModel):
         self.num_labels = len(self.label_list)
         num_train_steps = int(len(train_examples) / self.batch_size * float(self.epochs))
 
-        q_lens = X_train.question.apply(lambda x: len(self.tokenizer.tokenize(x)))
-        s_lens = X_train.sentence.apply(lambda x: len(self.tokenizer.tokenize(x)))
+        q_lens = X_train[self.columns[0]].apply(lambda x: len(self.tokenizer.tokenize(x)))
+        s_lens = X_train[self.columns[1]].apply(lambda x: len(self.tokenizer.tokenize(x)))
         self.max_seq_len = int(np.percentile(q_lens + s_lens, 99) + 1)
 
         train_dataset = examples2dataset(train_examples, self.label_list, self.max_seq_len, self.tokenizer)
