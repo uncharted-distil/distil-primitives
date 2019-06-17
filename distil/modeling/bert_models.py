@@ -185,7 +185,7 @@ class BERTPairClassification(DistilBaseModel):
         # Define model
 
         self.model = QAModel.from_pretrained(
-            f'{self.model_path}',
+            self.model_path,
             num_labels=self.num_labels,
             # weights=[0.1, 1],
         ).to(self.device)
