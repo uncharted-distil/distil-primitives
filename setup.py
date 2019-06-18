@@ -27,7 +27,7 @@ setup(
         'pandas==0.23.4',
         'sklearn_pandas==1.8.0',
         'torch==1.0.1.post2',
-        'pytorch-pretrained-bert==0.4.0',
+        #'pytorch-pretrained-bert==0.4.0', has print statements on import that break d3m annotation validation
         'sklearn_pandas==1.8.0',
         'tensorflow-gpu==1.12.2',
         'frozendict>=1.2',
@@ -40,6 +40,7 @@ setup(
         'sgm @ git+https://github.com/nowfred/sgm.git@v1.0.3#egg=sgm',
         'basenet @ git+https://github.com/bkj/basenet.git@903756540b89809ef458f35257287b937b333417',
         'rescal @ git+https://github.com/cdbethune/rescal.py.git@af2091c1d5521c987edd3be41627b9c563582fe8',
+        'pytorch-pretrained-bert @ git+https://github.com/cdbethune/pytorch-pretrained-BERT.git@806c1048d69985b44c928adfb682cc0940114fc5'
         # Can cause errors with pretrained-bert: https://github.com/NVIDIA/apex/issues/156
         #'apex @ git+https://github.com/NVIDIA/apex.git@47e3367fcd6636db6cd549bbb385a6e06a3861d0'
 
