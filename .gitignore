@@ -9,5 +9,6 @@ outputs
 static_resources
 TODO.md
 DistilPrimitives.egg-info
+distil_primitives.egg-info
 *.pth
 static
