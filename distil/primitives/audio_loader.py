@@ -5,7 +5,6 @@ import subprocess
 import logging
 import copy
 
-from common_primitives import utils as common_utils
 from d3m import container, utils
 from d3m.base import utils as base_utils
 from d3m.metadata import base as metadata_base, hyperparams
@@ -26,10 +25,6 @@ __all__ = ('AudioDatasetLoaderPrimitive',)
 logger = logging.getLogger(__name__)
 
 class Hyperparams(hyperparams.Hyperparams):
-    collection_type = hyperparams.Hyperparameter[str](
-        default='timeseries',
-        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
-        description='the type of collection to load')
     sample = hyperparams.Hyperparameter[float](
         default=1.0,
         semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
@@ -139,7 +134,7 @@ class AudioDatasetLoaderPrimitive(transformer.TransformerPrimitiveBase[container
         logger.debug(f'Running {__name__}')
 
         # get the learning data (the dataset entry point)
-        learning_id, learning_df = common_utils.get_tabular_resource(inputs, None, pick_entry_point=True)
+        learning_id, learning_df = base_utils.get_tabular_resource(inputs, None, pick_entry_point=True)
         learning_df = learning_df.head(int(learning_df.shape[0]*self.hyperparams['sample']))
         learning_df.metadata = self._update_metadata(inputs.metadata, learning_id, learning_df)
 
@@ -148,53 +143,11 @@ class AudioDatasetLoaderPrimitive(transformer.TransformerPrimitiveBase[container
         return base.CallResult(learning_df)
 
 
-
-    def produce_target(self, *, inputs: container.Dataset, timeout: float = None, iterations: int = None) -> base.CallResult[container.DataFrame]:
-        logger.debug(f'Running {__name__} produce_target')
-
-        learning_id, dataframe = base_utils.get_tabular_resource(inputs, self.hyperparams['dataframe_resource'])
-        #learning_id, dataframe = common_utils.get_tabular_resource(inputs, None, pick_entry_point=True)
-
-        dataframe.metadata = self._update_metadata(inputs.metadata, learning_id, dataframe)
-        outputs = dataframe.copy()
-
-        # find the target column and remove all others
-
-        num_cols = outputs.metadata.query((metadata_base.ALL_ELEMENTS,))['dimension']['length']
-        target_idx = -1
-        suggested_target_idx = -1
-        for i in range(num_cols):
-            semantic_types = outputs.metadata.query((metadata_base.ALL_ELEMENTS,i))['semantic_types']
-            if 'https://metadata.datadrivendiscovery.org/types/Target' in semantic_types or \
-               'https://metadata.datadrivendiscovery.org/types/TrueTarget' in semantic_types:
-                target_idx = i
-                outputs = self._update_type_info(semantic_types, outputs, i)
-            elif 'https://metadata.datadrivendiscovery.org/types/SuggestedTarget' in semantic_types:
-                suggested_target_idx = i
-            elif 'https://metadata.datadrivendiscovery.org/types/PrimaryKey' in semantic_types:
-                outputs = self._update_type_info(semantic_types, outputs, i)
-        # fall back on suggested target
-        if target_idx == -1:
-            target_idx = suggested_target_idx
-
-        # flip the d3mIndex to be the df index as well
-        outputs = outputs.set_index('d3mIndex', drop=False)
-
-        remove_indices = set(range(num_cols))
-        remove_indices.remove(target_idx)
-        outputs = common_utils.remove_columns(outputs, remove_indices)
-
-        logger.debug(f'\n{outputs.dtypes}')
-        logger.debug(f'\n{outputs}')
-
-        return base.CallResult(outputs)
-
-
     def produce_collection(self, *, inputs: container.Dataset, timeout: float = None, iterations: int = None) -> base.CallResult[container.List]:
         logger.debug(f'Running {__name__}')
 
         # get the learning data (the dataset entry point)
-        learning_id, learning_df = common_utils.get_tabular_resource(inputs, None, pick_entry_point=True)
+        learning_id, learning_df = base_utils.get_tabular_resource(inputs, None, pick_entry_point=True)
 
         learning_df = learning_df.head(int(learning_df.shape[0]*self.hyperparams['sample']))
         learning_df.metadata = self._update_metadata(inputs.metadata, learning_id, learning_df)
@@ -207,7 +160,7 @@ class AudioDatasetLoaderPrimitive(transformer.TransformerPrimitiveBase[container
                 file_column_idx = column_metadata['foreign_key']['column_index']
 
         # get the learning data (the dataset entry point)
-        collection_id, collection_df = common_utils.get_tabular_resource(inputs, resource_id)
+        collection_id, collection_df = base_utils.get_tabular_resource(inputs, resource_id)
 
         collection_df = collection_df.head(learning_df.shape[0])
         collection_df.metadata = self._update_metadata(inputs.metadata, collection_id, collection_df)
@@ -220,6 +173,8 @@ class AudioDatasetLoaderPrimitive(transformer.TransformerPrimitiveBase[container
 
         file_paths = []
         for i, row in learning_df.iterrows():
+            if i % 100 == 0:
+                logger.debug(f"Loaded {i} / {len(learning_df.index)} files")
             try:
                 file_paths.append((os.path.join(base_path, row['filename']), row.start, row.end))
             except AttributeError as e:
@@ -230,10 +185,9 @@ class AudioDatasetLoaderPrimitive(transformer.TransformerPrimitiveBase[container
 
         logger.debug(f'\n{outputs}')
 
-        result_df = pd.DataFrame({'d3mIndex': learning_df['d3mIndex'], 'audio': outputs}) # d3m container takes for_ever_
-        result_df.set_index('d3mIndex', inplace=True) # TODO: fix index setup
-
+        result_df = pd.DataFrame({'audio': outputs}) # d3m container takes for_ever_
         return base.CallResult(container.DataFrame(result_df, generate_metadata=False))
+
 
     @classmethod
     def _update_metadata(cls, metadata: metadata_base.DataMetadata, resource_id: metadata_base.SelectorSegment,
@@ -246,32 +200,19 @@ class AudioDatasetLoaderPrimitive(transformer.TransformerPrimitiveBase[container
             ))
 
         resource_metadata.update({'schema': metadata_base.CONTAINER_SCHEMA_VERSION,})
-        new_metadata = metadata.clear(resource_metadata, for_value=for_value, generate_metadata=False)
-        new_metadata = common_utils.copy_metadata(metadata, new_metadata, (resource_id,))
+        new_metadata = metadata()
+        new_metadata = metadata.copy_to(new_metadata, (resource_id,))
         new_metadata = new_metadata.remove_semantic_type((), 'https://metadata.datadrivendiscovery.org/types/DatasetEntryPoint')
 
         return new_metadata
-
-    @classmethod
-    def _update_type_info(self, semantic_types: Sequence[str], outputs: container.DataFrame, i: int) -> container.DataFrame:
-        # update the structural / df type from the semantic type
-        if 'http://schema.org/Integer' in semantic_types:
-            outputs.metadata = outputs.metadata.update_column(i, {'structural_type': int})
-            outputs.iloc[:,i] = pd.to_numeric(outputs.iloc[:,i])
-        elif 'http://schema.org/Float' in semantic_types:
-            outputs.metadata = outputs.metadata.update_column(i, {'structural_type': float})
-            outputs.iloc[:,i] = pd.to_numeric(outputs.iloc[:,i])
-        elif 'http://schema.org/Boolean' in semantic_types:
-            outputs.metadata = outputs.metadata.update_column(i, {'structural_type': bool})
-            outputs.iloc[:,i] = outputs.iloc[:,i].astype('bool')
-
-        return outputs
 
 
     @classmethod
     def _audio_load(cls, files_in: Sequence[Tuple]) -> List:
         files_out = []
-        for f in files_in:
+        for i, f in enumerate(files_in):
+            if i % 100 == 0:
+                logger.debug(f"Converted {i} / {len(files_in)} files")
             try:
                 files_out.append(convert_load_file(f[0], float(f[1]), float(f[2])))
             except:
