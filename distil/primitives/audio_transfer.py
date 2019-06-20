@@ -118,37 +118,28 @@ class AudioTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
 
 
     def _transform_inputs(self, inputs):
-        logger.warning('start audio transfer')
-
-        import time
-
-        t0 = time.time()
-        logger.warning(inputs)
-
         feats = self.audio_set._featurize(inputs.audio)
-
-        audio_vecs = pd.DataFrame(feats.tolist(), inputs.index)
+        audio_vecs = pd.DataFrame(feats.tolist())
         audio_vecs.columns = ['v{}'.format(i) for i in range(0, audio_vecs.shape[1])]
 
-        df = container.DataFrame(audio_vecs) # TODO: fix index setup
-        df.index.name = 'd3mIndex'
+        return container.DataFrame(audio_vecs) # TODO: fix index setup
 
-        logger.warning(df)
-
-        return df
 
     def fit(self, *, timeout: float = None, iterations: int = None) -> CallResult[None]:
-
-
         return CallResult(None)
+
 
     def produce(self, *, inputs: container.List, timeout: float = None, iterations: int = None) -> CallResult[container.DataFrame]:
         logger.debug(f'Producing {__name__}')
+        outputs = self._transform_inputs(inputs)
+        logger.debug(f'Audio transfer completed on {len(outputs.columns)} samples')
 
-        return base.CallResult(self._transform_inputs(inputs))
+        return base.CallResult(outputs)
+
 
     def get_params(self) -> Params:
         return Params()
+
 
     def set_params(self, *, params: Params) -> None:
         return
