@@ -62,7 +62,6 @@ setup(
             'data_transformation.one_hot_encoder.DistilOneHotEncoder = distil.primitives.one_hot_encoder:OneHotEncoderPrimitive',
             'data_transformation.encoder.DistilBinaryEncoder = distil.primitives.binary_encoder:BinaryEncoderPrimitive',
             'data_transformation.encoder.DistilTextEncoder = distil.primitives.text_encoder:TextEncoderPrimitive',
-            'data_transformation.missing_indicator.DistilMissingIndicator = distil.primitives.missing_indicator:MissingIndicatorPrimitive',
             'data_transformation.data_cleaning.DistilRaggedDatasetLoader = distil.primitives.ragged_dataset_loader:RaggedDatasetLoaderPrimitive',
             'data_transformation.data_cleaning.DistilTimeSeriesReshaper = distil.primitives.timeseries_reshaper:TimeSeriesReshaperPrimitive',
             'learner.random_forest.DistilTimeSeriesNeighboursPrimitive = distil.primitives.timeseries_neighbours:TimeSeriesNeighboursPrimitive',
