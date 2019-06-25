@@ -200,7 +200,7 @@ class AudioDatasetLoaderPrimitive(transformer.TransformerPrimitiveBase[container
             ))
 
         resource_metadata.update({'schema': metadata_base.CONTAINER_SCHEMA_VERSION,})
-        new_metadata = metadata()
+        new_metadata = metadata_base.DataMetadata()
         new_metadata = metadata.copy_to(new_metadata, (resource_id,))
         new_metadata = new_metadata.remove_semantic_type((), 'https://metadata.datadrivendiscovery.org/types/DatasetEntryPoint')
 
