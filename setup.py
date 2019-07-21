@@ -69,7 +69,8 @@ setup(
             'feature_extraction.image_transfer.DistilImageTransfer = distil.primitives.image_transfer:ImageTransferPrimitive',
             'feature_extraction.audio_transfer.DistilAudioTransfer = distil.primitives.audio_transfer:AudioTransferPrimitive',
             'data_preprocessing.audio_loader.DistilAudioDatasetLoader = distil.primitives.audio_loader:AudioDatasetLoaderPrimitive',
-            'clustering.k_means.DistilKMeans = distil.primitives.k_means:KMeansPrimitive'
+            'clustering.k_means.DistilKMeans = distil.primitives.k_means:KMeansPrimitive',
+            'data_transformation.data_cleaning.OutputDataframe = distil.primitives.output_dataframe:OutputDataframePrimitive'
         ],
     }
 )
