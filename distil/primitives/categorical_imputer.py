@@ -1,10 +1,9 @@
 import os
 import logging
 
-from d3m import container, utils 
+from d3m import container, utils
 from d3m.metadata import base as metadata_base, hyperparams
 from d3m.primitive_interfaces import base, transformer
-from common_primitives import utils as common_utils
 
 import pandas as pd
 import numpy as np

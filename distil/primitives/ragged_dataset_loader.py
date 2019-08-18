@@ -2,10 +2,10 @@ import os
 import logging
 import copy
 
-from common_primitives import utils as common_utils
-from d3m import container, utils 
+from d3m import container, utils
 from d3m.metadata import base as metadata_base, hyperparams
 from d3m.primitive_interfaces import base, transformer
+from d3m.base import utils as base_utils
 from distil.primitives import utils as distil_utils
 
 from typing import List, Sequence, Optional
@@ -30,7 +30,7 @@ class Hyperparams(hyperparams.Hyperparams):
 
 class RaggedDatasetLoaderPrimitive(transformer.TransformerPrimitiveBase[container.Dataset, container.List, Hyperparams]):
     """
-    A primitive that loads multiple data into a single dataframe. 
+    A primitive that loads multiple data into a single dataframe.
     """
 
     metadata = metadata_base.PrimitiveMetadata(
@@ -65,7 +65,7 @@ class RaggedDatasetLoaderPrimitive(transformer.TransformerPrimitiveBase[containe
         logger.debug(f'Running {__name__}')
 
         # get the learning data (the dataset entry point)
-        learning_id, learning_df = common_utils.get_tabular_resource(inputs, None, pick_entry_point=True)
+        learning_id, learning_df = base_utils.get_tabular_resource(inputs, None, pick_entry_point=True)
         learning_df = learning_df.head(int(learning_df.shape[0]*self.hyperparams['sample']))
         learning_df.metadata = self._update_metadata(inputs.metadata, learning_id, learning_df)
 
@@ -78,7 +78,7 @@ class RaggedDatasetLoaderPrimitive(transformer.TransformerPrimitiveBase[containe
         logger.debug(f'Running {__name__}')
 
         # get the learning data (the dataset entry point)
-        learning_id, learning_df = common_utils.get_tabular_resource(inputs, None, pick_entry_point=True)
+        learning_id, learning_df = base_utils.get_tabular_resource(inputs, None, pick_entry_point=True)
         learning_df = learning_df.head(int(learning_df.shape[0]*self.hyperparams['sample']))
         learning_df.metadata = self._update_metadata(inputs.metadata, learning_id, learning_df)
 
@@ -90,7 +90,7 @@ class RaggedDatasetLoaderPrimitive(transformer.TransformerPrimitiveBase[containe
                 file_column_idx = column_metadata['foreign_key']['column_index']
 
         # get the learning data (the dataset entry point)
-        collection_id, collection_df = common_utils.get_tabular_resource(inputs, resource_id)
+        collection_id, collection_df = base_utils.get_tabular_resource(inputs, resource_id)
         collection_df = collection_df.head(learning_df.shape[0])
         collection_df.metadata = self._update_metadata(inputs.metadata, collection_id, collection_df)
 
@@ -118,7 +118,7 @@ class RaggedDatasetLoaderPrimitive(transformer.TransformerPrimitiveBase[containe
 
         resource_metadata.update({'schema': metadata_base.CONTAINER_SCHEMA_VERSION,})
         new_metadata = metadata.clear(resource_metadata, for_value=for_value, generate_metadata=False)
-        new_metadata = common_utils.copy_metadata(metadata, new_metadata, (resource_id,))
+        new_metadata = base_utils.copy_metadata(metadata, new_metadata, (resource_id,))
         new_metadata = new_metadata.remove_semantic_type((), 'https://metadata.datadrivendiscovery.org/types/DatasetEntryPoint')
 
         return new_metadata

@@ -4,12 +4,10 @@ import typing
 from typing import List, Sequence
 
 
-from d3m import container, utils 
+from d3m import container, utils
 from d3m.base import utils as base_utils
 from d3m.metadata import base as metadata_base, hyperparams
 from d3m.primitive_interfaces import base, transformer
-
-from common_primitives import utils as common_utils
 
 import pandas as pd
 
@@ -116,7 +114,7 @@ class DistilSingleGraphLoaderPrimitive(transformer.TransformerPrimitiveBase[Inpu
         outputs = outputs.set_index('d3mIndex', drop=False)
 
         # remove target and primary key
-        outputs = common_utils.remove_columns(outputs, remove_indices)
+        outputs = outputs.remove_columns(remove_indices)
 
         logger.debug(f'\n{outputs.dtypes}')
         logger.debug(f'\n{outputs}')
@@ -152,7 +150,7 @@ class DistilSingleGraphLoaderPrimitive(transformer.TransformerPrimitiveBase[Inpu
 
         remove_indices = set(range(num_cols))
         remove_indices.remove(target_idx)
-        outputs = common_utils.remove_columns(outputs, remove_indices)
+        outputs = outputs.remove_columns(remove_indices)
 
         logger.debug(f'\n{outputs.dtypes}')
         logger.debug(f'\n{outputs}')
