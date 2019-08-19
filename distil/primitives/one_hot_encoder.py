@@ -2,7 +2,7 @@ import os
 from typing import List, Set, Any, Sequence
 import logging
 
-from d3m import container, utils 
+from d3m import container, utils
 from d3m.metadata import base as metadata_base, hyperparams, params
 from d3m.primitive_interfaces import base, unsupervised_learning
 
@@ -104,7 +104,7 @@ class OneHotEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
 
         self._cols = list(filtered_cols)
         self._encoder = None
-        if len(cols) is 0:
+        if len(self._cols) is 0:
             return base.CallResult(None)
 
         input_cols = self._inputs.iloc[:,self._cols]
