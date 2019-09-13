@@ -58,6 +58,9 @@ class AnyForest:
             score_oob = self.model.oob_decision_function_
             return self.model.classes_[score_oob.argmax(axis=-1)] # could vote better
 
+    def feature_importances(self):
+        return self.model.feature_importances_
+
 
 class ForestCV(DistilBaseModel):
     default_param_grids = {
@@ -119,6 +122,9 @@ class ForestCV(DistilBaseModel):
             return tiebreaking_vote_pre(np.vstack(preds), labels)
         elif self.mode == 'regression':
             return np.stack(preds).mean(axis=0)
+
+    def feature_importances(self):
+        return self._models[0].feature_importances()
 
     def _fit(self, Xf_train, y_train, param_grid=None):
         global _eval_grid_point
