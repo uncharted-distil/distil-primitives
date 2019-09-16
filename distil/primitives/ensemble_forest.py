@@ -128,7 +128,7 @@ class EnsembleForestPrimitive(PrimitiveBase[container.DataFrame, container.DataF
         logger.debug(f'\n{result_df}')
         return base.CallResult(result_df)
 
-    def produce_feature_weights(self, *, inputs: container.DataFrame, timeout: float = None, iterations: int = None) -> CallResult[container.DataFrame]:
+    def produce_feature_importances(self, *, inputs: container.DataFrame, timeout: float = None, iterations: int = None) -> CallResult[container.DataFrame]:
         logger.debug(f'Producing {__name__} feature weights')
 
         # force a fit it hasn't yet been done
