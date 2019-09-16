@@ -12,13 +12,14 @@ import numpy as np
 from PIL import Image
 
 from distil.modeling.metrics import classification_metrics, regression_metrics
-
-
-from distil.modeling.pretrained_audio import AudiosetModel
+from distil.primitives import utils as primitive_utils
 
 __all__ = ('AudioTransferPrimitive',)
 
 logger = logging.getLogger(__name__)
+
+# lazy load pretrained audio due to lengthy import time
+pretrained_audio = utils.lazy_load("distil.modeling.pretrained_audio")
 
 class Hyperparams(hyperparams.Hyperparams):
     use_columns = hyperparams.Set(
@@ -102,7 +103,7 @@ class AudioTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
 
         PrimitiveBase.__init__(self, hyperparams=hyperparams, random_seed=random_seed, volumes=volumes)
         self.volumes = volumes
-        self.audio_set = AudiosetModel(model_path=self.volumes["vggish_model"])
+        self.audio_set = pretrained_audio.AudiosetModel(model_path=self.volumes["vggish_model"])
 
     def __getstate__(self) -> dict:
         state = PrimitiveBase.__getstate__(self)
