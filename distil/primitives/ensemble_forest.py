@@ -84,29 +84,39 @@ class EnsembleForestPrimitive(PrimitiveBase[container.DataFrame, container.DataF
 
         PrimitiveBase.__init__(self, hyperparams=hyperparams, random_seed=random_seed)
         self._model = ForestCV(self.hyperparams['metric'])
+        self._needs_fit = True
 
     def __getstate__(self) -> dict:
         state = PrimitiveBase.__getstate__(self)
         state['models'] = self._model
+        state['needs_fit'] = self._needs_fit
         return state
 
     def __setstate__(self, state: dict) -> None:
         PrimitiveBase.__setstate__(self, state)
         self._model = state['models']
+        self._needs_fit = True
 
     def set_training_data(self, *, inputs: container.DataFrame, outputs: container.DataFrame) -> None:
         self._inputs = inputs
         self._outputs = outputs
         self._model.num_fits = self.hyperparams['large_dataset_fits'] \
             if self._inputs.shape[0] > self.hyperparams['small_dataset_threshold'] else self.hyperparams['small_dataset_fits']
+        self._needs_fit = True
 
     def fit(self, *, timeout: float = None, iterations: int = None) -> CallResult[None]:
         logger.debug(f'Fitting {__name__}')
-        self._model.fit(self._inputs.values, self._outputs.values)
+        if self._needs_fit:
+            self._model.fit(self._inputs.values, self._outputs.values)
+            self._needs_fit = False
         return CallResult(None)
 
     def produce(self, *, inputs: container.DataFrame, timeout: float = None, iterations: int = None) -> CallResult[container.DataFrame]:
         logger.debug(f'Producing {__name__}')
+
+        # force a fit it hasn't yet been done
+        if self._needs_fit:
+            self.fit()
 
         # create dataframe to hold the result
         result = self._model.predict(inputs.values)
@@ -117,6 +127,24 @@ class EnsembleForestPrimitive(PrimitiveBase[container.DataFrame, container.DataF
 
         logger.debug(f'\n{result_df}')
         return base.CallResult(result_df)
+
+    def produce_feature_importances(self, *, inputs: container.DataFrame, timeout: float = None, iterations: int = None) -> CallResult[container.DataFrame]:
+        logger.debug(f'Producing {__name__} feature weights')
+
+        # force a fit it hasn't yet been done
+        if self._needs_fit:
+            self.fit()
+
+        # extract the feature weights
+        column_names = inputs.columns
+        output = container.DataFrame(self._model.feature_importances().reshape((1, len(inputs.columns))), generate_metadata=True)
+        output.columns = inputs.columns
+        for i in range(len(inputs.columns)):
+            output.metadata = output.metadata.update_column(i, {"name": output.columns[i]})
+
+        print(output)
+
+        return CallResult(output)
 
     def get_params(self) -> Params:
         return Params()
