@@ -11,6 +11,8 @@ from d3m.primitive_interfaces.base import CallResult
 from distil.modeling.forest import ForestCV
 from distil.modeling.metrics import classification_metrics, regression_metrics
 
+from ShapExplainers import tree
+
 import pandas as pd
 import numpy as np
 
@@ -146,6 +148,25 @@ class EnsembleForestPrimitive(PrimitiveBase[container.DataFrame, container.DataF
 
         return CallResult(output)
 
+    def produce_shap_values(self, *, inputs: container.DataFrame, timeout: float = None, iterations: int = None) -> CallResult[container.DataFrame]:
+
+        #get the task type from the model instance
+        task_type = self._model.mode
+        
+        #number of features migth have to be a hyperparameter?
+
+        exp = tree.Tree(self._model, X = inputs, model_type = 'Random_Forest', task_type = task_type)
+        if self.hyperparams['samples']:
+            output_df = container.DataFrame(exp.produce_global(), generate_metadata = True)
+            
+        else:
+            output_df = container.DataFrame(exp.produce_sample(self.hyperparams['samples']), generate_metadata = True)
+        
+        
+        
+        return CallResult(output_df)
+        
+        
     def get_params(self) -> Params:
         return Params()
 
