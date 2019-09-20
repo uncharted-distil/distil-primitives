@@ -16,6 +16,8 @@ from ShapExplainers import tree
 import pandas as pd
 import numpy as np
 
+from common_primitives import denormalize, dataset_to_dataframe as DatasetToDataFrame
+
 __all__ = ('EnsembleForest',)
 
 logger = logging.getLogger(__name__)
@@ -150,20 +152,37 @@ class EnsembleForestPrimitive(PrimitiveBase[container.DataFrame, container.DataF
 
     def produce_shap_values(self, *, inputs: container.DataFrame, timeout: float = None, iterations: int = None) -> CallResult[container.DataFrame]:
 
+        if self._needs_fit:
+            self.fit()
+
         #get the task type from the model instance
         task_type = self._model.mode
-        
+                
         #number of features migth have to be a hyperparameter?
 
-        exp = tree.Tree(self._model, X = inputs, model_type = 'Random_Forest', task_type = task_type)
+        exp = tree.Tree(self._model._models[0].model, X = inputs, model_type = 'Random_Forest', task_type = task_type)
         if self.hyperparams['samples']:
             output_df = container.DataFrame(exp.produce_global(), generate_metadata = True)
             
         else:
-            output_df = container.DataFrame(exp.produce_sample(self.hyperparams['samples']), generate_metadata = True)
+            output_df = container.DataFrame(exp.produce_sample(self.hyperparams['samples']))
         
+        #build and add metadata
+        for c in range(len(inputs.columns)):
+            col_dict = dict(output_df.metatdata.query((metadata_base.ALL_ELEMENTS, c)))
+            col_dict['structural_type'] = type(1.0)
+            col_dict['name'] = inputs.columns[c]
+            col_dict['semantic_type'] = ('https://metadata.datadrivendiscovery.org/types/Attribute',)
+            output_df.metadata = output_df.metadata.update((metadata_base.ALL_ELEMENTS,c),col_dict)
         
-        
+        df_dict = dict(output_df.metadata.query((metadata_base.ALL_ELEMENTS, )))
+        df_dict_1 = dict(output_df.metadata.query((metadata_base.ALL_ELEMENTS, ))) 
+        df_dict['dimension'] = df_dict_1
+        df_dict_1['name'] = 'columns'
+        df_dict_1['semantic_types'] = ('https://metadata.datadrivendiscovery.org/types/TabularColumn',)
+        df_dict_1['length'] =len(inputs.columns)     
+        output_df.metadata = output_df.metadata.update((metadata_base.ALL_ELEMENTS,), df_dict)
+     
         return CallResult(output_df)
         
         
@@ -172,3 +191,34 @@ class EnsembleForestPrimitive(PrimitiveBase[container.DataFrame, container.DataF
 
     def set_params(self, *, params: Params) -> None:
         return
+
+if __name__ == '__main__':
+
+    #Load data and preprocessing
+    
+    filepath = 'file:///home/alexmably/datasets/seed_datasets_current/SEMI_1040_sylva_prior/TRAIN/dataset_TRAIN/datasetDoc.json'
+    test_filepath = 'file:///home/alexmably/datasets/seed_datasets_current/SEMI_1040_sylva_prior/TEST/dataset_TEST/datasetDoc.json'
+
+    input_dataset = container.Dataset.load(filepath)
+    test_dataset = container.Dataset.load(test_filepath)
+
+    hyperparams_class = denormalize.DenormalizePrimitive.metadata.query()['primitive_code']['class_type_arguments']['Hyperparams']
+    denorm = denormalize.DenormalizePrimitive(hyperparams = hyperparams_class.defaults())
+    input_dataset = denorm.produce(inputs = input_dataset).value
+    test_dataset = denorm.produce(inputs = test_dataset).value
+
+    hyperparams_class = DatasetToDataFrame.DatasetToDataFramePrimitive.metadata.query()['primitive_code']['class_type_arguments']['Hyperparams']
+    ds2df_client = DatasetToDataFrame.DatasetToDataFramePrimitive(hyperparams = hyperparams_class.defaults().replace({"dataframe_resource":"learningData"}))
+    input_dataframe = container.DataFrame(ds2df_client.produce(inputs = input_dataset).value)
+    test_dataframe = container.DataFrame(ds2df_client.produce(inputs = test_dataset).value)
+    input_dataframe = input_dataframe.replace({'':np.nan}).dropna()
+    input_dataframe = input_dataframe.iloc[:150]
+    
+    hyperparams_class = EnsembleForestPrimitive.metadata.query()['primitive_code']['class_type_arguments']['Hyperparams']
+    tree_client = EnsembleForestPrimitive(hyperparams=hyperparams_class.defaults())
+    tree_client.set_training_data(inputs = input_dataframe.drop(columns = ['label']), outputs = input_dataframe['label'].to_frame())
+    tree_client.fit()
+      
+    results = tree_client.produce_shap_values(inputs = test_dataframe.drop(columns = ['label']))
+    print(results.value)
+    #print(input_dataframe)
