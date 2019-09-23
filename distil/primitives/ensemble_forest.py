@@ -1,4 +1,5 @@
 import os
+import sys
 import logging
 from typing import Set, List, Dict, Any, Optional
 
@@ -45,9 +46,9 @@ class Hyperparams(hyperparams.Hyperparams):
         semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
         description="The number of random forests to fit when using large datasets."
     )
-    samples = hyperparams.List(
+    samples = hyperparams.Set(
         elements = hyperparams.Hyperparameter[int](-1),
-        default=[],
+        default=(),
         semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
         description="A list of indices for specific rows to return shap explainer info for."
     )
@@ -167,7 +168,7 @@ class EnsembleForestPrimitive(PrimitiveBase[container.DataFrame, container.DataF
 
         #get the task type from the model instance
         task_type = self._model.mode
-                
+                        
         #shap needs a pandas type dataframe, not d3 container type dataframe
         inputs[index_names[0]] = inputs[index_names[0]].astype(int)
         shap_df = pd.DataFrame(inputs.set_index([index_names[0]]))
@@ -219,8 +220,8 @@ if __name__ == '__main__':
 
     #Load data and preprocessing
     
-    filepath = 'file:///home/alexmably/datasets/seed_datasets_current/SEMI_1040_sylva_prior/TRAIN/dataset_TRAIN/datasetDoc.json'
-    test_filepath = 'file:///home/alexmably/datasets/seed_datasets_current/SEMI_1040_sylva_prior/TEST/dataset_TEST/datasetDoc.json'
+    filepath = 'file:///home/alexmably/datasets/seed_datasets_current/196_autoMpg/TRAIN/dataset_TRAIN/datasetDoc.json'
+    test_filepath = 'file:///home/alexmably/datasets/seed_datasets_current/196_autoMpg/TEST/dataset_TEST/datasetDoc.json'
 
     input_dataset = container.Dataset.load(filepath)
     test_dataset = container.Dataset.load(test_filepath)
@@ -235,15 +236,16 @@ if __name__ == '__main__':
     input_dataframe = container.DataFrame(ds2df_client.produce(inputs = input_dataset).value)
     test_dataframe = container.DataFrame(ds2df_client.produce(inputs = test_dataset).value)
     input_dataframe = input_dataframe.replace({'':np.nan}).dropna()
-    input_dataframe = input_dataframe.iloc[:150]
-    test_dataframe = test_dataframe.iloc[:150]
+    test_dataframe = test_dataframe.drop(columns = ['class'])
+    test_dataframe = test_dataframe.replace({'':np.nan}).dropna()
     
-    
+    input_dataframe = input_dataframe.iloc[:150] 
+        
     hyperparams_class = EnsembleForestPrimitive.metadata.query()['primitive_code']['class_type_arguments']['Hyperparams']
-    tree_client = EnsembleForestPrimitive(hyperparams=hyperparams_class.defaults())
-    tree_client.set_training_data(inputs = input_dataframe.drop(columns = ['label']), outputs = input_dataframe['label'].to_frame())
+    tree_client = EnsembleForestPrimitive(hyperparams=hyperparams_class.defaults().replace({'metric':'meanSquaredError', 'samples':[3,5]}))
+    tree_client.set_training_data(inputs = input_dataframe.drop(columns = ['class']), outputs = input_dataframe['class'].to_frame())
     tree_client.fit()
       
-    results = tree_client.produce_shap_values(inputs = test_dataframe.drop(columns = ['label']))
+    results = tree_client.produce_shap_values(inputs = test_dataframe)
     print(results.value)
     #print(input_dataframe)
