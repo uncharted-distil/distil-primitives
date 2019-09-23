@@ -31,7 +31,7 @@ class Hyperparams(hyperparams.Hyperparams):
                     "clustering metrics."
     )
     small_dataset_threshold = hyperparams.Hyperparameter[int](
-        default=100,
+        default=2000,
         semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
         description="Controls the application of the 'small_dataset_fits' and 'large_dataset_fits' parameters - if the input dataset has " +
                     "fewer rows than the threshold value, 'small_dateset_fits' will be used when fitting.  Otherwise, 'num_large_fits' is used."
@@ -162,10 +162,10 @@ class EnsembleForestPrimitive(PrimitiveBase[container.DataFrame, container.DataF
 
         index = inputs.metadata.get_columns_with_semantic_type('https://metadata.datadrivendiscovery.org/types/PrimaryKey')
         index_names = [list(inputs)[i] for i in index]
-                
+        
         if self._needs_fit:
             self.fit()
-
+        
         #get the task type from the model instance
         task_type = self._model.mode
                         
@@ -184,7 +184,6 @@ class EnsembleForestPrimitive(PrimitiveBase[container.DataFrame, container.DataF
         
         output_df.reset_index(level=0, inplace = True)
         
-        #build and add metadata for index
         col_dict = dict(output_df.metadata.query((metadata_base.ALL_ELEMENTS, 0)))
         col_dict['structural_type'] = type(1)
         col_dict['name'] = index_names[0]
