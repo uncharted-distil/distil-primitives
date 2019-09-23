@@ -30,7 +30,7 @@ class Hyperparams(hyperparams.Hyperparams):
                     "clustering metrics."
     )
     small_dataset_threshold = hyperparams.Hyperparameter[int](
-        default=2000,
+        default=100,
         semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
         description="Controls the application of the 'small_dataset_fits' and 'large_dataset_fits' parameters - if the input dataset has " +
                     "fewer rows than the threshold value, 'small_dateset_fits' will be used when fitting.  Otherwise, 'num_large_fits' is used."
@@ -45,6 +45,13 @@ class Hyperparams(hyperparams.Hyperparams):
         semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
         description="The number of random forests to fit when using large datasets."
     )
+    samples = hyperparams.List(
+        elements = hyperparams.Hyperparameter[int](-1),
+        default=[],
+        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
+        description="A list of indices for specific rows to return shap explainer info for."
+    )
+    pass
 
 class Params(params.Params):
     pass
@@ -152,26 +159,42 @@ class EnsembleForestPrimitive(PrimitiveBase[container.DataFrame, container.DataF
 
     def produce_shap_values(self, *, inputs: container.DataFrame, timeout: float = None, iterations: int = None) -> CallResult[container.DataFrame]:
 
+        index = inputs.metadata.get_columns_with_semantic_type('https://metadata.datadrivendiscovery.org/types/PrimaryKey')
+        index_names = [list(inputs)[i] for i in index]
+                
         if self._needs_fit:
             self.fit()
 
         #get the task type from the model instance
         task_type = self._model.mode
                 
-        #number of features migth have to be a hyperparameter?
-
-        exp = tree.Tree(self._model._models[0].model, X = inputs, model_type = 'Random_Forest', task_type = task_type)
-        if self.hyperparams['samples']:
+        #shap needs a pandas type dataframe, not d3 container type dataframe
+        inputs[index_names[0]] = inputs[index_names[0]].astype(int)
+        shap_df = pd.DataFrame(inputs.set_index([index_names[0]]))
+        
+        exp = tree.Tree(self._model._models[0].model, X = shap_df, model_type = 'Random_Forest', task_type = task_type)
+        
+        if len(self.hyperparams['samples']) == 0:
             output_df = container.DataFrame(exp.produce_global(), generate_metadata = True)
             
         else:
-            output_df = container.DataFrame(exp.produce_sample(self.hyperparams['samples']))
+            samples = inputs[inputs[index_names[0]].isin(self.hyperparams['samples'])].index
+            output_df = container.DataFrame(exp.produce_sample(samples), generate_metadata=True)
         
-        #build and add metadata
-        for c in range(len(inputs.columns)):
-            col_dict = dict(output_df.metatdata.query((metadata_base.ALL_ELEMENTS, c)))
+        output_df.reset_index(level=0, inplace = True)
+        
+        #build and add metadata for index
+        col_dict = dict(output_df.metadata.query((metadata_base.ALL_ELEMENTS, 0)))
+        col_dict['structural_type'] = type(1)
+        col_dict['name'] = index_names[0]
+        col_dict['semantic_types'] = ('http://schema.org/Int', 'https://metadata.datadrivendiscovery.org/types/PrimaryKey')
+        output_df.metadata = output_df.metadata.update((metadata_base.ALL_ELEMENTS,0),col_dict)
+
+        #metadata for columns
+        for c in range(1, len(output_df.columns)):
+            col_dict = dict(output_df.metadata.query((metadata_base.ALL_ELEMENTS, c)))
             col_dict['structural_type'] = type(1.0)
-            col_dict['name'] = inputs.columns[c]
+            col_dict['name'] = output_df.columns[c]
             col_dict['semantic_type'] = ('https://metadata.datadrivendiscovery.org/types/Attribute',)
             output_df.metadata = output_df.metadata.update((metadata_base.ALL_ELEMENTS,c),col_dict)
         
@@ -213,6 +236,8 @@ if __name__ == '__main__':
     test_dataframe = container.DataFrame(ds2df_client.produce(inputs = test_dataset).value)
     input_dataframe = input_dataframe.replace({'':np.nan}).dropna()
     input_dataframe = input_dataframe.iloc[:150]
+    test_dataframe = test_dataframe.iloc[:150]
+    
     
     hyperparams_class = EnsembleForestPrimitive.metadata.query()['primitive_code']['class_type_arguments']['Hyperparams']
     tree_client = EnsembleForestPrimitive(hyperparams=hyperparams_class.defaults())
