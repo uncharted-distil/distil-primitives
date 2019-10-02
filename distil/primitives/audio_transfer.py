@@ -19,7 +19,7 @@ __all__ = ('AudioTransferPrimitive',)
 logger = logging.getLogger(__name__)
 
 # lazy load pretrained audio due to lengthy import time
-pretrained_audio = utils.lazy_load("distil.modeling.pretrained_audio")
+pretrained_audio = primitive_utils.lazy_load("distil.modeling.pretrained_audio")
 
 class Hyperparams(hyperparams.Hyperparams):
     use_columns = hyperparams.Set(
