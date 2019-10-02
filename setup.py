@@ -64,6 +64,7 @@ setup(
             'data_transformation.encoder.DistilTextEncoder = distil.primitives.text_encoder:TextEncoderPrimitive',
             'data_transformation.data_cleaning.DistilRaggedDatasetLoader = distil.primitives.ragged_dataset_loader:RaggedDatasetLoaderPrimitive',
             'data_transformation.data_cleaning.DistilTimeSeriesReshaper = distil.primitives.timeseries_reshaper:TimeSeriesReshaperPrimitive',
+            'data_transformation.data_cleaning.DistilTimeSeriesFormatter = distil.primitives.timeseries_formatter:TimeSeriesFormatterPrimitive',
             'learner.random_forest.DistilTimeSeriesNeighboursPrimitive = distil.primitives.timeseries_neighbours:TimeSeriesNeighboursPrimitive',
             'learner.text_classifier.DistilTextClassifier = distil.primitives.text_classifier:TextClassifierPrimitive',
             'feature_extraction.image_transfer.DistilImageTransfer = distil.primitives.image_transfer:ImageTransferPrimitive',
