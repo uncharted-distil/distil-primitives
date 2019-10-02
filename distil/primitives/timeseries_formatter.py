@@ -162,7 +162,8 @@ class TimeSeriesFormatterPrimitive(transformer.TransformerPrimitiveBase[containe
         timeseries_dataframe.metadata = timeseries_dataframe.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, primary_index_col[0]),
             'https://metadata.datadrivendiscovery.org/types/PrimaryMultiKey')
 
-        return base.CallResult(timeseries_dataframe)
+        timeseries_dataset = container.Dataset({'0': timeseries_dataframe}, generate_metadata=True)
+        return base.CallResult(timeseries_dataset)
 
     @classmethod
     def _find_csv_file_column(cls, inputs_metadata: metadata_base.DataMetadata, res_id: str) -> typing.Optional[int]:

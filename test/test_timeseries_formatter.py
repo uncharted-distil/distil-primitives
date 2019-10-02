@@ -37,7 +37,7 @@ class TimeSeriesFormatterPrimitiveTestCase(unittest.TestCase):
         hyperparams_class = \
             TimeSeriesFormatterPrimitive.metadata.query()['primitive_code']['class_type_arguments']['Hyperparams']
         ts_formatter = TimeSeriesFormatterPrimitive(hyperparams=hyperparams_class.defaults())
-        timeseries_df = ts_formatter.produce(inputs=dataset).value
+        timeseries_df = ts_formatter.produce(inputs=dataset).value['0']
         timeseries_df.metadata = timeseries_df.metadata.generate(timeseries_df)
 
         # verify that we have the expected shape
@@ -62,10 +62,6 @@ class TimeSeriesFormatterPrimitiveTestCase(unittest.TestCase):
         # verify that the grouping key was added
         self.assertIn("https://metadata.datadrivendiscovery.org/types/GroupingKey", timeseries_df.metadata.query_column_field(1, 'semantic_types'))
 
-
-        print(utils.metadata_to_str(timeseries_df.metadata), file=sys.__stdout__)
-        print(timeseries_df, file=sys.__stdout__)
-
     def test_hyperparams(self) -> None:
         dataset = self._load_timeseries()
 
@@ -78,7 +74,7 @@ class TimeSeriesFormatterPrimitiveTestCase(unittest.TestCase):
                 'file_col_index': 1
             })
         )
-        timeseries_df = ts_formatter.produce(inputs=dataset).value
+        timeseries_df = ts_formatter.produce(inputs=dataset).value['0']
         timeseries_df.metadata = timeseries_df.metadata.generate(timeseries_df)
 
         # verify that we have the expected shape
