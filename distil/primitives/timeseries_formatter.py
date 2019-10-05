@@ -72,6 +72,7 @@ class TimeSeriesFormatterPrimitive(transformer.TransformerPrimitiveBase[containe
                        'http://schema.org/Text',
                        'https://metadata.datadrivendiscovery.org/types/Attribute')
     _media_types = ('text/csv',)
+    _resource_id = 'learningData'
 
     __author__ = 'Uncharted Software',
     metadata = metadata_base.PrimitiveMetadata(
@@ -104,6 +105,11 @@ class TimeSeriesFormatterPrimitive(transformer.TransformerPrimitiveBase[containe
                 inputs: container.Dataset,
                 timeout: float = None,
                 iterations: int = None) -> base.CallResult[container.Dataset]:
+
+        # if this is a single resource dataset we don't need to reformat it
+        if len(inputs) < 2:
+            return base.CallResult(inputs)
+
         # find the main resource if supplied, infer if not
         main_resource_id, main_resource = base_utils.get_tabular_resource(inputs, self.hyperparams['main_resource_id'])
         if main_resource_id is None:
@@ -122,47 +128,50 @@ class TimeSeriesFormatterPrimitive(transformer.TransformerPrimitiveBase[containe
         # generate the long form timeseries data
         base_path = self._get_base_path(inputs.metadata, main_resource_id, file_index)
         output_data = []
-        timeseries_dataframe = pd.DataFrame()
         for idx, tRow in inputs[main_resource_id].iterrows():
             # read the timeseries data
             csv_path = os.path.join(base_path, tRow[file_index])
             timeseries_row = pd.read_csv(csv_path)
-
             # combine the timeseries data with the value row
             output_data.extend([pd.concat([tRow, vRow]) for vIdx, vRow in timeseries_row.iterrows()])
+
         timeseries_dataframe = container.DataFrame(output_data)
         timeseries_dataframe.reset_index(drop=True, inplace=True)
+
+        # create a dataset to hold the result
+        timeseries_dataset = container.Dataset({self._resource_id: timeseries_dataframe}, generate_metadata=True)
+        timeseries_dataset.metadata = timeseries_dataset.metadata.update((), {'id': inputs.metadata.query(())['id']})
+        timeseries_dataset.metadata = timeseries_dataset.metadata.update((), {'digest': inputs.metadata.query(())['digest']})
 
         # copy main resource column metadata to timeseries dataframe
         num_main_resource_cols = inputs.metadata.query((main_resource_id, metadata_base.ALL_ELEMENTS))['dimension']['length']
         for i in range(num_main_resource_cols):
             source = inputs.metadata.query((main_resource_id, metadata_base.ALL_ELEMENTS, i))
-            timeseries_dataframe.metadata = timeseries_dataframe.metadata.update_column(i, source)
+            timeseries_dataset.metadata = timeseries_dataset.metadata.update_column(i, source, at=(self._resource_id,))
 
         # remove the foreign key entry from the filename column if it exists
-        metadata = dict(timeseries_dataframe.metadata.query((metadata_base.ALL_ELEMENTS, file_index)))
+        metadata = dict(timeseries_dataset.metadata.query((self._resource_id, metadata_base.ALL_ELEMENTS, file_index)))
         metadata['foreign_key'] = metadata_base.NO_VALUE
-        timeseries_dataframe.metadata = timeseries_dataframe.metadata.update((metadata_base.ALL_ELEMENTS, file_index), metadata)
+        timeseries_dataset.metadata = timeseries_dataset.metadata.update((self._resource_id, metadata_base.ALL_ELEMENTS, file_index), metadata)
 
         # copy timeseries column metadata to timeseries
         source = self._find_timeseries_metadata(inputs)
         i = 0
         for col_info in source['file_columns']:
-            timeseries_dataframe.metadata = timeseries_dataframe.metadata.update_column(i + num_main_resource_cols, col_info)
+            timeseries_dataset.metadata = timeseries_dataset.metadata.update_column(i + num_main_resource_cols, col_info, at=(self._resource_id,))
             i += 1
 
         # mark the filename column as a grouping key
-        timeseries_dataframe.metadata = timeseries_dataframe.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, file_index),
+        timeseries_dataset.metadata = timeseries_dataset.metadata.add_semantic_type((self._resource_id, metadata_base.ALL_ELEMENTS, file_index),
             'https://metadata.datadrivendiscovery.org/types/GroupingKey')
 
         # mark the d3mIndex as a primary multi-key since there are now multiple instances of the value present
-        primary_index_col = timeseries_dataframe.metadata.list_columns_with_semantic_types(('https://metadata.datadrivendiscovery.org/types/PrimaryKey',))
-        timeseries_dataframe.metadata = timeseries_dataframe.metadata.remove_semantic_type((metadata_base.ALL_ELEMENTS, primary_index_col[0]),
+        primary_index_col = timeseries_dataset.metadata.list_columns_with_semantic_types(('https://metadata.datadrivendiscovery.org/types/PrimaryKey',), at=(self._resource_id,))
+        timeseries_dataset.metadata = timeseries_dataset.metadata.remove_semantic_type((self._resource_id, metadata_base.ALL_ELEMENTS, primary_index_col[0]),
             'https://metadata.datadrivendiscovery.org/types/PrimaryKey')
-        timeseries_dataframe.metadata = timeseries_dataframe.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, primary_index_col[0]),
+        timeseries_dataset.metadata = timeseries_dataset.metadata.add_semantic_type((self._resource_id, metadata_base.ALL_ELEMENTS, primary_index_col[0]),
             'https://metadata.datadrivendiscovery.org/types/PrimaryMultiKey')
 
-        timeseries_dataset = container.Dataset({'0': timeseries_dataframe}, generate_metadata=True)
         return base.CallResult(timeseries_dataset)
 
     @classmethod
