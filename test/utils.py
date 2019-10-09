@@ -6,11 +6,14 @@ from d3m.base import utils as base_utils
 
 
 def load_dataset(base_path: str) -> container.Dataset:
+    # loads a d3m formatted dataset
     dataset_doc_path = path.join(base_path, 'datasetDoc.json')
     dataset = container.Dataset.load('file://{dataset_doc_path}'.format(dataset_doc_path=dataset_doc_path))
     return dataset
 
 def get_dataframe(dataset: container.Dataset, resource_id: str) -> container.DataFrame:
+    # extracts a dataframe from a dataset and ensures its metadata is transferred over
+
     # grab the resource and its metadata out of the dataset
     dataframe_resource_id, dataframe = base_utils.get_tabular_resource(dataset, resource_id)
     resource_metadata = dict(dataset.metadata.query((dataframe_resource_id,)))

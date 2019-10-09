@@ -1,5 +1,6 @@
 import os
 import logging
+from typing import List
 
 from d3m import container, utils
 from d3m.metadata import base as metadata_base, hyperparams
@@ -30,14 +31,21 @@ class Hyperparams(hyperparams.Hyperparams):
     strategy = hyperparams.Enumeration[str](
         default='most_frequent',
         values=('most_frequent', 'constant'),
-        semantic_types=['https://metadata.datadrivendiscovery.org/types/TuningParameter'],
+        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
         description="Replacement strategy.  'most_frequent' will replace missing values with the mode of the column, 'constant' uses 'fill_value'",
     )
 
     fill_value = hyperparams.Hyperparameter[str](
         default=MISSING_VALUE_INDICATOR,
-        semantic_types=['https://metadata.datadrivendiscovery.org/types/TuningParameter'],
-        description="Value to replace missing values with.  Only applied when strategy is set to 'fill_value'"
+        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
+        description="Value to replace missing values with.  Only applied when strategy is set to 'constant'"
+    )
+
+    error_on_empty = hyperparams.Hyperparameter[bool](
+        default=False,
+        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
+        description="If True will raise an exception when a column consisting only of empty values is found." +\
+            "If False, will apply the 'fill_value' to the entire column."
     )
 
 class CategoricalImputerPrimitive(transformer.TransformerPrimitiveBase[container.DataFrame, container.DataFrame, Hyperparams]):
@@ -84,13 +92,30 @@ class CategoricalImputerPrimitive(transformer.TransformerPrimitiveBase[container
         if len(cols) is 0:
             return base.CallResult(inputs)
 
-        imputer = CategoricalImputer(strategy=self.hyperparams['strategy'], fill_value=self.hyperparams['fill_value'], missing_values='')
+        imputer = CategoricalImputer(strategy=self.hyperparams['strategy'], fill_value=self.hyperparams['fill_value'], missing_values='', tie_breaking='first')
         outputs = inputs.copy()
+        failures: List[int] = []
         for c in cols:
             input_col = inputs.iloc[:,c]
-            imputer.fit(input_col)
-            result = imputer.transform(input_col)
-            outputs.iloc[:,c] = result
+            try:
+                imputer.fit(input_col)
+                result = imputer.transform(input_col)
+                outputs.iloc[:,c] = result
+            except ValueError as e:
+                # value error gets thrown when all data is missing
+                if not self.hyperparams['error_on_empty']:
+                    failures.append(c)
+                else:
+                    raise e
+
+        # for columns that failed using 'most_frequent' try again using 'constant'
+        if not self.hyperparams['error_on_empty']:
+            imputer = CategoricalImputer(strategy='constant', fill_value=self.hyperparams['fill_value'], missing_values='', tie_breaking='first')
+            for f in failures:
+                outputs_col = outputs.iloc[:,f]
+                imputer.fit(outputs_col)
+                result = imputer.transform(outputs_col)
+                outputs.iloc[:,f] = result
 
         logger.debug(f'\n{outputs}')
 
