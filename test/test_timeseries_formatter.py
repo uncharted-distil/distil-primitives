@@ -20,20 +20,20 @@ import csv
 import sys
 
 from d3m import container
-#from d3m.primitives.data_transformation.data_cleaning import DistilTimeSeriesFormatter
-from distil.primitives.timeseries_formatter import TimeSeriesFormatterPrimitive
 from d3m.metadata import base as metadata_base
 
+from distil.primitives.timeseries_formatter import TimeSeriesFormatterPrimitive
 from distil.primitives import utils
+
+import utils as test_utils
 
 class TimeSeriesFormatterPrimitiveTestCase(unittest.TestCase):
 
-    _dataset_path = path.abspath(path.join(path.dirname(__file__), 'dataset'))
-
+    _dataset_path = path.abspath(path.join(path.dirname(__file__), 'timeseries_resource_dataset'))
     _resource_id = 'learningData'
 
     def test_basic(self) -> None:
-        dataset = self._load_timeseries()
+        dataset = test_utils.load_dataset(self._dataset_path)
 
         # create the time series dataset
         hyperparams_class = \
@@ -70,7 +70,7 @@ class TimeSeriesFormatterPrimitiveTestCase(unittest.TestCase):
         self.assertIn("https://metadata.datadrivendiscovery.org/types/GroupingKey", timeseries_dataset.metadata.query_column_field(1, 'semantic_types', at=(self._resource_id,)))
 
     def test_hyperparams(self) -> None:
-        dataset = self._load_timeseries()
+        dataset = test_utils.load_dataset(self._dataset_path)
 
         # create the time series dataset
         hyperparams_class = \
@@ -86,15 +86,6 @@ class TimeSeriesFormatterPrimitiveTestCase(unittest.TestCase):
         # verify that we have the expected shape
         self.assertEqual(timeseries_df.shape[0], 664)
         self.assertEqual(timeseries_df.shape[1], 5)
-
-    @classmethod
-    def _load_timeseries(cls) -> container.Dataset:
-        dataset_doc_path = path.join(cls._dataset_path, 'datasetDoc.json')
-
-        # load the dataset and convert resource 0 to a dataframe
-        dataset = container.Dataset.load('file://{dataset_doc_path}'.format(dataset_doc_path=dataset_doc_path))
-
-        return dataset
 
 if __name__ == '__main__':
     unittest.main()

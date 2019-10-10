@@ -25,10 +25,10 @@ setup(
         'scipy==1.2.1',
         'numpy==1.15.4',
         'pandas==0.23.4',
-        'sklearn_pandas==1.8.0',
         'torch==1.0.1.post2',
         #'pytorch-pretrained-bert==0.4.0', has print statements on import that break d3m annotation validation
-        'sklearn_pandas==1.8.0',
+        #'sklearn_pandas==1.8.0',
+        'sklearn_pandas @ git+https://github.com/cdbethune/sklearn-pandas.git@7a947f5c4856f35db9badeb330a2902c992c88ee',
         'tensorflow-gpu==1.12.2',
         'frozendict>=1.2',
         'nose==1.3.7',
