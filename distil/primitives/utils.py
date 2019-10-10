@@ -1,5 +1,8 @@
 import io
 from typing import Sequence
+import sys
+import importlib.util
+import importlib.machinery
 
 import numpy as np
 
@@ -48,3 +51,16 @@ def get_operating_columns_structural_type(inputs: container.DataFrame, use_colum
     else:
         cols = type_cols
     return list(cols)
+
+def lazy_load(fullname: str):
+    # lazy load a module - needed for imports that trigger long running static model
+    # loads
+    if fullname in sys.modules:
+        return sys.modules[fullname]
+    else:
+        spec = importlib.util.find_spec(fullname)
+        module = importlib.util.module_from_spec(spec)
+        loader = importlib.util.LazyLoader(spec.loader)
+        # Make module with proper locking and get it inserted into sys.modules.
+        loader.exec_module(module)
+        return module
