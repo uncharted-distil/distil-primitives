@@ -160,55 +160,56 @@ class EnsembleForestPrimitive(PrimitiveBase[container.DataFrame, container.DataF
 
     def produce_shap_values(self, *, inputs: container.DataFrame, timeout: float = None, iterations: int = None) -> CallResult[container.DataFrame]:
 
-        index = inputs.metadata.get_columns_with_semantic_type('https://metadata.datadrivendiscovery.org/types/PrimaryKey')
-        index_names = [list(inputs)[i] for i in index]
-        
+        #index = inputs.metadata.get_columns_with_semantic_type('https://metadata.datadrivendiscovery.org/types/PrimaryKey')
+        #index_names = [list(inputs)[i] for i in index]
+
         if self._needs_fit:
             self.fit()
-        
+
         #get the task type from the model instance
         task_type = self._model.mode
-                        
+
         #shap needs a pandas type dataframe, not d3 container type dataframe
-        inputs[index_names[0]] = inputs[index_names[0]].astype(int)
-        shap_df = pd.DataFrame(inputs.set_index([index_names[0]]))
-        
+        #inputs[index_names[0]] = inputs[index_names[0]].astype(int)
+        #shap_df = pd.DataFrame(inputs.set_index([index_names[0]]))
+        shap_df = pd.DataFrame(inputs)
+
         exp = tree.Tree(self._model._models[0].model, X = shap_df, model_type = 'Random_Forest', task_type = task_type)
-        
+
         if len(self.hyperparams['samples']) == 0:
             output_df = container.DataFrame(exp.produce_global(), generate_metadata = True)
-            
+
         else:
             samples = inputs[inputs[index_names[0]].isin(self.hyperparams['samples'])].index
             output_df = container.DataFrame(exp.produce_sample(samples), generate_metadata=True)
-        
+
         output_df.reset_index(level=0, inplace = True)
-        
-        col_dict = dict(output_df.metadata.query((metadata_base.ALL_ELEMENTS, 0)))
-        col_dict['structural_type'] = type(1)
-        col_dict['name'] = index_names[0]
-        col_dict['semantic_types'] = ('http://schema.org/Int', 'https://metadata.datadrivendiscovery.org/types/PrimaryKey')
-        output_df.metadata = output_df.metadata.update((metadata_base.ALL_ELEMENTS,0),col_dict)
+
+        #col_dict = dict(output_df.metadata.query((metadata_base.ALL_ELEMENTS, 0)))
+        #col_dict['structural_type'] = type(1)
+        #col_dict['name'] = index_names[0]
+        #col_dict['semantic_types'] = ('http://schema.org/Int', 'https://metadata.datadrivendiscovery.org/types/PrimaryKey')
+        #output_df.metadata = output_df.metadata.update((metadata_base.ALL_ELEMENTS,0),col_dict)
 
         #metadata for columns
-        for c in range(1, len(output_df.columns)):
+        for c in range(0, len(output_df.columns)):
             col_dict = dict(output_df.metadata.query((metadata_base.ALL_ELEMENTS, c)))
             col_dict['structural_type'] = type(1.0)
             col_dict['name'] = output_df.columns[c]
             col_dict['semantic_type'] = ('https://metadata.datadrivendiscovery.org/types/Attribute',)
             output_df.metadata = output_df.metadata.update((metadata_base.ALL_ELEMENTS,c),col_dict)
-        
+
         df_dict = dict(output_df.metadata.query((metadata_base.ALL_ELEMENTS, )))
-        df_dict_1 = dict(output_df.metadata.query((metadata_base.ALL_ELEMENTS, ))) 
+        df_dict_1 = dict(output_df.metadata.query((metadata_base.ALL_ELEMENTS, )))
         df_dict['dimension'] = df_dict_1
         df_dict_1['name'] = 'columns'
         df_dict_1['semantic_types'] = ('https://metadata.datadrivendiscovery.org/types/TabularColumn',)
-        df_dict_1['length'] =len(inputs.columns)     
+        df_dict_1['length'] =len(inputs.columns)
         output_df.metadata = output_df.metadata.update((metadata_base.ALL_ELEMENTS,), df_dict)
-     
+
         return CallResult(output_df)
-        
-        
+
+
     def get_params(self) -> Params:
         return Params()
 
@@ -218,7 +219,7 @@ class EnsembleForestPrimitive(PrimitiveBase[container.DataFrame, container.DataF
 if __name__ == '__main__':
 
     #Load data and preprocessing
-    
+
     filepath = 'file:///home/alexmably/datasets/seed_datasets_current/196_autoMpg/TRAIN/dataset_TRAIN/datasetDoc.json'
     test_filepath = 'file:///home/alexmably/datasets/seed_datasets_current/196_autoMpg/TEST/dataset_TEST/datasetDoc.json'
 
@@ -237,14 +238,14 @@ if __name__ == '__main__':
     input_dataframe = input_dataframe.replace({'':np.nan}).dropna()
     test_dataframe = test_dataframe.drop(columns = ['class'])
     test_dataframe = test_dataframe.replace({'':np.nan}).dropna()
-    
-    input_dataframe = input_dataframe.iloc[:150] 
-        
+
+    input_dataframe = input_dataframe.iloc[:150]
+
     hyperparams_class = EnsembleForestPrimitive.metadata.query()['primitive_code']['class_type_arguments']['Hyperparams']
     tree_client = EnsembleForestPrimitive(hyperparams=hyperparams_class.defaults().replace({'metric':'meanSquaredError', 'samples':[3,5]}))
     tree_client.set_training_data(inputs = input_dataframe.drop(columns = ['class']), outputs = input_dataframe['class'].to_frame())
     tree_client.fit()
-      
+
     results = tree_client.produce_shap_values(inputs = test_dataframe)
     print(results.value)
     #print(input_dataframe)
