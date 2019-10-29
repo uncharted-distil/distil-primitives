@@ -107,6 +107,8 @@ class EnsembleForestPrimitive(PrimitiveBase[container.DataFrame, container.DataF
         if row_diff != 0:
             logger.warn(f'Removed {row_diff} rows due to NaN values in target data.')
             self._inputs = inputs.loc[self._outputs.index, :]
+        else:
+            self._inputs = inputs
 
         # same in other direction
         inputs_rows = self._inputs.shape[0]
@@ -115,7 +117,6 @@ class EnsembleForestPrimitive(PrimitiveBase[container.DataFrame, container.DataF
         if row_diff != 0:
             logger.warn(f'Removed {row_diff} rows due to NaN values in training data.')
             self._outputs = self._outputs.loc[self._inputs.index, :]
-
 
         self._model.num_fits = self.hyperparams['large_dataset_fits'] \
             if self._inputs.shape[0] > self.hyperparams['small_dataset_threshold'] else self.hyperparams['small_dataset_fits']
