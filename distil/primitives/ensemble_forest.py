@@ -103,8 +103,26 @@ class EnsembleForestPrimitive(PrimitiveBase[container.DataFrame, container.DataF
         self._needs_fit = True
 
     def set_training_data(self, *, inputs: container.DataFrame, outputs: container.DataFrame) -> None:
-        self._inputs = inputs
-        self._outputs = outputs
+        # At this point anything that needed to be imputed should have been, so we'll
+        # clear out any remaining NaN values as a last measure.
+
+        # remove nans from outputs, apply changes to inputs as well to ensure alignment
+        self._outputs = outputs.dropna() # not in place because we don't want to modify passed input
+        row_diff = outputs.shape[0] - self._outputs.shape[0]
+        if row_diff != 0:
+            logger.warn(f'Removed {row_diff} rows due to NaN values in target data.')
+            self._inputs = inputs.loc[self._outputs.index, :]
+        else:
+            self._inputs = inputs
+
+        # same in other direction
+        inputs_rows = self._inputs.shape[0]
+        self._inputs = self._inputs.dropna() # not in place because because selection above doesn't create a copy
+        row_diff = inputs_rows - self._inputs.shape[0]
+        if row_diff != 0:
+            logger.warn(f'Removed {row_diff} rows due to NaN values in training data.')
+            self._outputs = self._outputs.loc[self._inputs.index, :]
+
         self._model.num_fits = self.hyperparams['large_dataset_fits'] \
             if self._inputs.shape[0] > self.hyperparams['small_dataset_threshold'] else self.hyperparams['small_dataset_fits']
         self._needs_fit = True
