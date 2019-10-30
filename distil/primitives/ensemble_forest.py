@@ -1,4 +1,5 @@
 import os
+import sys
 import logging
 from typing import Set, List, Dict, Any, Optional
 
@@ -11,8 +12,12 @@ from d3m.primitive_interfaces.base import CallResult
 from distil.modeling.forest import ForestCV
 from distil.modeling.metrics import classification_metrics, regression_metrics
 
+from ShapExplainers import tree
+
 import pandas as pd
 import numpy as np
+
+from common_primitives import denormalize, dataset_to_dataframe as DatasetToDataFrame
 
 __all__ = ('EnsembleForest',)
 
@@ -163,6 +168,42 @@ class EnsembleForestPrimitive(PrimitiveBase[container.DataFrame, container.DataF
         print(output)
 
         return CallResult(output)
+
+    def produce_shap_values(self, *, inputs: container.DataFrame, timeout: float = None, iterations: int = None) -> CallResult[container.DataFrame]:
+
+        if self._needs_fit:
+            self.fit()
+
+        #get the task type from the model instance
+        task_type = self._model.mode
+
+        #shap needs a pandas type dataframe, not d3 container type dataframe
+        shap_df = pd.DataFrame(inputs)
+
+        exp = tree.Tree(self._model._models[0].model, X = shap_df, model_type = 'Random_Forest', task_type = task_type)
+
+        output_df = container.DataFrame(exp.produce_global(), generate_metadata = True)
+
+        output_df.reset_index(level=0, inplace = True)
+
+        #metadata for columns
+        for c in range(0, len(output_df.columns)):
+            col_dict = dict(output_df.metadata.query((metadata_base.ALL_ELEMENTS, c)))
+            col_dict['structural_type'] = type(1.0)
+            col_dict['name'] = output_df.columns[c]
+            col_dict['semantic_type'] = ('https://metadata.datadrivendiscovery.org/types/Attribute',)
+            output_df.metadata = output_df.metadata.update((metadata_base.ALL_ELEMENTS,c),col_dict)
+
+        df_dict = dict(output_df.metadata.query((metadata_base.ALL_ELEMENTS, )))
+        df_dict_1 = dict(output_df.metadata.query((metadata_base.ALL_ELEMENTS, )))
+        df_dict['dimension'] = df_dict_1
+        df_dict_1['name'] = 'columns'
+        df_dict_1['semantic_types'] = ('https://metadata.datadrivendiscovery.org/types/TabularColumn',)
+        df_dict_1['length'] =len(inputs.columns)
+        output_df.metadata = output_df.metadata.update((metadata_base.ALL_ELEMENTS,), df_dict)
+
+        return CallResult(output_df)
+
 
     def get_params(self) -> Params:
         return Params()
