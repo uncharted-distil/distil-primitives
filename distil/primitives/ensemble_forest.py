@@ -110,7 +110,7 @@ class EnsembleForestPrimitive(PrimitiveBase[container.DataFrame, container.DataF
         # if we are doing a binary classification the outputs need to be integer classes.
         # label map is used to covert these back on produce.
         col = outputs.columns[0]
-        if len(pd.factorize(outputs[col])[1]) <= 3:
+        if len(pd.factorize(outputs[col])[1]) <= 2:
             factor = pd.factorize(outputs[col])
             outputs = pd.DataFrame(factor[0], columns=[col])
             self.label_map = {k:v for k, v in enumerate(factor[1])}
