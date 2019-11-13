@@ -72,7 +72,9 @@ setup(
             'feature_extraction.audio_transfer.DistilAudioTransfer = distil.primitives.audio_transfer:AudioTransferPrimitive',
             'data_preprocessing.audio_loader.DistilAudioDatasetLoader = distil.primitives.audio_loader:AudioDatasetLoaderPrimitive',
             'clustering.k_means.DistilKMeans = distil.primitives.k_means:KMeansPrimitive',
-            'data_transformation.data_cleaning.OutputDataframe = distil.primitives.output_dataframe:OutputDataframePrimitive'
+            'data_transformation.data_cleaning.OutputDataframe = distil.primitives.output_dataframe:OutputDataframePrimitive',
+            'data_transformation.list_encoder.DistilListEncoder = distil.primitives.list_encoder:ListEncoderPrimitive',
+
         ],
     }
 )

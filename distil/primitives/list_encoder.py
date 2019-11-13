@@ -7,17 +7,11 @@ from d3m.metadata import base as metadata_base, hyperparams, params
 from d3m.primitive_interfaces import base, unsupervised_learning
 
 import pandas as pd
-import numpy as np
-
-from distil.primitives import utils as distil_utils
-from distil.primitives.utils import CATEGORICALS
-
-from sklearn import preprocessing
-from sklearn import compose
 
 logger = logging.getLogger(__name__)
 
 __all__ = ('ListEncoderPrimitive',)
+
 
 class Hyperparams(hyperparams.Hyperparams):
     use_columns = hyperparams.Set(
@@ -27,12 +21,16 @@ class Hyperparams(hyperparams.Hyperparams):
         description="A set of column indices to force primitive to operate on. If any specified column cannot be parsed, it is skipped.",
     )
 
+
 class Params(params.Params):
     pass
 
-class ListEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBase[container.DataFrame, container.DataFrame, Params, Hyperparams]):
+
+class ListEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBase[
+                               container.DataFrame, container.DataFrame, Params, Hyperparams]):
     """
-    TODO
+     List Encoder takes columns that are made up out of lists and replaces them by expanding the list
+    across multiple columns.
     """
 
     metadata = metadata_base.PrimitiveMetadata(
@@ -40,12 +38,13 @@ class ListEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBas
             'id': 'd3d421cb-9601-43f0-83d9-91a9c4199a06',
             'version': '0.1.0',
             'name': "List encoder",
-            'python_path': 'd3m.primitives.data_transformation.list_encoder.ListEncoder',
+            'python_path': 'd3m.primitives.data_transformation.list_encoder.DistilListEncoder',
             'source': {
                 'name': 'Distil',
                 'contact': 'mailto:cbethune@uncharted.software',
                 'uris': [
-                    'file:///home/balazshoranyi/Documents/d3_remote/distil-primitives/distil/primitives/list_encoder.py'
+                    'https://github.com/uncharted-distil/distil-primitives/distil/primitives/list_encoder.py',
+                    'https://github.com/uncharted-distil/distil-primitives',
                 ],
             },
             'installation': [{
@@ -55,10 +54,9 @@ class ListEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBas
                 ),
             }],
             'algorithm_types': [
-                metadata_base.PrimitiveAlgorithmType.DATA_CONVERSION, # ???
+                metadata_base.PrimitiveAlgorithmType.DATA_CONVERSION,
             ],
             'primitive_family': metadata_base.PrimitiveFamily.DATA_TRANSFORMATION,
-            'location_uris': ['file:///home/balazshoranyi/Documents/d3_remote/distil-primitives/distil/primitives/list_encoder.py'],
         },
     )
 
@@ -85,11 +83,13 @@ class ListEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBas
         logger.debug(f'Fitting {__name__}')
 
         # figure out columns to operate on
-        cols = distil_utils.get_operating_columns(self._inputs, self.hyperparams['use_columns'], CATEGORICALS)
+        cols = list(range(len(self._inputs.columns)))
+        if len(self.hyperparams['use_columns']) > 0:
+            cols = list(set(cols) & self.hyperparams['use_columns'])
 
         filtered_cols: List[int] = []
         for c in cols:
-            is_list = type(self._inputs.iloc[0,c]) == list
+            is_list = type(self._inputs.iloc[0, c]) == container.numpy.ndarray
             if is_list:
                 filtered_cols.append(c)
 
@@ -100,32 +100,32 @@ class ListEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBas
         if len(self._cols) is 0:
             return base.CallResult(None)
 
-        input_cols = self._inputs.iloc[:,self._cols]
-        self._encoder = preprocessing.OneHotEncoder(sparse=False, handle_unknown='ignore')
-        self._encoder.fit(input_cols)
-
         return base.CallResult(None)
 
-    def produce(self, *, inputs: container.DataFrame, timeout: float = None, iterations: int = None) -> base.CallResult[container.DataFrame]:
+    def produce(self, *, inputs: container.DataFrame, timeout: float = None, iterations: int = None) -> base.CallResult[
+        container.DataFrame]:
         logger.debug(f'Producing {__name__}')
 
         if len(self._cols) == 0:
             return base.CallResult(inputs)
 
         # encode using the previously identified categorical columns
-        input_cols = inputs.iloc[:,self._cols]
-        result = self._encoder.transform(input_cols)
+        input_cols = inputs.iloc[:, self._cols]
+        from itertools import zip_longest
+        encoded_cols = container.DataFrame()
+        for i in self._cols:
+            col_name = inputs.columns[i]
+            col = container.DataFrame.from_records(zip_longest(*inputs[col_name].values)).T
+            col.columns = [f'{col_name}_{x}' for x in range(len(col.columns))]
+            encoded_cols = pd.concat([encoded_cols, col], axis=1)
 
         # append the encoding columns and generate metadata
         outputs = inputs.copy()
-        encoded_cols: container.DataFrame = container.DataFrame()
-
-        for i in range(result.shape[1]):
-            encoded_cols[f'__onehot_{str(i)}'] = result[:,i]
         encoded_cols.metadata = encoded_cols.metadata.generate(encoded_cols)
 
         for c in range(encoded_cols.shape[1]):
-            encoded_cols.metadata = encoded_cols.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, c), 'http://schema.org/Float')
+            encoded_cols.metadata = encoded_cols.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, c),
+                                                                            'http://schema.org/Float')
 
         outputs = outputs.append_columns(encoded_cols)
 
@@ -141,10 +141,3 @@ class ListEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBas
 
     def set_params(self, *, params: Params) -> None:
         return
-
-    @classmethod
-    def _detect_text(cls, X: container.DataFrame, thresh: int = 8) -> bool:
-        """ returns true if median entry has more than `thresh` tokens"""
-        X = X[X.notnull()]
-        n_toks = X.apply(lambda xx: len(str(xx).split(' '))).values
-        return np.median(n_toks) >= thresh
