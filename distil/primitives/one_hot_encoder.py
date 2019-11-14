@@ -119,6 +119,16 @@ class OneHotEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
         if len(self._cols) == 0:
             return base.CallResult(inputs)
 
+        # map encoded cols to source column names
+        feature_names = self._encoder.get_feature_names()
+        encoded_cols_source = []
+        # feature names are xA_YY where A is the source column index and YY is the value
+        for name in feature_names:
+            # take the first part of the name (xA) and remove the x
+            encoded_feature_index = int(name.split('_')[0][1:])
+            feature_index = self._cols[encoded_feature_index]
+            encoded_cols_source.append(inputs.metadata.query((metadata_base.ALL_ELEMENTS, feature_index))['name'])
+
         # encode using the previously identified categorical columns
         input_cols = inputs.iloc[:,self._cols]
         result = self._encoder.transform(input_cols)
@@ -133,6 +143,9 @@ class OneHotEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
 
         for c in range(encoded_cols.shape[1]):
             encoded_cols.metadata = encoded_cols.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, c), 'http://schema.org/Float')
+            col_dict = dict(encoded_cols.metadata.query((metadata_base.ALL_ELEMENTS, c)))
+            col_dict['source_column'] = encoded_cols_source[c]
+            encoded_cols.metadata = encoded_cols.metadata.update((metadata_base.ALL_ELEMENTS, c), col_dict)
 
         outputs = outputs.append_columns(encoded_cols)
 
