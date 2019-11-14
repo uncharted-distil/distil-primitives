@@ -90,6 +90,7 @@ class EnsembleForestPrimitive(PrimitiveBase[container.DataFrame, container.DataF
         PrimitiveBase.__init__(self, hyperparams=hyperparams, random_seed=random_seed)
         self._model = ForestCV(self.hyperparams['metric'])
         self._needs_fit = True
+        self.label_map = None
 
     def __getstate__(self) -> dict:
         state = PrimitiveBase.__getstate__(self)
@@ -106,6 +107,13 @@ class EnsembleForestPrimitive(PrimitiveBase[container.DataFrame, container.DataF
         # At this point anything that needed to be imputed should have been, so we'll
         # clear out any remaining NaN values as a last measure.
 
+        # if we are doing a binary classification the outputs need to be integer classes.
+        # label map is used to covert these back on produce.
+        col = outputs.columns[0]
+        if len(pd.factorize(outputs[col])[1]) <= 2:
+            factor = pd.factorize(outputs[col])
+            outputs = pd.DataFrame(factor[0], columns=[col])
+            self.label_map = {k:v for k, v in enumerate(factor[1])}
         # remove nans from outputs, apply changes to inputs as well to ensure alignment
         self._outputs = outputs.dropna() # not in place because we don't want to modify passed input
         row_diff = outputs.shape[0] - self._outputs.shape[0]
@@ -135,6 +143,7 @@ class EnsembleForestPrimitive(PrimitiveBase[container.DataFrame, container.DataF
         return CallResult(None)
 
     def produce(self, *, inputs: container.DataFrame, timeout: float = None, iterations: int = None) -> CallResult[container.DataFrame]:
+
         logger.debug(f'Producing {__name__}')
 
         # force a fit it hasn't yet been done
@@ -144,7 +153,9 @@ class EnsembleForestPrimitive(PrimitiveBase[container.DataFrame, container.DataF
         # create dataframe to hold the result
         result = self._model.predict(inputs.values)
         result_df = container.DataFrame({self._outputs.columns[0]: result}, generate_metadata=True)
-
+        # if we mapped values earlier map them back.
+        if self.label_map:
+            result_df[self._outputs.columns[0]] = result_df[self._outputs.columns[0]].map(self.label_map)
         # mark the semantic types on the dataframe
         result_df.metadata = result_df.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, 0), 'https://metadata.datadrivendiscovery.org/types/PredictedTarget')
 

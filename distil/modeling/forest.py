@@ -126,25 +126,26 @@ class ForestCV(DistilBaseModel):
     def feature_importances(self):
         return self._models[0].feature_importances()
 
+    def _eval_grid_point(self, params, X, y):
+        model = AnyForest(
+            mode=self.mode,
+            oob_score=True,
+            n_jobs=self.inner_jobs,
+            **params
+        )
+
+        model       = model.fit(X, y)
+        oob_fitness = metrics[self.target_metric](y, model.predict_oob())
+        return {"params" : params, "fitness" : oob_fitness}
+
     def _fit(self, Xf_train, y_train, param_grid=None):
-        global _eval_grid_point
+        # global _eval_grid_point
 
         X, y = maybe_subset(Xf_train, y_train, n=self.subset)
 
-        def _eval_grid_point(params):
-            model = AnyForest(
-                mode=self.mode,
-                oob_score=True,
-                n_jobs=self.inner_jobs,
-                **params
-            )
-            model       = model.fit(X, y)
-            oob_fitness = metrics[self.target_metric](y, model.predict_oob())
-            return {"params" : params, "fitness" : oob_fitness}
-
         # Run grid search
-        self.results = parmap(_eval_grid_point,
-            ParameterGrid(self.param_grid), verbose=self.verbose, n_jobs=self.outer_jobs)
+        self.results = parmap(self._eval_grid_point,
+            ParameterGrid(self.param_grid), X=X, y=y, verbose=self.verbose, n_jobs=self.outer_jobs)
 
         # Find best run
         best_run = sorted(self.results, key=lambda x: x['fitness'])[-1] # bigger is better
