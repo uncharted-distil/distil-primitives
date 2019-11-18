@@ -135,6 +135,7 @@ class TimeSeriesFormatterPrimitive(transformer.TransformerPrimitiveBase[containe
         combined_dfs = [original_df.join(new_df) for original_df, new_df in zip(original_dfs, new_dfs)]
         output_data = pd.concat(combined_dfs)
         timeseries_dataframe = container.DataFrame(output_data)
+        timeseries_dataframe.reset_index(drop=True, inplace=True)
 
         # create a dataset to hold the result
         timeseries_dataset = container.Dataset({self._resource_id: timeseries_dataframe}, generate_metadata=True)
