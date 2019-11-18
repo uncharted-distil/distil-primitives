@@ -36,6 +36,11 @@ class DistilGraphLoaderPrimitive(transformer.TransformerPrimitiveBase[Inputs, Ou
     A primitive which passes two loaded networkX graph objects and the associated
     dataframe to the next primitive.
     """
+    _semantic_types = ('https://metadata.datadrivendiscovery.org/types/FileName',
+                       'http://schema.org/Text',
+                       'https://metadata.datadrivendiscovery.org/types/Attribute')
+    _media_types = ('text/vnd.gml',)
+    _resource_id = 'learningData'
 
     metadata = metadata_base.PrimitiveMetadata(
         {
@@ -67,11 +72,15 @@ class DistilGraphLoaderPrimitive(transformer.TransformerPrimitiveBase[Inputs, Ou
     def produce(self, *, inputs: Inputs, timeout: float = None, iterations: int = None) -> base.CallResult[Outputs]:
         dataframe_resource_id, dataframe = base_utils.get_tabular_resource(inputs, self.hyperparams['dataframe_resource'])
 
-        graph1 = inputs['0']
+
+        base_file_path ='/'.join(inputs.metadata._current_metadata.metadata['location_uris'][0].split('/')[:-1])
+        graph1 = os.path.join(base_file_path, 'graphs', inputs['0'].values[0][0])
+        graph1 = nx.read_gml(graph1[7:])
         int2str_map = dict(zip(graph1.nodes, [str(n) for n in graph1.nodes]))
         graph1 = nx.relabel_nodes(graph1, mapping=int2str_map)
 
-        graph2 = inputs['1']
+        graph2 = os.path.join(base_file_path, 'graphs', inputs['1'].values[0][0])
+        graph2 = nx.read_gml(graph2[7:])
         int2str_map = dict(zip(graph2.nodes, [str(n) for n in graph2.nodes]))
         graph2 = nx.relabel_nodes(graph2, mapping=int2str_map)
 

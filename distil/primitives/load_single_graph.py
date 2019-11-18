@@ -68,8 +68,14 @@ class DistilSingleGraphLoaderPrimitive(transformer.TransformerPrimitiveBase[Inpu
     def produce(self, *, inputs: Inputs, timeout: float = None, iterations: int = None) -> base.CallResult[Outputs]:
         dataframe_resource_id, dataframe = base_utils.get_tabular_resource(inputs, self.hyperparams['dataframe_resource'])
 
-        graph = inputs['0']
-        int2str_map = dict(zip(graph.nodes, [str(n) for n in graph.nodes]))
+        base_file_path ='/'.join(inputs.metadata._current_metadata.metadata['location_uris'][0].split('/')[:-1])
+        graph1 = os.path.join(base_file_path, 'graphs', inputs['0'].values[0][0])
+        graph1 = nx.read_gml(graph1[7:])
+        int2str_map = dict(zip(graph1.nodes, [str(n) for n in graph1.nodes]))
+        graph = nx.relabel_nodes(graph1, mapping=int2str_map)
+
+        # graph = inputs['0']
+        # int2str_map = dict(zip(graph.nodes, [str(n) for n in graph.nodes]))
         graph = nx.relabel_nodes(graph, mapping=int2str_map)
 
         dataframe.metadata = self._update_metadata(inputs.metadata, dataframe_resource_id)
