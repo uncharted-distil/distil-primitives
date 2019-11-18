@@ -2,7 +2,7 @@ import os
 import logging
 from typing import List, Sequence
 
-from d3m import container, utils 
+from d3m import container, utils
 from d3m.metadata import base as metadata_base, hyperparams, params
 from d3m.primitive_interfaces import base
 
@@ -112,6 +112,7 @@ class TextEncoderPrimitive(base.PrimitiveBase[Inputs, Outputs, Params, Hyperpara
 
         outputs = inputs.copy()
         encoded_cols = container.DataFrame()
+        encoded_cols_source = []
         # encode columns into a new dataframe
         for i, c in enumerate(self._cols):
             text_inputs = outputs.iloc[:,c]
@@ -119,10 +120,14 @@ class TextEncoderPrimitive(base.PrimitiveBase[Inputs, Outputs, Params, Hyperpara
             for j in range(result.shape[1]):
                 encoded_idx = i * result.shape[1] + j
                 encoded_cols[(f'__text_{encoded_idx}')] = result[:,j]
+                encoded_cols_source.append(c)
         # generate metadata for encoded columns
         encoded_cols.metadata = encoded_cols.metadata.generate(encoded_cols)
         for c in range(encoded_cols.shape[1]):
             encoded_cols.metadata = encoded_cols.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, encoded_idx), 'http://schema.org/Float')
+            col_dict = dict(encoded_cols.metadata.query((metadata_base.ALL_ELEMENTS, c)))
+            col_dict['source_column'] = outputs.metadata.query((metadata_base.ALL_ELEMENTS, encoded_cols_source[c]))['name']
+            encoded_cols.metadata = encoded_cols.metadata.update((metadata_base.ALL_ELEMENTS, c), col_dict)
 
         # append the encoded columns and remove the source columns
         outputs = outputs.append_columns(encoded_cols)
