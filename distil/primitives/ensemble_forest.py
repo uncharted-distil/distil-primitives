@@ -90,7 +90,7 @@ class EnsembleForestPrimitive(PrimitiveBase[container.DataFrame, container.DataF
         PrimitiveBase.__init__(self, hyperparams=hyperparams, random_seed=random_seed)
         self._model = ForestCV(self.hyperparams['metric'])
         self._needs_fit = True
-        self.label_map = None
+        self.label_map: Optional[Dict[int, str]] = None
 
     def __getstate__(self) -> dict:
         state = PrimitiveBase.__getstate__(self)
@@ -103,7 +103,7 @@ class EnsembleForestPrimitive(PrimitiveBase[container.DataFrame, container.DataF
         self._model = state['models']
         self._needs_fit = True
 
-    def _get_component_columns(self, output_df: container.DataFrame, source_col_index: int) -> []:
+    def _get_component_columns(self, output_df: container.DataFrame, source_col_index: int) -> List[int]:
         # Component columns are all column which have as source the referenced
         # column index. This includes the aforementioned column index.
         component_cols = [source_col_index]
@@ -192,8 +192,6 @@ class EnsembleForestPrimitive(PrimitiveBase[container.DataFrame, container.DataF
         for i in range(len(inputs.columns)):
             output.metadata = output.metadata.update_column(i, {"name": output.columns[i]})
 
-        print(output)
-
         return CallResult(output)
 
     def produce_shap_values(self, *, inputs: container.DataFrame, timeout: float = None, iterations: int = None) -> CallResult[container.DataFrame]:
@@ -213,13 +211,13 @@ class EnsembleForestPrimitive(PrimitiveBase[container.DataFrame, container.DataF
 
         output_df.reset_index(level=0, inplace = True)
 
-        #metadata for columns
-        component_cols={}
+        # metadata for columns
+        component_cols: Dict[str, List[int]]={}
         for c in range(0, len(output_df.columns)):
-            col_dict = dict(output_df.metadata.query((metadata_base.ALL_ELEMENTS, c)))
-            col_dict['structural_type'] = type(1.0)
+            col_dict = dict(inputs.metadata.query((metadata_base.ALL_ELEMENTS, c)))
+            col_dict['structural_type'] = type(float)
             col_dict['name'] = output_df.columns[c]
-            col_dict['semantic_type'] = ('https://metadata.datadrivendiscovery.org/types/Attribute',)
+            col_dict['semantic_types'] = ('https://metadata.datadrivendiscovery.org/types/Attribute',)
             output_df.metadata = output_df.metadata.update((metadata_base.ALL_ELEMENTS,c),col_dict)
             if 'source_column' in col_dict:
                 src = col_dict['source_column']
@@ -230,7 +228,7 @@ class EnsembleForestPrimitive(PrimitiveBase[container.DataFrame, container.DataF
         # build the source column values and add them to the output
         for s, cc in component_cols.items():
             src_col = output_df.iloc[:, cc].apply(lambda x: sum(x), axis=1)
-            src_col_index = len(inputs_clone.columns)
+            src_col_index = len(output_df.columns)
             output_df.insert(src_col_index, s, src_col)
             output_df.metadata = output_df.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, src_col_index), 'https://metadata.datadrivendiscovery.org/types/Attribute')
 
