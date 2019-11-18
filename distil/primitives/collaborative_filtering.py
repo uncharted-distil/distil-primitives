@@ -25,11 +25,6 @@ logger = logging.getLogger(__name__)
 
 
 class Hyperparams(hyperparams.Hyperparams):
-    metric = hyperparams.Hyperparameter[str](
-        default='',
-        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
-        description='The D3M scoring metric to optimize for when fitting.'
-    )
     user_col = hyperparams.Hyperparameter[int](
         default=0,
         semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
@@ -130,7 +125,7 @@ class CollaborativeFilteringPrimitive(PrimitiveBase[container.DataFrame, contain
 
         graph, n_users, n_items = self._remap_graphs(inputs)
         # add 1 to num user and item to account for the unseen label
-        self._model = SGDCollaborativeFilter(n_users + 1, n_items + 1, self.hyperparams['metric'], device=device)
+        self._model = SGDCollaborativeFilter(n_users + 1, n_items + 1, device=device)
         self._model.fit(encoded_inputs, self._outputs.values)
 
         return base.CallResult(None)
