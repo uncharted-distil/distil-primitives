@@ -103,6 +103,22 @@ class EnsembleForestPrimitive(PrimitiveBase[container.DataFrame, container.DataF
         self._model = state['models']
         self._needs_fit = True
 
+    def _get_component_columns(self, output_df: container.DataFrame, source_col_index: int) -> []:
+        # Component columns are all column which have as source the referenced
+        # column index. This includes the aforementioned column index.
+        component_cols = [source_col_index]
+
+        # get the column name
+        col_name = output_df.metadata.query((metadata_base.ALL_ELEMENTS, source_col_index))['name']
+
+        # get all columns which have this column as source
+        for c in range(0, len(output_df.columns)):
+            src = output_df.metadata.query((metadata_base.ALL_ELEMENTS, c))
+            if 'source_column' in src and src['source_column'] == col_name:
+                component_cols.append(c)
+
+        return component_cols
+
     def set_training_data(self, *, inputs: container.DataFrame, outputs: container.DataFrame) -> None:
         # At this point anything that needed to be imputed should have been, so we'll
         # clear out any remaining NaN values as a last measure.
@@ -198,19 +214,32 @@ class EnsembleForestPrimitive(PrimitiveBase[container.DataFrame, container.DataF
         output_df.reset_index(level=0, inplace = True)
 
         #metadata for columns
+        component_cols={}
         for c in range(0, len(output_df.columns)):
             col_dict = dict(output_df.metadata.query((metadata_base.ALL_ELEMENTS, c)))
             col_dict['structural_type'] = type(1.0)
             col_dict['name'] = output_df.columns[c]
             col_dict['semantic_type'] = ('https://metadata.datadrivendiscovery.org/types/Attribute',)
             output_df.metadata = output_df.metadata.update((metadata_base.ALL_ELEMENTS,c),col_dict)
+            if 'source_column' in col_dict:
+                src = col_dict['source_column']
+                if src not in component_cols:
+                    component_cols[src] = []
+                component_cols[src].append(c)
+
+        # build the source column values and add them to the output
+        for s, cc in component_cols.items():
+            src_col = output_df.iloc[:, cc].apply(lambda x: sum(x), axis=1)
+            src_col_index = len(inputs_clone.columns)
+            output_df.insert(src_col_index, s, src_col)
+            output_df.metadata = output_df.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, src_col_index), 'https://metadata.datadrivendiscovery.org/types/Attribute')
 
         df_dict = dict(output_df.metadata.query((metadata_base.ALL_ELEMENTS, )))
         df_dict_1 = dict(output_df.metadata.query((metadata_base.ALL_ELEMENTS, )))
         df_dict['dimension'] = df_dict_1
         df_dict_1['name'] = 'columns'
         df_dict_1['semantic_types'] = ('https://metadata.datadrivendiscovery.org/types/TabularColumn',)
-        df_dict_1['length'] =len(inputs.columns)
+        df_dict_1['length'] =len(output_df.columns)
         output_df.metadata = output_df.metadata.update((metadata_base.ALL_ELEMENTS,), df_dict)
 
         return CallResult(output_df)
