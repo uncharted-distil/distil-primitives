@@ -2,7 +2,7 @@ import os
 import logging
 from typing import Set, List, Dict, Any, Optional
 
-from d3m import container, utils 
+from d3m import container, utils
 from d3m.metadata import base as metadata_base, hyperparams, params
 from d3m.primitive_interfaces import base
 from d3m.primitive_interfaces.supervised_learning import PrimitiveBase
@@ -23,6 +23,7 @@ __all__ = ('TextClassifierPrimitive',)
 
 logger = logging.getLogger(__name__)
 
+
 class Hyperparams(hyperparams.Hyperparams):
     use_columns = hyperparams.Set(
         elements=hyperparams.Hyperparameter[int](-1),
@@ -38,6 +39,7 @@ class Hyperparams(hyperparams.Hyperparams):
         default=False,
         semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter']
     )
+
 
 class Params(params.Params):
     pass
@@ -77,9 +79,8 @@ class TextClassifierPrimitive(base.PrimitiveBase[container.DataFrame, container.
         },
     )
 
-
     _FAST_GRIDS = {
-        "classification" : {
+        "classification": {
             "vect__ngram_range": [(1, 1)],
             "vect__max_features": [1000, ],
             "cls__C": [float(xx) for xx in np.logspace(-3, 1, 100)],
@@ -99,6 +100,7 @@ class TextClassifierPrimitive(base.PrimitiveBase[container.DataFrame, container.
 
         self._model = TextClassifierCV(self.hyperparams['metric'], param_grid=self._grid)
 
+        self.label_map = None
 
     def __getstate__(self) -> dict:
         state = PrimitiveBase.__getstate__(self)
@@ -116,39 +118,52 @@ class TextClassifierPrimitive(base.PrimitiveBase[container.DataFrame, container.
         to remain consistent with common primitives base `FileReaderPrimitive` """
 
         self._inputs = inputs
+
+        # map labels instead of trying to force to int.
+        col = outputs.columns[0]
+        if len(pd.factorize(outputs[col])[1]) <= 2:
+            factor = pd.factorize(outputs[col])
+            outputs = pd.DataFrame(factor[0], columns=[col])
+            self.label_map = {k: v for k, v in enumerate(factor[1])}
+
         self._outputs = outputs
 
     def _format_text(self, inputs):
-        return inputs['filename'].values 
+        return inputs['filename'].values
 
     def _format_output(self, outputs):
-        return outputs.astype(int)
+        return outputs
 
     def fit(self, *, timeout: float = None, iterations: int = None) -> CallResult[None]:
         logger.debug(f'Fitting {__name__}')
 
         if self.hyperparams['fast']:
-            rows = self._inputs.shape[0] #len(self._inputs.index)
+            rows = self._inputs.shape[0]  # len(self._inputs.index)
             if rows > self._FAST_FIT_ROWS:
                 sampled_inputs = self._inputs.sample(n=self._FAST_FIT_ROWS, random_state=1)
-                sampled_outputs = self._outputs.loc[self._outputs.index.intersection(sampled_inputs.index), ]
+                sampled_outputs = self._outputs.loc[self._outputs.index.intersection(sampled_inputs.index),]
                 self._model.fit(self._format_text(sampled_inputs), self._format_output(sampled_outputs))
         else:
             self._model.fit(self._format_text(self._inputs), self._format_output(self._outputs))
 
         return CallResult(None)
 
-    def produce(self, *, inputs: container.DataFrame, timeout: float = None, iterations: int = None) -> CallResult[container.DataFrame]:
+    def produce(self, *, inputs: container.DataFrame, timeout: float = None, iterations: int = None) -> CallResult[
+        container.DataFrame]:
         logger.debug(f'Producing {__name__}')
 
         # create dataframe to hold d3mIndex and result
-        
+
         result = self._model.predict(self._format_text(inputs))
         result_df = container.DataFrame({self._outputs.columns[0]: result}, generate_metadata=True)
+        # if we mapped values earlier map them back.
+        if self.label_map:
+            result_df[self._outputs.columns[0]] = result_df[self._outputs.columns[0]].map(self.label_map)
 
         # mark the semantic types on the dataframe
-        #result_df.metadata = result_df.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, 0), 'https://metadata.datadrivendiscovery.org/types/PrimaryKey')
-        result_df.metadata = result_df.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, 0), 'https://metadata.datadrivendiscovery.org/types/PredictedTarget')
+        # result_df.metadata = result_df.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, 0), 'https://metadata.datadrivendiscovery.org/types/PrimaryKey')
+        result_df.metadata = result_df.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, 0),
+                                                                  'https://metadata.datadrivendiscovery.org/types/PredictedTarget')
 
         return base.CallResult(result_df)
 
