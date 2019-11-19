@@ -16,6 +16,7 @@ CATEGORICALS = ('https://metadata.datadrivendiscovery.org/types/CategoricalData'
                 'https://metadata.datadrivendiscovery.org/types/OrdinalData',
                 'http://schema.org/DateTime')
 
+VECTOR = ('https://metadata.datadrivendiscovery.org/types/FloatVector')
 
 def metadata_to_str(metadata: base.Metadata, selector: base.Selector = None) -> str:
     buf = io.StringIO()
