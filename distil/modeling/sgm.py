@@ -78,8 +78,8 @@ class SGMGraphMatcher(DistilBaseModel):
         G1 = graphs['0']
         G2 = graphs['1']
 
-        G1 = nx.relabel_nodes(G1, {n:G1.nodes[n]['label'] for n in G1.nodes})
-        G2 = nx.relabel_nodes(G2, {n:G2.nodes[n]['label'] for n in G2.nodes})
+        # G1 = nx.relabel_nodes(G1, {n:G1.nodes[n]['label'] for n in G1.nodes})
+        # G2 = nx.relabel_nodes(G2, {n:G2.nodes[n]['label'] for n in G2.nodes})
         
         assert isinstance(list(G1.nodes)[0], str)
         assert isinstance(list(G2.nodes)[0], str)

@@ -152,9 +152,19 @@ class EnsembleForestPrimitive(PrimitiveBase[container.DataFrame, container.DataF
 
         # create dataframe to hold the result
         result = self._model.predict(inputs.values)
-        result_df = container.DataFrame({self._outputs.columns[0]: result}, generate_metadata=True)
+        if len(self._outputs.columns) > 1:
+            result_df = container.DataFrame()
+            for i, c in enumerate(self._outputs.columns):
+                col = container.DataFrame({c: result[:, i]})
+                result_df = pd.concat([result_df, col], axis=1)
+            for c in range(result_df.shape[1]):
+                result_df.metadata = result_df.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, c),
+                                                                            'http://schema.org/Float')
+        else:
+            result_df = container.DataFrame({self._outputs.columns[0]: result}, generate_metadata=True)
         # if we mapped values earlier map them back.
         if self.label_map:
+            #TODO label map will not work if there are multiple output columns.
             result_df[self._outputs.columns[0]] = result_df[self._outputs.columns[0]].map(self.label_map)
         # mark the semantic types on the dataframe
         result_df.metadata = result_df.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, 0), 'https://metadata.datadrivendiscovery.org/types/PredictedTarget')

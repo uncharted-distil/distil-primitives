@@ -156,9 +156,11 @@ class TimeSeriesFormatterPrimitive(transformer.TransformerPrimitiveBase[containe
         # copy timeseries column metadata to timeseries
         source = self._find_timeseries_metadata(inputs)
         i = 0
-        for col_info in source['file_columns']:
-            timeseries_dataset.metadata = timeseries_dataset.metadata.update_column(i + num_main_resource_cols, col_info, at=(self._resource_id,))
-            i += 1
+        if source is not None:
+        # TODO What is this next step doing? Is it okay of we don't set the metadata?
+            for col_info in source['file_columns']:
+                timeseries_dataset.metadata = timeseries_dataset.metadata.update_column(i + num_main_resource_cols, col_info, at=(self._resource_id,))
+                i += 1
 
         # mark the filename column as a grouping key
         timeseries_dataset.metadata = timeseries_dataset.metadata.add_semantic_type((self._resource_id, metadata_base.ALL_ELEMENTS, file_index),
