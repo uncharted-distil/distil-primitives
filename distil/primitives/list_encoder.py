@@ -35,7 +35,7 @@ class ListEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBas
 
     metadata = metadata_base.PrimitiveMetadata(
         {
-            'id': 'd3d421cb-9601-43f0-83d9-91a9c4199a06',
+            'id': '67f53b00-f936-4bb4-873e-4698c4aaa37f',
             'version': '0.1.0',
             'name': "List encoder",
             'python_path': 'd3m.primitives.data_transformation.list_encoder.DistilListEncoder',
