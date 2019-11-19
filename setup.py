@@ -18,23 +18,23 @@ setup(
     install_requires=[
         # Commented out packages are required but handled by
         # upstream versions :/
-        #'scikit-learn==0.20.2',
-        #'torchvision==0.2.2.post3',
         #'fastai==1.0.52',
         'joblib',
-        'scipy==1.2.1',
-        'numpy==1.15.4',
-        'pandas==0.23.4',
-        'torch==1.0.1.post2',
+        'scikit-learn>=0.20.2,<=0.21.3',
+        'scipy>=1.2.1,<=1.3.1',
+        'numpy>=1.15.4,<=1.17.3',
+        'pandas>=0.23.4,<=0.25.2',
+        'torch>=1.3.1',
+        'torchvision>=0.4.2',
         #'pytorch-pretrained-bert==0.4.0', has print statements on import that break d3m annotation validation
         #'sklearn_pandas==1.8.0',
         'sklearn_pandas @ git+https://github.com/cdbethune/sklearn-pandas.git@c009c3a5a26f883f759cf123c0f5a509b1df013b',
-        'tensorflow-gpu==1.12.2',
+        'tensorflow-gpu==2.0.0',
         'frozendict>=1.2',
         'nose==1.3.7',
         #'python-prctl==1.7', Needs to be installed in the primitive install section
         'fastdtw==0.3.2',
-        'networkx==2.2.0',
+        'networkx==2.4',
         'resampy==0.2.1',
         'soundfile==0.10.2',
         'sgm @ git+https://github.com/nowfred/sgm.git@v1.0.3#egg=sgm',
