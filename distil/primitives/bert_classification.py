@@ -19,11 +19,6 @@ _all__ = ('BertPairClassification',)
 logger = logging.getLogger(__name__)
 
 class Hyperparams(hyperparams.Hyperparams):
-    metric = hyperparams.Hyperparameter[str](
-        default='',
-        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
-        description='scoring metric to use'
-    )
     doc_col_0 = hyperparams.Hyperparameter[int](
         default=0,
         semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
@@ -149,8 +144,7 @@ class BertPairClassificationPrimitive(PrimitiveBase[container.DataFrame, contain
             else:
                 raise ValueError("No volumes supplied for primitive - static models cannot be loaded.")
 
-            self._model = BERTPairClassification(
-                self.hyperparams['metric'], model_path=model_path, vocab_path=vocab_path, device=device, columns=columns,
+            self._model = BERTPairClassification(model_path=model_path, vocab_path=vocab_path, device=device, columns=columns,
                 epochs=self.hyperparams['epochs'], batch_size=self.hyperparams['batch_size'], learning_rate=self.hyperparams['learning_rate'])
 
         self._model.fit(self._inputs, self._outputs)
