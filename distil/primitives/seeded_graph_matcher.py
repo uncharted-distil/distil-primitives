@@ -2,7 +2,7 @@ import os
 import logging
 from typing import Set, List, Dict, Any, Optional
 
-from d3m import container, utils 
+from d3m import container, utils
 from d3m.metadata import base as metadata_base, hyperparams, params
 from d3m.primitive_interfaces import base, transformer
 from d3m.primitive_interfaces.supervised_learning import PrimitiveBase
@@ -38,7 +38,7 @@ class DistilSeededGraphMatchingPrimitive(PrimitiveBase[container.List, container
             'id': '8baea8e6-9d3a-46d7-acf1-04fd593dcd37',
             'version': '0.1.0',
             'name': "SeededGraphMatcher",
-            'python_path': 'd3m.primitives.data_transformation.seeded_graph_matcher.DistilSeededGraphMatcher',
+            'python_path': 'd3m.primitives.graph_matching.seeded_graph_matcher.DistilSeededGraphMatcher',
             'source': {
                 'name': 'Distil',
                 'contact': 'mailto:fred@qntfy.com',

@@ -39,7 +39,7 @@ class DistilVertexNominationPrimitive(PrimitiveBase[container.List, container.Da
             'id': '0130828c-1ac0-47a9-a167-f05bae5a3146',
             'version': '0.1.0',
             'name': "VertexNomination",
-            'python_path': 'd3m.primitives.data_transformation.vertex_nomination.DistilVertexNomination',
+            'python_path': 'd3m.primitives.vertex_nomination.vertex_nomination.DistilVertexNomination',
             'source': {
                 'name': 'Distil',
                 'contact': 'mailto:fred@qntfy.com',

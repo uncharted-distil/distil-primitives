@@ -61,7 +61,7 @@ class CollaborativeFilteringPrimitive(PrimitiveBase[container.DataFrame, contain
             'id': 'a242314d-7955-483f-aed6-c74cd2b880df',
             'version': '0.1.0',
             'name': "Collaborative filtering",
-            'python_path': 'd3m.primitives.learner.collaborative_filtering_link_prediction.DistilCollaborativeFiltering',
+            'python_path': 'd3m.primitives.collaborative_filtering.link_prediction.DistilCollaborativeFiltering',
             'source': {
                 'name': 'Distil',
                 'contact': 'mailto:cbethune@uncharted.software',

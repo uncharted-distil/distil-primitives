@@ -80,7 +80,7 @@ class TimeSeriesFormatterPrimitive(transformer.TransformerPrimitiveBase[containe
             'id': '1c4aed23-f3d3-4e6b-9710-009a9bc9b694',
             'version': '0.1.0',
             'name': 'Time series formatter',
-            'python_path': 'd3m.primitives.data_transformation.data_cleaning.DistilTimeSeriesFormatter',
+            'python_path': 'd3m.primitives.data_preprocessing.data_cleaning.DistilTimeSeriesFormatter',
             'keywords': ['series', 'reader', 'csv'],
             'source': {
                 'name': 'Distil',

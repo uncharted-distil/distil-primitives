@@ -47,7 +47,7 @@ class Params(params.Params):
 
 class TextClassifierPrimitive(base.PrimitiveBase[container.DataFrame, container.DataFrame, Params, Hyperparams]):
     """
-    This primitive takes a dataframe containing input texts, performs TFIDF on this text, and then builds a classifier using 
+    This primitive takes a dataframe containing input texts, performs TFIDF on this text, and then builds a classifier using
     these features.
     """
 
@@ -56,7 +56,7 @@ class TextClassifierPrimitive(base.PrimitiveBase[container.DataFrame, container.
             'id': '24f51246-7487-454e-8d69-7cdf289994d1',
             'version': '0.1.0',
             'name': "Text Classifier",
-            'python_path': 'd3m.primitives.learner.text_classifier.DistilTextClassifier',
+            'python_path': 'd3m.primitives.classification.text_classifier.DistilTextClassifier',
             'source': {
                 'name': 'Distil',
                 'contact': 'mailto:cbethune@uncharted.software',
