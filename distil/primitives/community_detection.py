@@ -2,7 +2,7 @@ import os
 import logging
 from typing import Set, List, Dict, Any, Optional
 
-from d3m import container, utils 
+from d3m import container, utils
 from d3m.metadata import base as metadata_base, hyperparams, params
 from d3m.primitive_interfaces import base, transformer
 from d3m.primitive_interfaces.supervised_learning import PrimitiveBase
@@ -38,7 +38,7 @@ class DistilCommunityDetectionPrimitive(PrimitiveBase[container.List, container.
             'id': '064cec55-39dd-45b7-a663-50d3e17e0c42',
             'version': '0.1.0',
             'name': "CommunityDetection",
-            'python_path': 'd3m.primitives.data_transformation.community_detection.DistilCommunityDetection',
+            'python_path': 'd3m.primitives.community_detection.community_detection.DistilCommunityDetection',
             'source': {
                 'name': 'Distil',
                 'contact': 'mailto:fred@qntfy.com',

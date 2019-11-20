@@ -2,7 +2,7 @@ import os
 import logging
 from typing import Set, List, Dict, Any, Optional
 
-from d3m import container, utils 
+from d3m import container, utils
 from d3m.metadata import base as metadata_base, hyperparams, params
 from d3m.primitive_interfaces import base, transformer
 from d3m.primitive_interfaces.supervised_learning import PrimitiveBase
@@ -31,14 +31,14 @@ class Params(params.Params):
 
 class DistilLinkPredictionPrimitive(PrimitiveBase[container.List, container.DataFrame, Params, Hyperparams]):
     """
-    A primitive that uses RESCAL to predict links in graphs. 
+    A primitive that uses RESCAL to predict links in graphs.
     """
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': 'fc138210-c317-4528-81ae-5eed3a1a0267',
             'version': '0.1.0',
             'name': "LinkPrediction",
-            'python_path': 'd3m.primitives.data_transformation.link_prediction.DistilLinkPrediction',
+            'python_path': 'd3m.primitives.link_prediction.link_prediction.DistilLinkPrediction',
             'source': {
                 'name': 'Distil',
                 'contact': 'mailto:fred@qntfy.com',
