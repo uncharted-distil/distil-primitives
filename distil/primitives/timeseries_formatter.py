@@ -83,7 +83,7 @@ class TimeSeriesFormatterPrimitive(transformer.TransformerPrimitiveBase[containe
             'python_path': 'd3m.primitives.data_transformation.data_cleaning.DistilTimeSeriesFormatter',
             'keywords': ['series', 'reader', 'csv'],
             'source': {
-                'name': 'Uncharted Software',
+                'name': 'Distil',
                 'contact': 'mailto:cbethune@uncharted.software',
                 'uris': ['https://gitlab.com/uncharted-distil/distil-primitives']
             },
