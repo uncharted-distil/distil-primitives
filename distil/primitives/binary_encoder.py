@@ -46,7 +46,7 @@ class BinaryEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': 'd38e2e28-9b18-4ce4-b07c-9d809cd8b915',
-            'version': '0.1.0',
+            'version': '0.2.0',
             'name': "Binary encoder",
             'python_path': 'd3m.primitives.data_transformation.encoder.DistilBinaryEncoder',
             'source': {

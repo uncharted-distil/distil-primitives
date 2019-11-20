@@ -78,7 +78,7 @@ class TimeSeriesFormatterPrimitive(transformer.TransformerPrimitiveBase[containe
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': '1c4aed23-f3d3-4e6b-9710-009a9bc9b694',
-            'version': '0.3.0',
+            'version': '0.1.0',
             'name': 'Time series formatter',
             'python_path': 'd3m.primitives.data_transformation.data_cleaning.DistilTimeSeriesFormatter',
             'keywords': ['series', 'reader', 'csv'],
@@ -130,7 +130,7 @@ class TimeSeriesFormatterPrimitive(transformer.TransformerPrimitiveBase[containe
         csv_paths = [os.path.join(base_path, local_path) for local_path in inputs[main_resource_id].iloc[:, file_index]]
         new_dfs = [pd.read_csv(path) for path in csv_paths]
         original_dfs = [pd.DataFrame(np.tile(row, (df.shape[0], 1)),
-                columns = inputs[main_resource_id].columns, index = df.index) 
+                columns = inputs[main_resource_id].columns, index = df.index)
                 for row, df in zip(inputs[main_resource_id].values, new_dfs)]
         combined_dfs = [original_df.join(new_df) for original_df, new_df in zip(original_dfs, new_dfs)]
         output_data = pd.concat(combined_dfs)

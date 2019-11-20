@@ -105,7 +105,7 @@ class AudioDatasetLoaderPrimitive(transformer.TransformerPrimitiveBase[container
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': 'f2a0cf71-0f61-41a7-a0ad-b907083ae56c',
-            'version': '0.1.0',
+            'version': '0.1.1',
             'name': "Load audio collection from dataset into a single dataframe",
             'python_path': 'd3m.primitives.data_preprocessing.audio_loader.DistilAudioDatasetLoader',
             'source': {

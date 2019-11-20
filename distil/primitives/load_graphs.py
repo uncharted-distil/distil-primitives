@@ -45,7 +45,7 @@ class DistilGraphLoaderPrimitive(transformer.TransformerPrimitiveBase[Inputs, Ou
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': 'ae0797506-ea7b-4a7f-a7e4-2f91e2082f05',
-            'version': '0.1.0',
+            'version': '0.1.1',
             'name': "Load graphs into a parseable object",
             'python_path': 'd3m.primitives.data_transformation.load_graphs.DistilGraphLoader',
             'source': {

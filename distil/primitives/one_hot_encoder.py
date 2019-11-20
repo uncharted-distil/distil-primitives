@@ -45,7 +45,7 @@ class OneHotEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': 'd3d421cb-9601-43f0-83d9-91a9c4199a06',
-            'version': '0.1.0',
+            'version': '0.2.0',
             'name': "One-hot encoder",
             'python_path': 'd3m.primitives.data_transformation.one_hot_encoder.DistilOneHotEncoder',
             'source': {

@@ -59,7 +59,7 @@ class EnsembleForestPrimitive(PrimitiveBase[container.DataFrame, container.DataF
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': 'e0ad06ce-b484-46b0-a478-c567e1ea7e02',
-            'version': '0.1.0',
+            'version': '0.2.0',
             'name': "EnsembleForest",
             'python_path': 'd3m.primitives.learner.random_forest.DistilEnsembleForest',
             'source': {
