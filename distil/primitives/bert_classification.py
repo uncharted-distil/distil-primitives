@@ -19,11 +19,6 @@ _all__ = ('BertPairClassification',)
 logger = logging.getLogger(__name__)
 
 class Hyperparams(hyperparams.Hyperparams):
-    metric = hyperparams.Hyperparameter[str](
-        default='',
-        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
-        description='scoring metric to use'
-    )
     doc_col_0 = hyperparams.Hyperparameter[int](
         default=0,
         semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
@@ -38,6 +33,21 @@ class Hyperparams(hyperparams.Hyperparams):
         default=False,
         semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
         description='Force CPU execution regardless of GPU availability.'
+    )
+    batch_size = hyperparams.Hyperparameter[int](
+        default=32,
+        semantic_types=['https://metadata.datadrivendiscovery.org/types/TuningParameter'],
+        description='Number of samples to load in each training batch.'
+    )
+    epochs = hyperparams.Hyperparameter[int](
+        default=3,
+        semantic_types=['https://metadata.datadrivendiscovery.org/types/TuningParameter'],
+        description='The number of passes to make over the training set.'
+    )
+    learning_rate = hyperparams.Hyperparameter[float](
+        default=5e-5,
+        semantic_types=['https://metadata.datadrivendiscovery.org/types/TuningParameter'],
+        description='The change in the model in reponse to estimated error.'
     )
 
 class Params(params.Params):
@@ -134,7 +144,8 @@ class BertPairClassificationPrimitive(PrimitiveBase[container.DataFrame, contain
             else:
                 raise ValueError("No volumes supplied for primitive - static models cannot be loaded.")
 
-            self._model = BERTPairClassification(self.hyperparams['metric'], model_path=model_path, vocab_path=vocab_path, device=device, columns=columns)
+            self._model = BERTPairClassification(model_path=model_path, vocab_path=vocab_path, device=device, columns=columns,
+                epochs=self.hyperparams['epochs'], batch_size=self.hyperparams['batch_size'], learning_rate=self.hyperparams['learning_rate'])
 
         self._model.fit(self._inputs, self._outputs)
         return base.CallResult(None)

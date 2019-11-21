@@ -13,7 +13,6 @@ from pytorch_pretrained_bert.modeling import BertModel, PreTrainedBertModel, Ber
 from pytorch_pretrained_bert.optimization import BertAdam
 
 from .base import DistilBaseModel
-from .metrics import metrics, classification_metrics
 
 import logging
 logger = logging.getLogger(__name__)
@@ -116,12 +115,9 @@ class QAModel(PreTrainedBertModel):
 
 class BERTPairClassification(DistilBaseModel):
 
-    def __init__(self, target_metric, model_path, vocab_path, columns=['question', 'sentence'],
+    def __init__(self, model_path, vocab_path, columns=['question', 'sentence'],
         batch_size=32, learning_rate=5e-5, epochs=3, warmup_proportion=0.1, seed=123, device='cuda'):
 
-        assert target_metric in classification_metrics
-
-        self.target_metric = target_metric
         self.columns       = columns
 
         self.batch_size        = batch_size
