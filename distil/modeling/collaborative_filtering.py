@@ -48,19 +48,19 @@ class CFModel(BaseNet):
 
 class SGDCollaborativeFilter(DistilBaseModel):
 
-    def __init__(self, n_users, n_items, target_metric, emb_dims=[128, 256, 512, 1024], n_outputs=1,
+    def __init__(self, n_users, n_items, emb_dims=[128, 256, 512, 1024], n_outputs=1,
         epochs=8, batch_size=512, lr_max=2e-3, device='cuda'):
 
-        if target_metric == 'meanAbsoluteError':
-            self.loss_fn = F.l1_loss
-        # elif target_metric == 'accuracy':
-            # self.loss_fn = F.binary_cross_entropy_with_logits
-        else:
-            raise Exception('SGDCollaborativeFilter: unknown metric')
+        self.loss_fn = F.l1_loss # hard coded loss
+        # if target_metric == 'meanAbsoluteError':
+        #     self.loss_fn = F.l1_loss
+        # # elif target_metric == 'accuracy':
+        #     # self.loss_fn = F.binary_cross_entropy_with_logits
+        # else:
+        #     raise Exception('SGDCollaborativeFilter: unknown metric')
 
         self.n_users       = n_users
         self.n_items       = n_items
-        self.target_metric = target_metric
         self.emb_dims      = emb_dims
         self.n_outputs     = n_outputs
         self.epochs        = epochs
