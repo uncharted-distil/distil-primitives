@@ -5,6 +5,7 @@ from tqdm import tqdm
 from time import time
 
 import torch
+torch.multiprocessing.set_sharing_strategy('file_system')
 from torch import nn
 from torch.utils.data import TensorDataset, DataLoader
 
