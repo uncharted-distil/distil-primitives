@@ -41,7 +41,7 @@ class DistilSingleGraphLoaderPrimitive(transformer.TransformerPrimitiveBase[Inpu
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': '79012210-2463-4f94-9da6-11bdc5a7e6c4',
-            'version': '0.1.0',
+            'version': '0.1.1',
             'name': "Load single graph and dataframe into a parseable object",
             'python_path': 'd3m.primitives.data_transformation.load_single_graph.DistilSingleGraphLoader',
             'source': {

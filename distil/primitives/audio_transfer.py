@@ -50,7 +50,7 @@ class AudioTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': 'f2f149c8-a984-4f5b-8a9b-2f13ee0cf16d',
-            'version': '0.1.0',
+            'version': '0.1.1',
             'name': "Audio Transfer",
             'python_path': 'd3m.primitives.feature_extraction.audio_transfer.DistilAudioTransfer',
             'source': {

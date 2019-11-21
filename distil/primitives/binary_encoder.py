@@ -2,7 +2,7 @@ import os
 import logging
 from typing import List
 
-from d3m import container, utils 
+from d3m import container, utils
 from d3m.metadata import base as metadata_base, hyperparams, params
 from d3m.primitive_interfaces import base, unsupervised_learning
 
@@ -46,7 +46,7 @@ class BinaryEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': 'd38e2e28-9b18-4ce4-b07c-9d809cd8b915',
-            'version': '0.1.0',
+            'version': '0.2.0',
             'name': "Binary encoder",
             'python_path': 'd3m.primitives.data_transformation.encoder.DistilBinaryEncoder',
             'source': {
@@ -123,16 +123,21 @@ class BinaryEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
         # add the binary encoded columns and remove the source columns
         outputs = inputs.copy()
         encoded_cols = container.DataFrame()
+        encoded_cols_source = []
         for i, c in enumerate(self._cols):
             categorical_inputs = outputs.iloc[:,c]
             result = self._encoders[i].transform(categorical_inputs)
             for j in range(result.shape[1]):
                 bin_idx = i * result.shape[1] + j
                 encoded_cols[(f'__binary_{bin_idx}')] = result[:,j]
+                encoded_cols_source.append(c)
         encoded_cols.metadata = encoded_cols.metadata.generate(encoded_cols)
 
         for c in range(encoded_cols.shape[1]):
             encoded_cols.metadata = encoded_cols.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, c), 'http://schema.org/Integer')
+            col_dict = dict(encoded_cols.metadata.query((metadata_base.ALL_ELEMENTS, c)))
+            col_dict['source_column'] = outputs.metadata.query((metadata_base.ALL_ELEMENTS, encoded_cols_source[c]))['name']
+            encoded_cols.metadata = encoded_cols.metadata.update((metadata_base.ALL_ELEMENTS, c), col_dict)
 
         outputs = outputs.append_columns(encoded_cols)
         outputs = outputs.remove_columns(self._cols)
