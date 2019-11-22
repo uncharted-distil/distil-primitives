@@ -34,7 +34,7 @@ def _truncate_seq_pair(tokens_a, tokens_b, max_length):
     return tokens_a, tokens_b
 
 
-def examples2dataset(examples, label_list, max_seq_length, tokenizer):
+def examples2dataset(examples, max_seq_length, tokenizer):
     features = []
     for (ex_index, example) in enumerate(examples):
         tokens_a = tokenizer.tokenize(example['text_a'])
@@ -158,15 +158,15 @@ class BERTPairClassification(DistilBaseModel):
 
         train_examples = list(X_train.apply(self._row2example, axis=1))
 
-        self.label_list = list(set(X_train._label.astype(str)))
-        self.num_labels = len(self.label_list)
+        label_list = list(set(X_train._label.astype(str)))
+        self.num_labels = len(label_list)
         num_train_steps = int(len(train_examples) / self.batch_size * float(self.epochs))
 
         q_lens = X_train[self.columns[0]].apply(lambda x: len(self.tokenizer.tokenize(x)))
         s_lens = X_train[self.columns[1]].apply(lambda x: len(self.tokenizer.tokenize(x)))
         self.max_seq_len = int(np.percentile(q_lens + s_lens, 99) + 1)
 
-        train_dataset = examples2dataset(train_examples, self.label_list, self.max_seq_len, self.tokenizer)
+        train_dataset = examples2dataset(train_examples, self.max_seq_len, self.tokenizer)
 
         dataloaders = {
             "train" : DataLoader(
@@ -242,7 +242,7 @@ class BERTPairClassification(DistilBaseModel):
 
         examples = list(X.apply(self._row2example, axis=1))
 
-        dataset = examples2dataset(examples, self.label_list, self.max_seq_len, self.tokenizer)
+        dataset = examples2dataset(examples, self.max_seq_len, self.tokenizer)
         dataloaders = {
             "test" : list(DataLoader(
                 dataset=dataset,
