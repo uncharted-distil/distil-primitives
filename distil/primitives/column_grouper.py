@@ -4,7 +4,7 @@ import logging
 
 from d3m import container, utils
 from d3m.metadata import base as metadata_base, hyperparams, params
-from d3m.primitive_interfaces import base, unsupervised_learning
+from d3m.primitive_interfaces import base, transformer
 
 import pandas as pd
 
@@ -23,13 +23,13 @@ class Hyperparams(hyperparams.Hyperparams):
     )
     grouper_columns = hyperparams.List(
         elements=hyperparams.Hyperparameter[str](''),
-        default=['timeseries_file'],
+        default=[],
         semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
         description="A set of column indices to force primitive to operate on. If any specified column does not match any semantic type, it is skipped.",
     )
     target_columns = hyperparams.List(
         elements=hyperparams.Hyperparameter[str](''),
-        default=['label'],
+        default=[],
         semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
         description="A set of column indices to force primitive to operate on. If any specified column does not match any semantic type, it is skipped.",
     )
@@ -39,8 +39,9 @@ class Params(params.Params):
     pass
 
 
-class ColumnGrouperPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBase[
-                                 container.DataFrame, container.DataFrame, Params, Hyperparams]):
+class ColumnGrouperPrimitive(transformer.TransformerPrimitiveBase[container.DataFrame,
+                                                                     container.DataFrame,
+                                                                     Hyperparams]):
     """
      List Encoder takes columns that are made up out of lists and replaces them by expanding the list
     across multiple columns.
@@ -84,10 +85,23 @@ class ColumnGrouperPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
 
         logger.debug(f'Producing {__name__}')
 
-        grouper_columns = hyperparams['grouper_col']
-        target_col = hyperparams['target_col']
+        grouper_columns = self.hyperparams.get('grouper_columns')
+        if len(grouper_columns) == 0:
+            grouper_columns = self._get_column_index(inputs, 'https://metadata.datadrivendiscovery.org/types/GroupingKey')
+
+        target_col = self.hyperparams['target_columns']
+        if len(target_col) == 0:
+            target_col = self._get_column_index(inputs, 'https://metadata.datadrivendiscovery.org/types/Target')
 
         inputs[target_col] = inputs[target_col].astype(int)
-        outputs = inputs.groupby([list(grouper_columns)]).mean()[target_col]
+        outputs = inputs.groupby(list(grouper_columns)).mean()[target_col]
 
         return base.CallResult(outputs)
+
+    def _get_column_index(self, inputs, semantic_type):
+        for column_index, col_name in enumerate(inputs.columns):
+            column_metadata = inputs.metadata.query((metadata_base.ALL_ELEMENTS, column_index))
+            semantic_types = column_metadata.get('semantic_types', [])
+            if semantic_type in semantic_types:
+                return [col_name]
+        raise AttributeError(f"No columns found with semantic type {semantic_type}")
