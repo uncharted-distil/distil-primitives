@@ -1,34 +1,27 @@
-import os
-import sys
 import numpy as np
-from tqdm import tqdm
 
-from distil.third_party.audioset import vggish_input
-from distil.third_party.audioset import vggish_params
-from distil.third_party.audioset import vggish_postprocess
-from distil.third_party.audioset import vggish_slim
+from distil.modeling.base import DistilBaseModel
+from distil.modeling.forest import ForestCV
 
-import tensorflow as tf
-
-from .base import DistilBaseModel
-from .forest import ForestCV
-from .metrics import metrics
-from ..utils import parmap
-
-from tensorflow.errors import InvalidArgumentError
 from joblib import Parallel, delayed
 
 from numba import jit
-import gc
 # --
 # Helpers
 import logging
+from torchvggish import vggish, vggish_input
+
+# Initialise model and download weights
+embedding_model = vggish()
+embedding_model.eval()
 
 logger = logging.getLogger(__name__)
+
 
 @jit
 def _mem_to_arr(w):
     return np.array(w, dtype='int16')
+
 
 def audioarray2mel(data, sample_rate):
     assert data.shape[1] > 0, data.shape
@@ -37,22 +30,6 @@ def audioarray2mel(data, sample_rate):
 
     return ret_val
 
-
-def audio2vec(X, model_path):
-    with tf.Graph().as_default(), tf.Session() as sess:
-        vggish_slim.define_vggish_slim(training=False)
-        vggish_slim.load_vggish_slim_checkpoint(sess, model_path)
-
-        feat_ = sess.graph.get_tensor_by_name(vggish_params.INPUT_TENSOR_NAME)
-        emb_ = sess.graph.get_tensor_by_name(vggish_params.OUTPUT_TENSOR_NAME)
-
-        all_feats = []
-        for xx in tqdm(X):
-
-            [feats] = sess.run([emb_], feed_dict={feat_: xx})
-            all_feats.append(feats)
-
-        return all_feats
 
 # --
 # Model
@@ -63,15 +40,15 @@ class AudiosetModel(DistilBaseModel):
         self.target_metric = target_metric
         self.model_path = model_path
 
-
     def _featurize(self, A):
-
         jobs = [delayed(audioarray2mel)(xx.data, xx.sample_rate) for xx in A]
-        mel_feats = Parallel(n_jobs=32, backend='multiprocessing', verbose=10)(jobs)
+        mel_feats = Parallel(n_jobs=64, backend='loky', verbose=10)(jobs)
 
-        vec_feats = audio2vec(mel_feats, self.model_path)
+        mels = []
+        for i in range(len(mel_feats)):
+            mels.append(embedding_model.forward(mel_feats[i]).data.numpy())
 
-        return np.vstack([f.max(axis=0) for f in vec_feats])
+        return np.vstack([f.max(axis=0) for f in mels])
 
     def fit(self, X_train, y_train, U_train=None):
         assert self.target_metric is not None, 'define a target metric'
