@@ -154,14 +154,31 @@ class TimeSeriesFormatterPrimitive(transformer.TransformerPrimitiveBase[containe
         metadata['foreign_key'] = metadata_base.NO_VALUE
         timeseries_dataset.metadata = timeseries_dataset.metadata.update((self._resource_id, metadata_base.ALL_ELEMENTS, file_index), metadata)
 
-        # copy timeseries column metadata to timeseries
+        import sys
+
+        # copy timeseries column metadata to timeseries if its available in the metadata (which is not necssarily true anymore)
         source = self._find_timeseries_metadata(inputs)
         i = 0
         if source is not None:
-        # TODO What is this next step doing? Is it okay of we don't set the metadata?
             for col_info in source['file_columns']:
                 timeseries_dataset.metadata = timeseries_dataset.metadata.update_column(i + num_main_resource_cols, col_info, at=(self._resource_id,))
                 i += 1
+        else:
+            # loop over the appended time series columns
+            start_idx = len(original_dfs) - 1
+            for i in range(start_idx, timeseries_dataframe.shape[1]):
+                timeseries_dataset.metadata = timeseries_dataset.metadata.add_semantic_type((self._resource_id, metadata_base.ALL_ELEMENTS, i),
+                    'https://metadata.datadrivendiscovery.org/types/Attribute')
+                struct_type = timeseries_dataset.metadata.query((self._resource_id, metadata_base.ALL_ELEMENTS, i))['structural_type']
+                if struct_type == np.float64:
+                    timeseries_dataset.metadata = timeseries_dataset.metadata.add_semantic_type((self._resource_id, metadata_base.ALL_ELEMENTS, i),
+                        'http://schema.org/Float')
+                elif struct_type == np.int64:
+                    timeseries_dataset.metadata = timeseries_dataset.metadata.add_semantic_type((self._resource_id, metadata_base.ALL_ELEMENTS, i),
+                        'http://schema.org/Integer')
+                else:
+                    timeseries_dataset.metadata = timeseries_dataset.metadata.add_semantic_type((self._resource_id, metadata_base.ALL_ELEMENTS, i),
+                        'http://schema.org/Text')
 
         # mark the filename column as a grouping key
         timeseries_dataset.metadata = timeseries_dataset.metadata.add_semantic_type((self._resource_id, metadata_base.ALL_ELEMENTS, file_index),
