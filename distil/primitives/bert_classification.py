@@ -157,7 +157,6 @@ class BertPairClassificationPrimitive(PrimitiveBase[container.DataFrame, contain
 
         # create dataframe to hold result
         result = self._model.predict(inputs)
-        result =np.array([self._model.label_list[r] for r in result]) # decode labels
 
         result_df = container.DataFrame({self._outputs.columns[0]: result}, generate_metadata=True)
 
