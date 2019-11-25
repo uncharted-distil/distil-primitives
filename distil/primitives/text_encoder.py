@@ -81,7 +81,11 @@ class TextEncoderPrimitive(base.PrimitiveBase[Inputs, Outputs, Params, Hyperpara
 
     def set_training_data(self, *, inputs: Inputs, outputs: Outputs) -> None:
         self._inputs = inputs
+        # https://github.com/scikit-learn/scikit-learn/issues/14429#issuecomment-513887163
+        if type(outputs) == container.pandas.DataFrame and outputs.shape[1] == 1:
+            outputs = outputs.values.reshape(outputs.shape[0],)
         self._outputs = outputs
+
 
     def fit(self, *, timeout: float = None, iterations: int = None) -> base.CallResult[None]:
         logger.debug(f'Fitting {__name__}')
