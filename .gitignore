@@ -12,3 +12,4 @@ DistilPrimitives.egg-info
 distil_primitives.egg-info
 *.pth
 static
+.pytest_cache
