@@ -154,7 +154,6 @@ class TimeSeriesFormatterPrimitive(transformer.TransformerPrimitiveBase[containe
         metadata['foreign_key'] = metadata_base.NO_VALUE
         timeseries_dataset.metadata = timeseries_dataset.metadata.update((self._resource_id, metadata_base.ALL_ELEMENTS, file_index), metadata)
 
-        import sys
 
         # copy timeseries column metadata to timeseries if its available in the metadata (which is not necssarily true anymore)
         source = self._find_timeseries_metadata(inputs)
@@ -165,7 +164,7 @@ class TimeSeriesFormatterPrimitive(transformer.TransformerPrimitiveBase[containe
                 i += 1
         else:
             # loop over the appended time series columns
-            start_idx = len(original_dfs) - 1
+            start_idx = original_dfs[0].shape[1]
             for i in range(start_idx, timeseries_dataframe.shape[1]):
                 timeseries_dataset.metadata = timeseries_dataset.metadata.add_semantic_type((self._resource_id, metadata_base.ALL_ELEMENTS, i),
                     'https://metadata.datadrivendiscovery.org/types/Attribute')
