@@ -1,7 +1,7 @@
 import os
 import logging
 
-from d3m import container, utils 
+from d3m import container, utils
 from d3m.metadata import base as metadata_base, hyperparams, params
 from d3m.primitive_interfaces import unsupervised_learning, transformer, base
 
@@ -95,7 +95,7 @@ class KMeansPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBase[con
         logger.debug(f'Fitting {__name__}')
 
         # find candidate columns
-        self._cols = distil_utils.get_operating_columns_structural_type(self._inputs, self.hyperparams['use_columns'], ('bool', 'int', 'float'), False)
+        self._cols = distil_utils.get_operating_columns_structural_type(self._inputs, self.hyperparams['use_columns'], (np.float64, np.int64), False)
         logger.debug(f'Found {len(self._cols)} cols to use for clustering')
         return base.CallResult(None)
 
@@ -110,8 +110,6 @@ class KMeansPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBase[con
         result = k_means.fit_predict(numerical_inputs)
         result_df = container.DataFrame({self.hyperparams['cluster_col_name']: result}, generate_metadata=True)
         result_df.metadata = result_df.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, 0), 'https://metadata.datadrivendiscovery.org/types/PredictedTarget')
-
-        logger.debug(f'\n{result_df}')
 
         return base.CallResult(result_df)
 
