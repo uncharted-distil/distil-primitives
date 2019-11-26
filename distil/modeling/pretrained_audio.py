@@ -6,6 +6,7 @@ from distil.modeling.forest import ForestCV
 from joblib import Parallel, delayed
 
 from numba import jit
+from tqdm import tqdm
 # --
 # Helpers
 import logging
@@ -44,11 +45,17 @@ class AudiosetModel(DistilBaseModel):
         jobs = [delayed(audioarray2mel)(xx.data, xx.sample_rate) for xx in A]
         mel_feats = Parallel(n_jobs=64, backend='loky', verbose=10)(jobs)
 
-        mels = []
-        for i in range(len(mel_feats)):
-            mels.append(embedding_model.forward(mel_feats[i]).data.numpy())
+        feature_vecs = []
+        for i in tqdm(range(len(mel_feats)), desc='passing mel features through embedding model'):
+            feature_vec = embedding_model.forward(mel_feats[i]).data.numpy()
+            if feature_vec.shape[0] == 128:
+                feature_vec = feature_vec
+            else:
+                feature_vec = feature_vec.max(axis=0)
 
-        return np.vstack([f.max(axis=0) for f in mels])
+            feature_vecs.append(list(feature_vec))
+
+        return np.array(feature_vecs)
 
     def fit(self, X_train, y_train, U_train=None):
         assert self.target_metric is not None, 'define a target metric'
