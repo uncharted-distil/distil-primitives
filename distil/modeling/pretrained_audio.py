@@ -10,11 +10,9 @@ from tqdm import tqdm
 # --
 # Helpers
 import logging
-from torchvggish import vggish, vggish_input
+from distil.third_party.torchvggish import vggish, vggish_input
 
-# Initialise model and download weights
-embedding_model = vggish()
-embedding_model.eval()
+
 
 logger = logging.getLogger(__name__)
 
@@ -41,13 +39,16 @@ class AudiosetModel(DistilBaseModel):
         self.target_metric = target_metric
         self.model_path = model_path
 
+        self.embedding_model = vggish(self.model_path)
+        self.embedding_model.eval()
+
     def _featurize(self, A):
         jobs = [delayed(audioarray2mel)(xx.data, xx.sample_rate) for xx in A]
         mel_feats = Parallel(n_jobs=64, backend='loky', verbose=10)(jobs)
 
         feature_vecs = []
         for i in tqdm(range(len(mel_feats)), desc='passing mel features through embedding model'):
-            feature_vec = embedding_model.forward(mel_feats[i]).data.numpy()
+            feature_vec = self.embedding_model.forward(mel_feats[i]).data.numpy()
             if feature_vec.shape[0] == 128:
                 feature_vec = feature_vec
             else:
