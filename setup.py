@@ -43,7 +43,8 @@ setup(
         'pytorch-pretrained-bert @ git+https://github.com/cdbethune/pytorch-pretrained-BERT.git@fb5a42d9de9385b146ba585d6d47ec36d27dcbca#egg=pytorch-pretrained-bert',
         'ShapExplainers @ git+https://github.com/NewKnowledge/shap_explainers.git@7a2375795803211613e9583fd625ba5f6d5fbedd#egg=ShapExplainers'
         # Can cause errors with pretrained-bert: https://github.com/NVIDIA/apex/issues/156
-        #'apex @ git+https://github.com/NVIDIA/apex.git@47e3367fcd6636db6cd549bbb385a6e06a3861d0'
+        #'apex @ git+https://github.com/NVIDIA/apex.git@47e3367fcd6636db6cd549bbb385a6e06a3861d0',
+        'torchvggish @ git+https://github.com/harritaylor/torchvggish/commit/f5ec66cb05029ddfdb9971f343d79408fac44c70'
 
     ],
     entry_points={

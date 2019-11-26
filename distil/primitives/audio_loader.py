@@ -17,7 +17,8 @@ import pandas as pd
 import soundfile as sf
 import prctl
 import tempfile
-
+from joblib import Parallel, delayed
+from tqdm import tqdm
 from scipy.io import wavfile
 
 __all__ = ('AudioDatasetLoaderPrimitive',)
@@ -81,7 +82,6 @@ def convert_load_file(fileuri, start, end):
 
     if audio_array.shape[0] < sample_rate:
         audio_array = np.vstack([audio_array, np.zeros((sample_rate - audio_array.shape[0], audio_array.shape[1]), dtype='int16')])
-
 
     return WavInput(audio_array, sample_rate)
 
@@ -207,14 +207,9 @@ class AudioDatasetLoaderPrimitive(transformer.TransformerPrimitiveBase[container
         return new_metadata
 
 
+
     @classmethod
     def _audio_load(cls, files_in: Sequence[Tuple]) -> List:
-        files_out = []
-        for i, f in enumerate(files_in):
-            if i % 100 == 0:
-                logger.debug(f"Converted {i} / {len(files_in)} files")
-            try:
-                files_out.append(convert_load_file(f[0], float(f[1]), float(f[2])))
-            except:
-                files_out.append(convert_load_file(f[0], None, None))
+        jobs = [delayed(convert_load_file)(f[0], float(f[1]), float(f[2])) for f in tqdm(files_in, total=len(files_in))]
+        files_out = Parallel(n_jobs=64, backend='loky', verbose=10)(jobs)
         return files_out
