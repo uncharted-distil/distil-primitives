@@ -183,7 +183,8 @@ class EnsembleForestPrimitive(PrimitiveBase[container.DataFrame, container.DataF
             #TODO label map will not work if there are multiple output columns.
             result_df[self._outputs.columns[0]] = result_df[self._outputs.columns[0]].map(self.label_map)
         # mark the semantic types on the dataframe
-        result_df.metadata = result_df.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, 0), 'https://metadata.datadrivendiscovery.org/types/PredictedTarget')
+        for i, _ in enumerate(result_df.columns):
+            result_df.metadata = result_df.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, i), 'https://metadata.datadrivendiscovery.org/types/PredictedTarget')
 
         logger.debug(f'\n{result_df}')
         return base.CallResult(result_df)
