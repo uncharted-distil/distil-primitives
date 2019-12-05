@@ -144,6 +144,7 @@ class ForestCV(DistilBaseModel):
         X, y = maybe_subset(Xf_train, y_train, n=self.subset)
 
         # Run grid search
+
         self.results = parmap(self._eval_grid_point,
             ParameterGrid(self.param_grid), X=X, y=y, verbose=self.verbose, n_jobs=self.outer_jobs)
 
