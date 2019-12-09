@@ -53,6 +53,7 @@ setup(
             'link_prediction.link_prediction.DistilLinkPrediction = distil.primitives.link_prediction:DistilLinkPredictionPrimitive',
             'vertex_nomination.vertex_nomination.DistilVertexNomination = distil.primitives.vertex_nomination:DistilVertexNominationPrimitive',
             'data_transformation.load_single_graph.DistilSingleGraphLoader = distil.primitives.load_single_graph:DistilSingleGraphLoaderPrimitive',
+            'data_transformation.load_edgelist.DistilEdgeListLoader = distil.primitives.load_edgelist:DistilEdgeListLoaderPrimitive',
             'graph_matching.seeded_graph_matcher.DistilSeededGraphMatcher = distil.primitives.seeded_graph_matcher:DistilSeededGraphMatchingPrimitive',
             'data_transformation.load_graphs.DistilGraphLoader = distil.primitives.load_graphs:DistilGraphLoaderPrimitive',
             'data_transformation.data_cleaning.DistilReplaceSingletons = distil.primitives.replace_singletons:ReplaceSingletonsPrimitive',
