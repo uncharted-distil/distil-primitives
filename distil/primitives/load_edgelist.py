@@ -237,24 +237,3 @@ class DistilEdgeListLoaderPrimitive(transformer.TransformerPrimitiveBase[Inputs,
             outputs.iloc[:,i] = outputs.iloc[:,i].astype('bool')
 
         return outputs
-
-    @classmethod
-    def can_accept(cls, *, method_name: str, arguments: typing.Dict[str, typing.Union[metadata_base.Metadata, type]],
-                   hyperparams: Hyperparams) -> typing.Optional[metadata_base.DataMetadata]:
-        output_metadata = super().can_accept(method_name=method_name, arguments=arguments, hyperparams=hyperparams)
-
-        # If structural types didn't match, don't bother.
-        if output_metadata is None:
-            return None
-
-        if method_name != 'produce':
-            return output_metadata
-
-        if 'inputs' not in arguments:
-            return output_metadata
-
-        inputs_metadata = typing.cast(metadata_base.DataMetadata, arguments['inputs'])
-
-        dataframe_resource_id = base_utils.get_tabular_resource_metadata(inputs_metadata, hyperparams['dataframe_resource'])
-
-        return cls._update_metadata(inputs_metadata, dataframe_resource_id)
