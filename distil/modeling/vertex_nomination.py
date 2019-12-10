@@ -9,6 +9,7 @@ from .forest import ForestCV
 from .svm import SupportVectorCV
 from .metrics import metrics, classification_metrics
 
+
 class VertexNominationCV(DistilBaseModel):
     
     def __init__(self, target_metric, num_components=8):
@@ -26,12 +27,11 @@ class VertexNominationCV(DistilBaseModel):
         
         # --
         # Featurize
-        
+
         df = pd.DataFrame([graph.nodes[i] for i in graph.nodes]).set_index('nodeID')
-        
         adj = nx.adjacency_matrix(graph).astype(np.float64)
         U, _, _ = linalg.svds(adj, k=self.num_components)
-        
+
         self.feats = pd.DataFrame(np.hstack([df.values, U])).set_index(df.index)
         
         Xf_train = self.feats.loc[X_train.nodeID].values
@@ -67,10 +67,30 @@ class VertexNominationCV(DistilBaseModel):
         
         return self
     
-    def predict(self, X):
+    def predict(self, X, U):
+        # X = X.copy()
+        # assert X.shape[1] == 1
+        # X.columns = ('nodeID',)
+        #
+        # Xf = self.feats.loc[X.nodeID].values
+        # return self.model.predict(Xf)
+
+        graph = U['graph']
         X = X.copy()
         assert X.shape[1] == 1
+
         X.columns = ('nodeID',)
-        
-        Xf = self.feats.loc[X.nodeID].values
+
+        # --
+        # Featurize
+        df = pd.DataFrame([graph.nodes[i] for i in graph.nodes]).set_index('nodeID')
+
+        adj = nx.adjacency_matrix(graph).astype(np.float64)
+        U, _, _ = linalg.svds(adj, k=self.num_components)
+
+        feats = pd.DataFrame(np.hstack([df.values, U])).set_index(df.index)
+
+
+        Xf = feats.loc[X.nodeID].values
+        Xf = pd.DataFrame(Xf).fillna(0).values # force nan to zero if mismatch between graph and nodes.
         return self.model.predict(Xf)

@@ -84,23 +84,35 @@ class DistilEdgeListLoaderPrimitive(transformer.TransformerPrimitiveBase[Inputs,
 
 
         base_file_path ='/'.join(inputs.metadata._current_metadata.metadata['location_uris'][0].split('/')[:-1])
-        edge_list = pd.read_csv(os.path.join(base_file_path, 'graphs', 'edgeList.csv'), index_col='index')
-        graph = nx.from_pandas_edgelist(edge_list, source=edge_list.columns[0], target=edge_list.columns[1], edge_attr=edge_list.columns[2])
-        int2str_map = dict(zip(graph.nodes, [str(n) for n in graph.nodes]))
+        edge_list = pd.read_csv(os.path.join(base_file_path, 'graphs', 'edgeList.csv'), index_col=0)
+        if len(edge_list.columns) > 2:
+            graph = nx.from_pandas_edgelist(edge_list, source=edge_list.columns[0], target=edge_list.columns[1], edge_attr=edge_list.columns[2])
+        else:
+            graph = nx.from_pandas_edgelist(edge_list, source=edge_list.columns[0], target=edge_list.columns[1])
+
+        if len(attributes) > 1:
+            # add attributers to nodes.
+            attribute_node_map = dataframe_meta[dataframe_meta.columns[attributes]]
+            attribute_node_map['nodeID'] = attribute_node_map['nodeID'].astype(int)
+            attribute_node_map.index = attribute_node_map['nodeID']
+            attribute_cols = attribute_node_map.columns
+            attribute_node_map.drop(['nodeID'], axis=1)
+            attribute_node_map = attribute_node_map.to_dict(orient='index')
+
+            for i in graph.nodes:
+                default = {attribute: 0 for attribute in attribute_cols}
+                default['nodeID'] = i
+                graph.nodes[i].update(attribute_node_map.get(i, default))
+
+        else:
+            # featurizer expects at a minimum nodeids to be present
+            for i in graph.nodes:
+                default = {}
+                default['nodeID'] = i
+                graph.nodes[i].update(default)
+        # int2str_map = dict(zip(graph.nodes, [str(n) for n in graph.nodes]))
         # graph = nx.relabel_nodes(graph, mapping=int2str_map)
 
-        # add attributers to nodes.
-        attribute_node_map = dataframe_meta[dataframe_meta.columns[attributes]]
-        attribute_node_map['nodeID'] = attribute_node_map['nodeID'].astype(int)
-        attribute_node_map.index = attribute_node_map['nodeID']
-        attribute_cols = attribute_node_map.columns
-        attribute_node_map.drop(['nodeID'], axis=1)
-        attribute_node_map = attribute_node_map.to_dict(orient='index')
-
-        for i in graph.nodes:
-            default = {attribute: 0 for attribute in attribute_cols}
-            default['nodeID'] = i
-            graph.nodes[i].update(attribute_node_map.get(i, default))
 
         dataframe.metadata = self._update_metadata(inputs.metadata, dataframe_resource_id)
 
