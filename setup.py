@@ -74,7 +74,7 @@ setup(
             'clustering.k_means.DistilKMeans = distil.primitives.k_means:KMeansPrimitive',
             'data_transformation.data_cleaning.OutputDataframe = distil.primitives.output_dataframe:OutputDataframePrimitive',
             'data_transformation.list_encoder.DistilListEncoder = distil.primitives.list_encoder:ListEncoderPrimitive',
-
+            'clustering.hdbscan_distil.Hdbscan = distil.primitives.hdbscan_distil:Hdbscan',
         ],
     }
 )
