@@ -44,11 +44,15 @@ class Hyperparams(hyperparams.Hyperparams):
         description='ID of data resource in input dataset containing the reference to timeseries data.' +
                     'If set to None, will use the entry point.'
     )
+    equal_length = hyperparams.Hyperparameter[bool](
+        default=True,
+        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
+        description='Wheter all files should have the same output length. Cuts everything to the smallest length. ')
 
 
 class TimeSeriesFormatterPrimitive(transformer.TransformerPrimitiveBase[container.Dataset,
-                                                                     container.Dataset,
-                                                                     Hyperparams]):
+                                                                        container.Dataset,
+                                                                        Hyperparams]):
     """
     Reads the time series files from a given column in an input dataset resource into a new M x N data resource,
     where each value in timeseries occupies one of M rows. Each row has N columns, representing the union of
@@ -120,7 +124,8 @@ class TimeSeriesFormatterPrimitive(transformer.TransformerPrimitiveBase[containe
         file_index = self.hyperparams['file_col_index']
         if file_index is not None:
             if not self._is_csv_file_column(inputs.metadata, main_resource_id, file_index):
-                raise exceptions.InvalidArgumentValueError('column idx=' + str(file_index) + ' from does not contain csv file names')
+                raise exceptions.InvalidArgumentValueError(
+                    'column idx=' + str(file_index) + ' from does not contain csv file names')
         else:
             file_index = self._find_csv_file_column(inputs.metadata, main_resource_id)
             if file_index is None:
@@ -131,20 +136,30 @@ class TimeSeriesFormatterPrimitive(transformer.TransformerPrimitiveBase[containe
         csv_paths = [os.path.join(base_path, local_path) for local_path in inputs[main_resource_id].iloc[:, file_index]]
         new_dfs = [pd.read_csv(path) for path in csv_paths]
         original_dfs = [pd.DataFrame(np.tile(row, (df.shape[0], 1)),
-                columns = inputs[main_resource_id].columns, index = df.index)
-                for row, df in zip(inputs[main_resource_id].values, new_dfs)]
+                                     columns=inputs[main_resource_id].columns, index=df.index)
+                        for row, df in zip(inputs[main_resource_id].values, new_dfs)]
         combined_dfs = [original_df.join(new_df) for original_df, new_df in zip(original_dfs, new_dfs)]
         output_data = pd.concat(combined_dfs)
         timeseries_dataframe = container.DataFrame(output_data)
         timeseries_dataframe.reset_index(drop=True, inplace=True)
 
+        # make sure that all timeseries have the same length, most downstream tasks will appreciate this.
+        if self.hyperparams['equal_length']:
+            min_length = timeseries_dataframe.groupby(timeseries_dataframe.columns[file_index]).count().min().values[0]
+            group_count = timeseries_dataframe.groupby(timeseries_dataframe.columns[file_index]).cumcount()
+            timeseries_dataframe = timeseries_dataframe.assign(group_count=group_count)
+            timeseries_dataframe = timeseries_dataframe[timeseries_dataframe['group_count'] < min_length]
+            timeseries_dataframe = timeseries_dataframe.drop(['group_count'], axis=1)
+
         # create a dataset to hold the result
         timeseries_dataset = container.Dataset({self._resource_id: timeseries_dataframe}, generate_metadata=True)
         timeseries_dataset.metadata = timeseries_dataset.metadata.update((), {'id': inputs.metadata.query(())['id']})
-        timeseries_dataset.metadata = timeseries_dataset.metadata.update((), {'digest': inputs.metadata.query(())['digest']})
+        timeseries_dataset.metadata = timeseries_dataset.metadata.update((), {
+            'digest': inputs.metadata.query(())['digest']})
 
         # copy main resource column metadata to timeseries dataframe
-        num_main_resource_cols = inputs.metadata.query((main_resource_id, metadata_base.ALL_ELEMENTS))['dimension']['length']
+        num_main_resource_cols = inputs.metadata.query((main_resource_id, metadata_base.ALL_ELEMENTS))['dimension'][
+            'length']
         for i in range(num_main_resource_cols):
             source = inputs.metadata.query((main_resource_id, metadata_base.ALL_ELEMENTS, i))
             timeseries_dataset.metadata = timeseries_dataset.metadata.update_column(i, source, at=(self._resource_id,))
@@ -152,42 +167,53 @@ class TimeSeriesFormatterPrimitive(transformer.TransformerPrimitiveBase[containe
         # remove the foreign key entry from the filename column if it exists
         metadata = dict(timeseries_dataset.metadata.query((self._resource_id, metadata_base.ALL_ELEMENTS, file_index)))
         metadata['foreign_key'] = metadata_base.NO_VALUE
-        timeseries_dataset.metadata = timeseries_dataset.metadata.update((self._resource_id, metadata_base.ALL_ELEMENTS, file_index), metadata)
-
+        timeseries_dataset.metadata = timeseries_dataset.metadata.update(
+            (self._resource_id, metadata_base.ALL_ELEMENTS, file_index), metadata)
 
         # copy timeseries column metadata to timeseries if its available in the metadata (which is not necssarily true anymore)
         source = self._find_timeseries_metadata(inputs)
         i = 0
         if source is not None:
             for col_info in source['file_columns']:
-                timeseries_dataset.metadata = timeseries_dataset.metadata.update_column(i + num_main_resource_cols, col_info, at=(self._resource_id,))
+                timeseries_dataset.metadata = timeseries_dataset.metadata.update_column(i + num_main_resource_cols,
+                                                                                        col_info,
+                                                                                        at=(self._resource_id,))
                 i += 1
         else:
             # loop over the appended time series columns
             start_idx = original_dfs[0].shape[1]
             for i in range(start_idx, timeseries_dataframe.shape[1]):
-                timeseries_dataset.metadata = timeseries_dataset.metadata.add_semantic_type((self._resource_id, metadata_base.ALL_ELEMENTS, i),
+                timeseries_dataset.metadata = timeseries_dataset.metadata.add_semantic_type(
+                    (self._resource_id, metadata_base.ALL_ELEMENTS, i),
                     'https://metadata.datadrivendiscovery.org/types/Attribute')
-                struct_type = timeseries_dataset.metadata.query((self._resource_id, metadata_base.ALL_ELEMENTS, i))['structural_type']
+                struct_type = timeseries_dataset.metadata.query((self._resource_id, metadata_base.ALL_ELEMENTS, i))[
+                    'structural_type']
                 if struct_type == np.float64:
-                    timeseries_dataset.metadata = timeseries_dataset.metadata.add_semantic_type((self._resource_id, metadata_base.ALL_ELEMENTS, i),
+                    timeseries_dataset.metadata = timeseries_dataset.metadata.add_semantic_type(
+                        (self._resource_id, metadata_base.ALL_ELEMENTS, i),
                         'http://schema.org/Float')
                 elif struct_type == np.int64:
-                    timeseries_dataset.metadata = timeseries_dataset.metadata.add_semantic_type((self._resource_id, metadata_base.ALL_ELEMENTS, i),
+                    timeseries_dataset.metadata = timeseries_dataset.metadata.add_semantic_type(
+                        (self._resource_id, metadata_base.ALL_ELEMENTS, i),
                         'http://schema.org/Integer')
                 else:
-                    timeseries_dataset.metadata = timeseries_dataset.metadata.add_semantic_type((self._resource_id, metadata_base.ALL_ELEMENTS, i),
+                    timeseries_dataset.metadata = timeseries_dataset.metadata.add_semantic_type(
+                        (self._resource_id, metadata_base.ALL_ELEMENTS, i),
                         'http://schema.org/Text')
 
         # mark the filename column as a grouping key
-        timeseries_dataset.metadata = timeseries_dataset.metadata.add_semantic_type((self._resource_id, metadata_base.ALL_ELEMENTS, file_index),
+        timeseries_dataset.metadata = timeseries_dataset.metadata.add_semantic_type(
+            (self._resource_id, metadata_base.ALL_ELEMENTS, file_index),
             'https://metadata.datadrivendiscovery.org/types/GroupingKey')
 
         # mark the d3mIndex as a primary multi-key since there are now multiple instances of the value present
-        primary_index_col = timeseries_dataset.metadata.list_columns_with_semantic_types(('https://metadata.datadrivendiscovery.org/types/PrimaryKey',), at=(self._resource_id,))
-        timeseries_dataset.metadata = timeseries_dataset.metadata.remove_semantic_type((self._resource_id, metadata_base.ALL_ELEMENTS, primary_index_col[0]),
+        primary_index_col = timeseries_dataset.metadata.list_columns_with_semantic_types(
+            ('https://metadata.datadrivendiscovery.org/types/PrimaryKey',), at=(self._resource_id,))
+        timeseries_dataset.metadata = timeseries_dataset.metadata.remove_semantic_type(
+            (self._resource_id, metadata_base.ALL_ELEMENTS, primary_index_col[0]),
             'https://metadata.datadrivendiscovery.org/types/PrimaryKey')
-        timeseries_dataset.metadata = timeseries_dataset.metadata.add_semantic_type((self._resource_id, metadata_base.ALL_ELEMENTS, primary_index_col[0]),
+        timeseries_dataset.metadata = timeseries_dataset.metadata.add_semantic_type(
+            (self._resource_id, metadata_base.ALL_ELEMENTS, primary_index_col[0]),
             'https://metadata.datadrivendiscovery.org/types/PrimaryMultiKey')
 
         return base.CallResult(timeseries_dataset)
@@ -218,7 +244,8 @@ class TimeSeriesFormatterPrimitive(transformer.TransformerPrimitiveBase[containe
         return cls._is_csv_file_reference(inputs_metadata, ref_res_id, ref_col_index)
 
     @classmethod
-    def _is_csv_file_reference(cls, inputs_metadata: metadata_base.DataMetadata, res_id: int, column_index: int) -> bool:
+    def _is_csv_file_reference(cls, inputs_metadata: metadata_base.DataMetadata, res_id: int,
+                               column_index: int) -> bool:
         # check to see if the column is a csv resource
         column_metadata = inputs_metadata.query((res_id, metadata_base.ALL_ELEMENTS, column_index))
 
@@ -231,7 +258,8 @@ class TimeSeriesFormatterPrimitive(transformer.TransformerPrimitiveBase[containe
         semantic_types_set = set(semantic_types)
         _semantic_types_set = set(cls._semantic_types)
 
-        return bool(semantic_types_set.intersection(_semantic_types_set)) and set(cls._media_types).issubset(media_types)
+        return bool(semantic_types_set.intersection(_semantic_types_set)) and set(cls._media_types).issubset(
+            media_types)
 
     @classmethod
     def _find_timeseries_metadata(cls, dataset: container.Dataset) -> typing.Optional[metadata_base.DataMetadata]:
@@ -243,9 +271,9 @@ class TimeSeriesFormatterPrimitive(transformer.TransformerPrimitiveBase[containe
         return None
 
     def _get_base_path(self,
-                   inputs_metadata: metadata_base.DataMetadata,
-                   res_id: str,
-                   column_index: int) -> str:
+                       inputs_metadata: metadata_base.DataMetadata,
+                       res_id: str,
+                       column_index: int) -> str:
         # get the base uri from the referenced column
         column_metadata = inputs_metadata.query((res_id, metadata_base.ALL_ELEMENTS, column_index))
 
@@ -255,9 +283,9 @@ class TimeSeriesFormatterPrimitive(transformer.TransformerPrimitiveBase[containe
         return inputs_metadata.query((ref_res_id, metadata_base.ALL_ELEMENTS, ref_col_index))['location_base_uris'][0]
 
     def _get_ref_resource(self,
-                   inputs_metadata: metadata_base.DataMetadata,
-                   res_id: str,
-                   column_index: int) -> str:
+                          inputs_metadata: metadata_base.DataMetadata,
+                          res_id: str,
+                          column_index: int) -> str:
         # get the referenced resource from the referenced column
         column_metadata = inputs_metadata.query((res_id, metadata_base.ALL_ELEMENTS, column_index))
         ref_res_id = column_metadata['foreign_key']['resource_id']
