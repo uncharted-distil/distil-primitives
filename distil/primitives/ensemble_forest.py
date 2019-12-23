@@ -131,7 +131,7 @@ class EnsembleForestPrimitive(PrimitiveBase[container.DataFrame, container.DataF
             outputs = pd.DataFrame(factor[0], columns=[col])
             self.label_map = {k:v for k, v in enumerate(factor[1])}
         # remove nans from outputs, apply changes to inputs as well to ensure alignment
-        self._outputs = outputs.dropna() # not in place because we don't want to modify passed input
+        self._outputs = outputs[outputs[col] != ''].dropna() # not in place because we don't want to modify passed input
         row_diff = outputs.shape[0] - self._outputs.shape[0]
         if row_diff != 0:
             logger.warn(f'Removed {row_diff} rows due to NaN values in target data.')

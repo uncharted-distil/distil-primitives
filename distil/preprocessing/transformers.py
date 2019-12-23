@@ -1,4 +1,3 @@
-import sys
 import numpy as np
 import pandas as pd
 
@@ -6,7 +5,8 @@ from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.svm import LinearSVC
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import cross_val_predict
-from sklearn.cluster import KMeans, MiniBatchKMeans
+from sklearn.cluster import MiniBatchKMeans
+from typing import Dict,  Optional
 
 from distil.primitives.utils import MISSING_VALUE_INDICATOR, SINGLETON_INDICATOR
 
@@ -71,13 +71,56 @@ class SVMTextEncoder(BaseEstimator, TransformerMixin):
 
         Xv  = self._vect.fit_transform(X)
         out = cross_val_predict(self._model, Xv, y, method='decision_function', n_jobs=3, cv=3)
-        self._model = self._model.fit(Xv, y)
+        # self._model = self._model.fit(Xv, y)
 
         if len(out.shape) == 1:
             out = out.reshape(-1, 1)
 
         return out
 
+class TfidifEncoder(BaseEstimator, TransformerMixin):
+    # !! add tuning
+    def __init__(self):
+        super().__init__()
+
+        self._vect  = TfidfVectorizer(ngram_range=[1, 2], max_features=300)
+        self.label_map: Optional[Dict[int, str]] = None
+
+    def fit(self, X, y):
+        raise NotImplemented
+
+    def transform(self, X):
+
+        X = pd.Series(X.squeeze()).fillna(MISSING_VALUE_INDICATOR)
+
+        if self.label_map:
+            self.label_map_inv = {v: k for k, v in self.label_map.items()}
+            # fillna is mostly needed if subset of data was trained on
+            X = X.map(self.label_map_inv).fillna(0).values
+        else:
+            X = self._vect.transform(X).toarray()
+        out = X
+
+        if len(out.shape) == 1:
+            out = out.reshape(-1, 1)
+
+        return out
+
+    def fit_transform(self, X, y=None, **kwargs):
+
+        X = pd.Series(X.squeeze()).fillna(MISSING_VALUE_INDICATOR)
+        if len(X.unique())/len(X) < 0.5: #TODO should be pulled from metadata
+            factor = pd.factorize(X)
+            X = factor[0]
+            self.label_map = {k: v for k, v in enumerate(factor[1])}
+        else:
+            X = self._vect.fit_transform(X).toarray()
+        out = X
+
+        if len(out.shape) == 1:
+            out = out.reshape(-1, 1)
+
+        return out
 
 # --
 # Timeseries
