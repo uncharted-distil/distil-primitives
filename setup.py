@@ -37,6 +37,7 @@ setup(
         'networkx==2.4',
         'resampy==0.2.1',
         'soundfile==0.10.2',
+        'pillow==6.2.1',
         'sgm @ git+https://github.com/nowfred/sgm.git@v1.0.3#egg=sgm',
         'basenet @ git+https://github.com/bkj/basenet.git@903756540b89809ef458f35257287b937b333417',
         'rescal @ git+https://github.com/cdbethune/rescal.py.git@af2091c1d5521c987edd3be41627b9c563582fe8',
