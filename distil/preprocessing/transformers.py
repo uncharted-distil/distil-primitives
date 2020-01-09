@@ -9,7 +9,7 @@ from sklearn.cluster import MiniBatchKMeans
 from typing import Dict,  Optional
 
 from distil.primitives.utils import MISSING_VALUE_INDICATOR, SINGLETON_INDICATOR
-
+from sklearn.decomposition import PCA
 # --
 # Categorical
 
@@ -70,8 +70,8 @@ class SVMTextEncoder(BaseEstimator, TransformerMixin):
         X = pd.Series(X.squeeze()).fillna(MISSING_VALUE_INDICATOR).values
 
         Xv  = self._vect.fit_transform(X)
+        self._model = self._model.fit(Xv, y)
         out = cross_val_predict(self._model, Xv, y, method='decision_function', n_jobs=3, cv=3)
-        # self._model = self._model.fit(Xv, y)
 
         if len(out.shape) == 1:
             out = out.reshape(-1, 1)
@@ -84,6 +84,7 @@ class TfidifEncoder(BaseEstimator, TransformerMixin):
         super().__init__()
 
         self._vect  = TfidfVectorizer(ngram_range=[1, 2], max_features=300)
+        self._pca = PCA(n_components=16)
         self.label_map: Optional[Dict[int, str]] = None
 
     def fit(self, X, y):
@@ -99,6 +100,7 @@ class TfidifEncoder(BaseEstimator, TransformerMixin):
             X = X.map(self.label_map_inv).fillna(0).values
         else:
             X = self._vect.transform(X).toarray()
+            X = self._pca.transform(X)
         out = X
 
         if len(out.shape) == 1:
@@ -115,6 +117,8 @@ class TfidifEncoder(BaseEstimator, TransformerMixin):
             self.label_map = {k: v for k, v in enumerate(factor[1])}
         else:
             X = self._vect.fit_transform(X).toarray()
+            X = self._pca.fit_transform(X)
+
         out = X
 
         if len(out.shape) == 1:
