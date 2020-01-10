@@ -71,7 +71,7 @@ class BertPairClassificationPrimitive(PrimitiveBase[container.DataFrame, contain
                 'name': 'Distil',
                 'contact': 'mailto:cbethune@uncharted.software',
                 'uris': [
-                    'https://github.com/uncharted-distil/distil-primitives/distil/primitives/bert_classification.py',
+                    'https://github.com/uncharted-distil/distil-primitives/distil/primitives/bert_classifier.py',
                     'https://github.com/uncharted-distil/distil-primitives',
                 ],
             },

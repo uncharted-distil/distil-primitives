@@ -38,12 +38,12 @@ class ListEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBas
             'id': '67f53b00-f936-4bb4-873e-4698c4aaa37f',
             'version': '0.1.0',
             'name': "List encoder",
-            'python_path': 'd3m.primitives.data_transformation.list_encoder.DistilListEncoder',
+            'python_path': 'd3m.primitives.data_transformation.list_to_dataframe.DistilListEncoder',
             'source': {
                 'name': 'Distil',
                 'contact': 'mailto:cbethune@uncharted.software',
                 'uris': [
-                    'https://github.com/uncharted-distil/distil-primitives/distil/primitives/list_encoder.py',
+                    'https://github.com/uncharted-distil/distil-primitives/distil/primitives/list_to_dataframe.py',
                     'https://github.com/uncharted-distil/distil-primitives',
                 ],
             },
