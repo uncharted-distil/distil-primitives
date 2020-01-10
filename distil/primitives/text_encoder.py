@@ -29,7 +29,7 @@ class Hyperparams(hyperparams.Hyperparams):
     )
 
     encoder_type = hyperparams.Enumeration(
-        default='tfidf',
+        default='svm',
         values=['svm', 'tfidf'],
         semantic_types=[
             'https://metadata.datadrivendiscovery.org/types/ControlParameter'],
