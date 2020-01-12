@@ -68,6 +68,10 @@ class AudioTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
                     "file_digest": "0962b1914e3e053922d957c45bc84a78c985765641dc6bceeeb3a7d8dfecfdf6",
                 }, {
                     'type': metadata_base.PrimitiveInstallationType.UBUNTU,
+                    'package': 'python-dev',
+                    'version': '2.7.15~rc1-1',
+                }, {
+                    'type': metadata_base.PrimitiveInstallationType.UBUNTU,
                     'package': 'build-essential',
                     'version': '12.4ubuntu1',
                 }, {
