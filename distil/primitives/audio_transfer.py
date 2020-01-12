@@ -83,13 +83,13 @@ class AudioTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
                     'version': '1.7',
                 }, {
                     'type': metadata_base.PrimitiveInstallationType.PIP,
+                    'package': 'Cython',
+                    'version': '0.29.14',
+                }, {
+                    'type': metadata_base.PrimitiveInstallationType.PIP,
                     'package_uri': 'git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=distil-primitives'.format(
                         git_commit=utils.current_git_commit(os.path.dirname(__file__)),
                     )
-                }, {
-                    'type': metadata_base.PrimitiveInstallationType.PIP,
-                    'package': 'Cython',
-                    'version': '0.29.7',
                 },
             ],
             'algorithm_types': [
