@@ -87,6 +87,9 @@ class AudioTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
                     'version': '0.29.14',
                 }, {
                     'type': metadata_base.PrimitiveInstallationType.PIP,
+                    'package_uri': 'git+https://github.com/harritaylor/torchvggish.git@f5ec66cb05029ddfdb9971f343d79408fac44c70#egg=torchvggish',
+                }, {
+                    'type': metadata_base.PrimitiveInstallationType.PIP,
                     'package_uri': 'git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=distil-primitives'.format(
                         git_commit=utils.current_git_commit(os.path.dirname(__file__)),
                     )
