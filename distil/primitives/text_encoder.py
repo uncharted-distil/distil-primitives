@@ -11,6 +11,7 @@ import numpy as np
 
 from distil.preprocessing.transformers import SVMTextEncoder, TfidifEncoder
 from distil.primitives import utils as distil_utils
+from distil.utils import CYTHON_DEP
 
 __all__ = ('TextEncoderPrimitive',)
 
@@ -58,7 +59,7 @@ class TextEncoderPrimitive(base.PrimitiveBase[Inputs, Outputs, Params, Hyperpara
                     'https://github.com/uncharted-distil/distil-primitives',
                 ],
             },
-            'installation': [{
+            'installation': [CYTHON_DEP, {
                 'type': metadata_base.PrimitiveInstallationType.PIP,
                 'package_uri': 'git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=distil-primitives'.format(
                     git_commit=utils.current_git_commit(os.path.dirname(__file__)),

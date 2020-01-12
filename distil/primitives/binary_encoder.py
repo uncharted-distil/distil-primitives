@@ -13,6 +13,7 @@ import pandas as pd
 import numpy as np
 
 from distil.preprocessing.transformers import BinaryEncoder
+from distil.utils import CYTHON_DEP
 
 
 __all__ = ('BinaryEncoderPrimitive',)
@@ -57,7 +58,7 @@ class BinaryEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
                     'https://github.com/uncharted-distil/distil-primitives',
                 ],
             },
-            'installation': [{
+            'installation': [CYTHON_DEP, {
                 'type': metadata_base.PrimitiveInstallationType.PIP,
                 'package_uri': 'git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=distil-primitives'.format(
                     git_commit=utils.current_git_commit(os.path.dirname(__file__)),

@@ -14,6 +14,7 @@ import networkx as nx
 from scipy import sparse
 
 from distil.modeling.link_prediction import RescalLinkPrediction
+from distil.utils import CYTHON_DEP
 
 __all__ = ('LinkPrediction',)
 
@@ -47,7 +48,7 @@ class DistilLinkPredictionPrimitive(PrimitiveBase[container.List, container.Data
                     'https://github.com/uncharted-distil/distil-primitives',
                 ],
             },
-            'installation': [{
+            'installation': [CYTHON_DEP, {
                 'type': metadata_base.PrimitiveInstallationType.PIP,
                 'package_uri': 'git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=distil-primitives'.format(
                     git_commit=utils.current_git_commit(os.path.dirname(__file__)),

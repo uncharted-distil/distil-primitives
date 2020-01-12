@@ -1,7 +1,6 @@
 import os
 import logging
 from typing import Set, List, Dict, Any, Optional
-
 from d3m import container, utils
 from d3m.metadata import base as metadata_base, hyperparams, params
 from d3m.primitive_interfaces import base, unsupervised_learning
@@ -10,6 +9,7 @@ from d3m.primitive_interfaces.base import CallResult
 import pandas as pd
 import numpy as np
 from PIL import Image
+from distil.utils import CYTHON_DEP
 
 from distil.modeling.metrics import classification_metrics, regression_metrics
 from distil.primitives import utils as primitive_utils
@@ -81,14 +81,9 @@ class AudioTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
                     'type': metadata_base.PrimitiveInstallationType.PIP,
                     'package': 'python-prctl',
                     'version': '1.7',
-                }, {
-                    'type': metadata_base.PrimitiveInstallationType.PIP,
-                    'package': 'Cython',
-                    'version': '0.29.14',
-                }, {
-                    'type': metadata_base.PrimitiveInstallationType.PIP,
-                    'package_uri': 'git+https://github.com/harritaylor/torchvggish.git@f5ec66cb05029ddfdb9971f343d79408fac44c70#egg=torchvggish',
-                }, {
+                },
+                CYTHON_DEP,
+                {
                     'type': metadata_base.PrimitiveInstallationType.PIP,
                     'package_uri': 'git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=distil-primitives'.format(
                         git_commit=utils.current_git_commit(os.path.dirname(__file__)),

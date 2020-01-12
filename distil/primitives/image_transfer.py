@@ -14,6 +14,7 @@ from PIL import Image
 from distil.modeling.metrics import classification_metrics, regression_metrics
 
 from distil.utils import Img2Vec
+from distil.utils import CYTHON_DEP
 
 __all__ = ('ImageTransferPrimitive',)
 
@@ -58,7 +59,7 @@ class ImageTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
                     'https://github.com/uncharted-distil/distil-primitives',
                 ],
             },
-            'installation': [
+            'installation': [CYTHON_DEP,
                 {
                 'type': metadata_base.PrimitiveInstallationType.PIP,
                 'package_uri': 'git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=distil-primitives'.format(

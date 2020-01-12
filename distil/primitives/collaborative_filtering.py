@@ -17,6 +17,7 @@ import torch
 
 from distil.modeling.collaborative_filtering import SGDCollaborativeFilter
 from distil.primitives import utils
+from distil.utils import CYTHON_DEP
 
 
 _all__ = ('CollaborativeFilteringPrimtive',)
@@ -65,7 +66,7 @@ class CollaborativeFilteringPrimitive(PrimitiveBase[container.DataFrame, contain
                     'https://github.com/uncharted-distil/distil-primitives',
                 ],
             },
-            'installation': [{
+            'installation': [CYTHON_DEP, {
                 'type': metadata_base.PrimitiveInstallationType.PIP,
                 'package_uri': 'git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=distil-primitives'.format(
                     git_commit=d3m_utils.current_git_commit(os.path.dirname(__file__)),
