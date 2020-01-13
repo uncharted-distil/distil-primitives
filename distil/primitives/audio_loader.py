@@ -20,6 +20,7 @@ import tempfile
 from joblib import Parallel, delayed
 from tqdm import tqdm
 from scipy.io import wavfile
+from distil.utils import CYTHON_DEP
 
 __all__ = ('AudioDatasetLoaderPrimitive',)
 
@@ -116,7 +117,7 @@ class AudioDatasetLoaderPrimitive(transformer.TransformerPrimitiveBase[container
                     'https://github.com/uncharted-distil/distil-primitives',
                 ],
             },
-            'installation': [{
+            'installation': [CYTHON_DEP, {
                 'type': metadata_base.PrimitiveInstallationType.PIP,
                 'package_uri': 'git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=distil-primitives'.format(
                     git_commit=utils.current_git_commit(os.path.dirname(__file__)),

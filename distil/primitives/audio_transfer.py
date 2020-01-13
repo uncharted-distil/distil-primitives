@@ -1,7 +1,6 @@
 import os
 import logging
 from typing import Set, List, Dict, Any, Optional
-
 from d3m import container, utils
 from d3m.metadata import base as metadata_base, hyperparams, params
 from d3m.primitive_interfaces import base, unsupervised_learning
@@ -10,6 +9,7 @@ from d3m.primitive_interfaces.base import CallResult
 import pandas as pd
 import numpy as np
 from PIL import Image
+from distil.utils import CYTHON_DEP
 
 from distil.modeling.metrics import classification_metrics, regression_metrics
 from distil.primitives import utils as primitive_utils
@@ -74,14 +74,16 @@ class AudioTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
                     'type': metadata_base.PrimitiveInstallationType.UBUNTU,
                     'package': 'libcap-dev',
                     'version': '1:2.25-1.1',
-                },  {
+                }, {
                     # "python-prctl" requires "build-essential" and "libcap-dev". We list it here instead of
                     # "setup.py" to not have to list these system dependencies for every common primitive (because
                     # we cannot assure this primitive annotation gets installed first).
                     'type': metadata_base.PrimitiveInstallationType.PIP,
                     'package': 'python-prctl',
                     'version': '1.7',
-                }, {
+                },
+                CYTHON_DEP,
+                {
                     'type': metadata_base.PrimitiveInstallationType.PIP,
                     'package_uri': 'git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=distil-primitives'.format(
                         git_commit=utils.current_git_commit(os.path.dirname(__file__)),

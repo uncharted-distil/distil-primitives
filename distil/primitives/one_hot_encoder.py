@@ -11,6 +11,7 @@ import numpy as np
 
 from distil.primitives import utils as distil_utils
 from distil.primitives.utils import CATEGORICALS
+from distil.utils import CYTHON_DEP
 
 from sklearn import preprocessing
 from sklearn import compose
@@ -56,7 +57,7 @@ class OneHotEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
                     'https://github.com/uncharted-distil/distil-primitives',
                 ],
             },
-            'installation': [{
+            'installation': [CYTHON_DEP, {
                 'type': metadata_base.PrimitiveInstallationType.PIP,
                 'package_uri': 'git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=distil-primitives'.format(
                     git_commit=utils.current_git_commit(os.path.dirname(__file__)),

@@ -7,6 +7,7 @@ from d3m.metadata import base as metadata_base, hyperparams
 from d3m.primitive_interfaces import base, transformer
 
 from distil.primitives import utils as distil_utils
+from distil.utils import CYTHON_DEP
 
 import numpy as np
 import pandas as pd
@@ -46,7 +47,7 @@ class EnrichDatesPrimitive(transformer.TransformerPrimitiveBase[Inputs, Outputs,
                     'https://github.com/uncharted-distil/distil-primitives',
                 ],
             },
-            'installation': [{
+            'installation': [CYTHON_DEP, {
                 'type': metadata_base.PrimitiveInstallationType.PIP,
                 'package_uri': 'git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=distil-primitives'.format(
                     git_commit=utils.current_git_commit(os.path.dirname(__file__)),
