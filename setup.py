@@ -21,7 +21,6 @@ setup(
         #'fastai==1.0.52',
         'joblib',
         'scikit-learn>=0.20.2,<=0.21.3',
-        'cython>=0.29.14',
         'scipy>=1.2.1,<=1.3.1',
         'numpy>=1.15.4,<=1.17.3',
         'pandas>=0.23.4,<=0.25.2',
@@ -46,7 +45,8 @@ setup(
         'ShapExplainers @ git+https://github.com/NewKnowledge/shap_explainers.git@8c2e824f3a8bce411898cf26c749549240f3bf9f#egg=ShapExplainers',
         # Can cause errors with pretrained-bert: https://github.com/NVIDIA/apex/issues/156
         #'apex @ git+https://github.com/NVIDIA/apex.git@47e3367fcd6636db6cd549bbb385a6e06a3861d0',
-        'torchvggish @ git+https://github.com/harritaylor/torchvggish.git@f5ec66cb05029ddfdb9971f343d79408fac44c70#egg=torchvggish'
+        'torchvggish @ git+https://github.com/harritaylor/torchvggish.git@f5ec66cb05029ddfdb9971f343d79408fac44c70#egg=torchvggish',
+
 
     ],
     entry_points={

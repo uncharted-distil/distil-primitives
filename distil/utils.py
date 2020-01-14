@@ -4,7 +4,13 @@ import torch
 import torch.nn as nn
 import torchvision.models as models
 import torchvision.transforms as transforms
+from d3m.metadata import base as metadata_base
 
+CYTHON_DEP = {
+                    'type': metadata_base.PrimitiveInstallationType.PIP,
+                    'package': 'Cython',
+                    'version': '0.29.14',
+                }
 
 def maybe_subset(X, y, n):
     if (n > 0) and (n < X.shape[0]):

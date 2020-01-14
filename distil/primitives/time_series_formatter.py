@@ -27,6 +27,7 @@ from d3m.metadata import base as metadata_base, hyperparams
 from d3m.base import utils as base_utils
 from d3m.primitive_interfaces import base, transformer
 import numpy as np
+from distil.utils import CYTHON_DEP
 
 __all__ = ('TimeSeriesFormatterPrimitive',)
 
@@ -92,7 +93,7 @@ class TimeSeriesFormatterPrimitive(transformer.TransformerPrimitiveBase[containe
                 'contact': 'mailto:cbethune@uncharted.software',
                 'uris': ['https://gitlab.com/uncharted-distil/distil-primitives']
             },
-            'installation': [{
+            'installation': [CYTHON_DEP, {
                 'type': metadata_base.PrimitiveInstallationType.PIP,
                 'package_uri': 'git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=distil-primitives'.format(
                     git_commit=d3m_utils.current_git_commit(os.path.dirname(__file__)),

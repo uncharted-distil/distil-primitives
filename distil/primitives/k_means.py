@@ -10,6 +10,7 @@ from distil.primitives import utils as distil_utils
 import pandas as pd
 import numpy as np
 from sklearn.cluster import KMeans
+from distil.utils import CYTHON_DEP
 
 
 
@@ -61,7 +62,7 @@ class KMeansPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBase[con
                     'https://github.com/uncharted-distil/distil-primitives',
                 ],
             },
-            'installation': [{
+            'installation': [CYTHON_DEP, {
                 'type': metadata_base.PrimitiveInstallationType.PIP,
                 'package_uri': 'git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=distil-primitives'.format(
                     git_commit=utils.current_git_commit(os.path.dirname(__file__)),

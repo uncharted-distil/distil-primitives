@@ -12,6 +12,7 @@ import numpy as np
 import torch
 
 from distil.modeling.bert_models import BERTPairClassification
+from distil.utils import CYTHON_DEP
 
 
 _all__ = ('BertPairClassification',)
@@ -75,7 +76,7 @@ class BertPairClassificationPrimitive(PrimitiveBase[container.DataFrame, contain
                     'https://github.com/uncharted-distil/distil-primitives',
                 ],
             },
-            'installation': [{
+            'installation': [CYTHON_DEP, {
                 'type': metadata_base.PrimitiveInstallationType.PIP,
                 'package_uri': 'git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=distil-primitives'.format(
                     git_commit=utils.current_git_commit(os.path.dirname(__file__)),
