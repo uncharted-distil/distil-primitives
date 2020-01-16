@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 class Hyperparams(hyperparams.Hyperparams):
     metric = hyperparams.Hyperparameter[str](
-        default='',
+        default='accuracy',
         semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter']
     )
 

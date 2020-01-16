@@ -33,7 +33,7 @@ class Hyperparams(hyperparams.Hyperparams):
         description="A set of column indices to force primitive to operate on. If any specified column cannot be parsed, it is skipped.",
     )
     metric = hyperparams.Hyperparameter[str](
-        default='',
+        default='f1',
         semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter']
     )
     fast = hyperparams.Hyperparameter[bool](
