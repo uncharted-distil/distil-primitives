@@ -68,7 +68,6 @@ setup(
             'data_transformation.encoder.DistilBinaryEncoder = distil.primitives.binary_encoder:BinaryEncoderPrimitive',
             'data_transformation.encoder.DistilTextEncoder = distil.primitives.text_encoder:TextEncoderPrimitive',
             'data_preprocessing.data_cleaning.DistilTimeSeriesFormatter = distil.primitives.time_series_formatter:TimeSeriesFormatterPrimitive',
-            'learner.random_forest.DistilTimeSeriesNeighboursPrimitive = distil.primitives.time_series_neighbours:TimeSeriesNeighboursPrimitive',
             'classification.text_classifier.DistilTextClassifier = distil.primitives.text_classifier:TextClassifierPrimitive',
             'feature_extraction.image_transfer.DistilImageTransfer = distil.primitives.image_transfer:ImageTransferPrimitive',
             'feature_extraction.audio_transfer.DistilAudioTransfer = distil.primitives.audio_transfer:AudioTransferPrimitive',
