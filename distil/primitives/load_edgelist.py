@@ -43,7 +43,7 @@ class DistilEdgeListLoaderPrimitive(transformer.TransformerPrimitiveBase[Inputs,
 
     metadata = metadata_base.PrimitiveMetadata(
         {
-            'id': '79012210-2463-4f94-9da6-11bdc5a7e6c4',
+            'id': '4acc81e5-4b9c-443e-a72a-18dd9a7dcc3b',
             'version': '0.1.2',
             'name': "Load edgelist into a parseable object",
             'python_path': 'd3m.primitives.data_transformation.load_edgelist.DistilEdgeListLoader',
