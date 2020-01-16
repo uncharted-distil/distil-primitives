@@ -55,7 +55,7 @@ class TextClassifierPrimitive(base.PrimitiveBase[container.DataFrame, container.
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': '24f51246-7487-454e-8d69-7cdf289994d1',
-            'version': '0.1.0',
+            'version': '0.1.1',
             'name': "Text Classifier",
             'python_path': 'd3m.primitives.classification.text_classifier.DistilTextClassifier',
             'source': {

@@ -37,12 +37,12 @@ class DistilCommunityDetectionPrimitive(PrimitiveBase[container.List, container.
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': '064cec55-39dd-45b7-a663-50d3e17e0c42',
-            'version': '0.1.0',
+            'version': '0.1.1',
             'name': "CommunityDetection",
             'python_path': 'd3m.primitives.community_detection.community_detection.DistilCommunityDetection',
             'source': {
                 'name': 'Distil',
-                'contact': 'mailto:fred@qntfy.com',
+                'contact': 'mailto:cbethune@uncharted.software',
                 'uris': [
                     'https://github.com/uncharted-distil/distil-primitives/distil/primitives/community_detection.py',
                     'https://github.com/uncharted-distil/distil-primitives',

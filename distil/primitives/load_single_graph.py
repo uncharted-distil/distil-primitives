@@ -42,12 +42,12 @@ class DistilSingleGraphLoaderPrimitive(transformer.TransformerPrimitiveBase[Inpu
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': '79012210-2463-4f94-9da6-11bdc5a7e6c4',
-            'version': '0.1.1',
+            'version': '0.1.2',
             'name': "Load single graph and dataframe into a parseable object",
             'python_path': 'd3m.primitives.data_transformation.load_single_graph.DistilSingleGraphLoader',
             'source': {
                 'name': 'Distil',
-                'contact': 'mailto:fred@qntfy.com',
+                'contact': 'mailto:cbethune@uncharted.software',
                 'uris': [
                     'https://github.com/uncharted-distil/distil-primitives/distil/primitives/load_single_graph.py',
                     'https://github.com/uncharted-distil/distil-primitives/',

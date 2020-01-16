@@ -38,12 +38,12 @@ class DistilVertexNominationPrimitive(PrimitiveBase[container.List, container.Da
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': '0130828c-1ac0-47a9-a167-f05bae5a3146',
-            'version': '0.1.0',
+            'version': '0.1.1',
             'name': "VertexNomination",
             'python_path': 'd3m.primitives.vertex_nomination.vertex_nomination.DistilVertexNomination',
             'source': {
                 'name': 'Distil',
-                'contact': 'mailto:fred@qntfy.com',
+                'contact': 'mailto:cbethune@uncharted.software',
                 'uris': [
                     'https://github.com/uncharted-distil/distil-primitives/distil/primitives/vertex_nomination.py',
                     'https://github.com/uncharted-distil/distil-primitives',

@@ -1,7 +1,7 @@
 import os
 import logging
 
-from d3m import container, utils 
+from d3m import container, utils
 from d3m.metadata import base as metadata_base, hyperparams
 from d3m.primitive_interfaces import base, transformer
 from distil.primitives import utils as distil_utils
@@ -33,7 +33,7 @@ class ReplaceSingletonsPrimitive(transformer.TransformerPrimitiveBase[container.
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': '7cacc8b6-85ad-4c8f-9f75-360e0faee2b8',
-            'version': '0.1.0',
+            'version': '0.1.1',
             'name': "Replace singeltons",
             'python_path': 'd3m.primitives.data_transformation.data_cleaning.DistilReplaceSingletons',
             'source': {

@@ -51,7 +51,7 @@ class KMeansPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBase[con
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': '3b09024e-a83b-418c-8ff4-cf3d30a9609e',
-            'version': '0.1.0',
+            'version': '0.1.1',
             'name': "K means",
             'python_path': 'd3m.primitives.clustering.k_means.DistilKMeans',
             'source': {

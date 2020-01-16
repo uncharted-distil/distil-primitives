@@ -37,12 +37,12 @@ class DistilLinkPredictionPrimitive(PrimitiveBase[container.List, container.Data
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': 'fc138210-c317-4528-81ae-5eed3a1a0267',
-            'version': '0.1.0',
+            'version': '0.1.1',
             'name': "LinkPrediction",
             'python_path': 'd3m.primitives.link_prediction.link_prediction.DistilLinkPrediction',
             'source': {
                 'name': 'Distil',
-                'contact': 'mailto:fred@qntfy.com',
+                'contact': 'mailto:cbethune@uncharted.software',
                 'uris': [
                     'https://github.com/uncharted-distil/distil-primitives/distil/primitives/link_prediction.py',
                     'https://github.com/uncharted-distil/distil-primitives',

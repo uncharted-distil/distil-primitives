@@ -48,7 +48,7 @@ class ImageTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': '782e261e-8e23-4184-9258-5a412c9b32d4',
-            'version': '0.1.0',
+            'version': '0.1.1',
             'name': "Image Transfer",
             'python_path': 'd3m.primitives.feature_extraction.image_transfer.DistilImageTransfer',
             'source': {
