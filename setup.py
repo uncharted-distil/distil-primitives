@@ -75,6 +75,7 @@ setup(
             'data_preprocessing.audio_reader.DistilAudioDatasetLoader = distil.primitives.audio_reader:AudioDatasetLoaderPrimitive',
             'clustering.k_means.DistilKMeans = distil.primitives.k_means:KMeansPrimitive',
             'data_transformation.data_cleaning.OutputDataframe = distil.primitives.output_dataframe:OutputDataframePrimitive',
+            'feature_selection.mutual_info_classif.DistilMIRanking = distil.primitives.mi_ranking:MIRankingPrimitive',
             'data_transformation.list_to_dataframe.DistilListEncoder = distil.primitives.list_to_dataframe:ListEncoderPrimitive',
         ],
     }
