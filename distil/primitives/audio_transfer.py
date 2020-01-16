@@ -64,8 +64,8 @@ class AudioTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
             'installation': [{
                     "type": "FILE",
                     "key": "vggish_model",
-                    "file_uri": "http://public.datadrivendiscovery.org/vggish_model.ckpt",
-                    "file_digest": "0962b1914e3e053922d957c45bc84a78c985765641dc6bceeeb3a7d8dfecfdf6",
+                    "file_uri": "https://github.com/harritaylor/torchvggish/releases/download/v0.1/vggish-10086976.pth",
+                    "file_digest": "10086976245803799d9194e9a73d9b6c1549c71d1b80106f5cade5608a561f4b",
                 }, {
                     'type': metadata_base.PrimitiveInstallationType.UBUNTU,
                     'package': 'build-essential',
