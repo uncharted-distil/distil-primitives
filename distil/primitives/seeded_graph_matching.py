@@ -39,12 +39,12 @@ class DistilSeededGraphMatchingPrimitive(PrimitiveBase[container.List, container
             'id': '8baea8e6-9d3a-46d7-acf1-04fd593dcd37',
             'version': '0.1.0',
             'name': "SeededGraphMatcher",
-            'python_path': 'd3m.primitives.graph_matching.seeded_graph_matcher.DistilSeededGraphMatcher',
+            'python_path': 'd3m.primitives.graph_matching.seeded_graph_matching.DistilSeededGraphMatcher',
             'source': {
                 'name': 'Distil',
                 'contact': 'mailto:fred@qntfy.com',
                 'uris': [
-                    'https://github.com/uncharted-distil/distil-primitives/distil/primitives/seeded_graph_matcher.py',
+                    'https://github.com/uncharted-distil/distil-primitives/distil/primitives/seeded_graph_matching.py',
                     'https://github.com/uncharted-distil/distil-primitives',
                 ],
             },

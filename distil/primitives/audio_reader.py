@@ -108,12 +108,12 @@ class AudioDatasetLoaderPrimitive(transformer.TransformerPrimitiveBase[container
             'id': 'f2a0cf71-0f61-41a7-a0ad-b907083ae56c',
             'version': '0.1.1',
             'name': "Load audio collection from dataset into a single dataframe",
-            'python_path': 'd3m.primitives.data_preprocessing.audio_loader.DistilAudioDatasetLoader',
+            'python_path': 'd3m.primitives.data_preprocessing.audio_reader.DistilAudioDatasetLoader',
             'source': {
                 'name': 'Distil',
                 'contact': 'mailto:cbethune@uncharted.software',
                 'uris': [
-                    'https://github.com/uncharted-distil/distil-primitives/distil/primitives/audio_loader_loader.py',
+                    'https://github.com/uncharted-distil/distil-primitives/distil/primitives/audio_reader.py',
                     'https://github.com/uncharted-distil/distil-primitives',
                 ],
             },

@@ -22,7 +22,7 @@ import sys
 from d3m import container
 from d3m.metadata import base as metadata_base
 
-from distil.primitives.timeseries_formatter import TimeSeriesFormatterPrimitive
+from distil.primitives.time_series_formatter import TimeSeriesFormatterPrimitive
 from distil.primitives import utils
 
 import utils as test_utils
