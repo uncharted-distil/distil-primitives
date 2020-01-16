@@ -71,7 +71,7 @@ def convert_load_file(fileuri, start, end):
 
         info = sf.info(output_file.name)
 
-        if start is not None and end is not None:
+        if start is not None and end is not None and info.duration > 0:
             start = int(info.frames * (start / info.duration))
             end = int(info.frames * (end / info.duration))
             audio_array, sample_rate = sf.read(output_file.name, start=start, stop=end, dtype='int16')
