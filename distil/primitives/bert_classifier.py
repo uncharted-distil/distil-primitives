@@ -65,7 +65,7 @@ class BertPairClassificationPrimitive(PrimitiveBase[container.DataFrame, contain
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': '7c305f3a-442a-41ad-b9db-8c437753b119',
-            'version': '0.1.0',
+            'version': '0.1.1',
             'name': "BERT pair classification",
             'python_path': 'd3m.primitives.classification.bert_classifier.DistilBertPairClassification',
             'source': {
@@ -105,7 +105,7 @@ class BertPairClassificationPrimitive(PrimitiveBase[container.DataFrame, contain
                  hyperparams: Hyperparams,
                  random_seed: int = 0,
                  volumes: Dict[str, str] = None) -> None:
-        base.PrimitiveBase.__init__(self, hyperparams=hyperparams, random_seed=random_seed, volumes=volumes)
+        super().__init__(hyperparams=hyperparams, random_seed=random_seed, volumes=volumes)
         self._volumes = volumes
         self._model: Optional[BERTPairClassification] = None
 

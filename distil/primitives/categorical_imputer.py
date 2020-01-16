@@ -57,7 +57,7 @@ class CategoricalImputerPrimitive(transformer.TransformerPrimitiveBase[container
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': '0a9936f3-7784-4697-82f0-2a5fcc744c16',
-            'version': '0.1.1',
+            'version': '0.1.2',
             'name': "Categorical imputer",
             'python_path': 'd3m.primitives.data_transformation.imputer.DistilCategoricalImputer',
             'source': {

@@ -50,7 +50,7 @@ class AudioTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': 'f2f149c8-a984-4f5b-8a9b-2f13ee0cf16d',
-            'version': '0.1.1',
+            'version': '0.1.2',
             'name': "Audio Transfer",
             'python_path': 'd3m.primitives.feature_extraction.audio_transfer.DistilAudioTransfer',
             'source': {
@@ -103,7 +103,7 @@ class AudioTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
                  random_seed: int=0,
                  volumes: Dict[str, str] = None) -> None:
 
-        PrimitiveBase.__init__(self, hyperparams=hyperparams, random_seed=random_seed, volumes=volumes)
+        super().__init__(hyperparams=hyperparams, random_seed=random_seed, volumes=volumes)
         self.volumes = volumes
         self.audio_set = pretrained_audio.AudiosetModel(model_path=self.volumes["vggish_model"])
 

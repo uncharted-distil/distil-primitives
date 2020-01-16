@@ -47,7 +47,7 @@ class BinaryEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': 'd38e2e28-9b18-4ce4-b07c-9d809cd8b915',
-            'version': '0.2.0',
+            'version': '0.2.1',
             'name': "Binary encoder",
             'python_path': 'd3m.primitives.data_transformation.encoder.DistilBinaryEncoder',
             'source': {
@@ -74,7 +74,7 @@ class BinaryEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
     def __init__(self, *,
                  hyperparams: Hyperparams,
                  random_seed: int = 0) -> None:
-        base.PrimitiveBase.__init__(self, hyperparams=hyperparams, random_seed=random_seed)
+        super().__init__(hyperparams=hyperparams, random_seed=random_seed)
 
     def __getstate__(self) -> dict:
         state = base.PrimitiveBase.__getstate__(self)

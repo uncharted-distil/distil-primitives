@@ -55,7 +55,7 @@ class CollaborativeFilteringPrimitive(PrimitiveBase[container.DataFrame, contain
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': 'a242314d-7955-483f-aed6-c74cd2b880df',
-            'version': '0.1.0',
+            'version': '0.1.4',
             'name': "Collaborative filtering",
             'python_path': 'd3m.primitives.collaborative_filtering.link_prediction.DistilCollaborativeFiltering',
             'source': {
@@ -83,7 +83,7 @@ class CollaborativeFilteringPrimitive(PrimitiveBase[container.DataFrame, contain
     def __init__(self, *,
                  hyperparams: Hyperparams,
                  random_seed: int = 0) -> None:
-        base.PrimitiveBase.__init__(self, hyperparams=hyperparams, random_seed=random_seed)
+        super().__init__(hyperparams=hyperparams, random_seed=random_seed)
         self._labels: Dict[int, Dict[Any, int]] = {}
 
 

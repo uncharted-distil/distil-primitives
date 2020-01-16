@@ -46,7 +46,7 @@ class OneHotEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': 'd3d421cb-9601-43f0-83d9-91a9c4199a06',
-            'version': '0.2.0',
+            'version': '0.2.1',
             'name': "One-hot encoder",
             'python_path': 'd3m.primitives.data_transformation.one_hot_encoder.DistilOneHotEncoder',
             'source': {
@@ -73,7 +73,7 @@ class OneHotEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
     def __init__(self, *,
                  hyperparams: Hyperparams,
                  random_seed: int = 0) -> None:
-        base.PrimitiveBase.__init__(self, hyperparams=hyperparams, random_seed=random_seed)
+        super().__init__(hyperparams=hyperparams, random_seed=random_seed)
 
     def __getstate__(self) -> dict:
         state = base.PrimitiveBase.__getstate__(self)

@@ -37,7 +37,7 @@ class ListEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBas
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': '67f53b00-f936-4bb4-873e-4698c4aaa37f',
-            'version': '0.1.0',
+            'version': '0.2.0',
             'name': "List encoder",
             'python_path': 'd3m.primitives.data_transformation.list_to_dataframe.DistilListEncoder',
             'source': {
@@ -64,7 +64,7 @@ class ListEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBas
     def __init__(self, *,
                  hyperparams: Hyperparams,
                  random_seed: int = 0) -> None:
-        base.PrimitiveBase.__init__(self, hyperparams=hyperparams, random_seed=random_seed)
+        super().__init__(hyperparams=hyperparams, random_seed=random_seed)
 
     def __getstate__(self) -> dict:
         state = base.PrimitiveBase.__getstate__(self)

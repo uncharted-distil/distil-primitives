@@ -46,12 +46,12 @@ class DistilGraphLoaderPrimitive(transformer.TransformerPrimitiveBase[Inputs, Ou
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': 'ae0797506-ea7b-4a7f-a7e4-2f91e2082f05',
-            'version': '0.1.1',
+            'version': '0.1.2',
             'name': "Load graphs into a parseable object",
             'python_path': 'd3m.primitives.data_transformation.load_graphs.DistilGraphLoader',
             'source': {
                 'name': 'Distil',
-                'contact': 'mailto:fred@qntfy.com',
+                'contact': 'mailto:cbethune@uncharted.software',
                 'uris': [
                     'https://github.com/uncharted-distil/distil-primitives/distil/primitives/load_graphs.py',
                     'https://github.com/uncharted-distil/distil-primitives/',

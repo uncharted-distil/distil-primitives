@@ -48,7 +48,7 @@ class TextEncoderPrimitive(base.PrimitiveBase[Inputs, Outputs, Params, Hyperpara
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': '09f252eb-215d-4e0b-9a60-fcd967f5e708',
-            'version': '0.2.0',
+            'version': '0.2.1',
             'name': "Text encoder",
             'python_path': 'd3m.primitives.data_transformation.encoder.DistilTextEncoder',
             'source': {
@@ -75,7 +75,7 @@ class TextEncoderPrimitive(base.PrimitiveBase[Inputs, Outputs, Params, Hyperpara
     def __init__(self, *,
                  hyperparams: Hyperparams,
                  random_seed: int = 0) -> None:
-        base.PrimitiveBase.__init__(self, hyperparams=hyperparams, random_seed=random_seed)
+        super().__init__(hyperparams=hyperparams, random_seed=random_seed)
 
     def __getstate__(self) -> dict:
         state = base.PrimitiveBase.__getstate__(self)
