@@ -87,7 +87,7 @@ class ImageTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
                  random_seed: int=0,
                  volumes: Dict[str, str] = None) -> None:
 
-        PrimitiveBase.__init__(self, hyperparams=hyperparams, random_seed=random_seed, volumes=volumes)
+        super().__init__(self, hyperparams=hyperparams, random_seed=random_seed, volumes=volumes)
 
         self.volumes = volumes
         self.img2vec = Img2Vec(model_path=self.volumes["resnet18-5c106cde"])

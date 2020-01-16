@@ -119,7 +119,7 @@ class EnsembleForestPrimitive(
 
     def __init__(self, *, hyperparams: Hyperparams, random_seed: int = 0) -> None:
 
-        PrimitiveBase.__init__(self, hyperparams=hyperparams, random_seed=random_seed)
+        super().__init__(self, hyperparams=hyperparams, random_seed=random_seed)
         self._model = ForestCV(self.hyperparams["metric"])
         self._needs_fit = True
         self.label_map: Optional[Dict[int, str]] = None

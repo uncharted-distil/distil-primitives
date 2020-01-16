@@ -65,7 +65,7 @@ class DistilCommunityDetectionPrimitive(PrimitiveBase[container.List, container.
                  hyperparams: Hyperparams,
                  random_seed: int = 0) -> None:
 
-        PrimitiveBase.__init__(self, hyperparams=hyperparams, random_seed=random_seed)
+        super().__init__(self, hyperparams=hyperparams, random_seed=random_seed)
         self._model = _CommunityDetection(target_metric=self.hyperparams['metric'], overlapping=False)
 
     def __getstate__(self) -> dict:
