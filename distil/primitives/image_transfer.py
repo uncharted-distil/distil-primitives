@@ -119,8 +119,6 @@ class ImageTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
 
         df = pd.DataFrame(result['image_vec'].values.tolist())
         df.columns = ['v{}'.format(i) for i in range(0, df.shape[1])]
-        df.index = result['d3mIndex']
-        df.index.name = 'd3mIndex'
 
         return container.DataFrame(df, generate_metadata=True)
 
