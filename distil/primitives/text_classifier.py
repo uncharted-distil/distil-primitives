@@ -95,7 +95,7 @@ class TextClassifierPrimitive(base.PrimitiveBase[container.DataFrame, container.
                  hyperparams: Hyperparams,
                  random_seed: int = 0) -> None:
 
-        super().__init__(self, hyperparams=hyperparams, random_seed=random_seed)
+        super().__init__(hyperparams=hyperparams, random_seed=random_seed)
 
         self._grid = self._get_grid_for_metric() if self.hyperparams['fast'] else None
 

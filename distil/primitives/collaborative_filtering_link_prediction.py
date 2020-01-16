@@ -83,7 +83,7 @@ class CollaborativeFilteringPrimitive(PrimitiveBase[container.DataFrame, contain
     def __init__(self, *,
                  hyperparams: Hyperparams,
                  random_seed: int = 0) -> None:
-        super().__init__(self, hyperparams=hyperparams, random_seed=random_seed)
+        super().__init__(hyperparams=hyperparams, random_seed=random_seed)
         self._labels: Dict[int, Dict[Any, int]] = {}
 
 

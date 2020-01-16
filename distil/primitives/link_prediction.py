@@ -65,7 +65,7 @@ class DistilLinkPredictionPrimitive(PrimitiveBase[container.List, container.Data
                  hyperparams: Hyperparams,
                  random_seed: int = 0) -> None:
 
-        super().__init__(self, hyperparams=hyperparams, random_seed=random_seed)
+        super().__init__(hyperparams=hyperparams, random_seed=random_seed)
         self._model = RescalLinkPrediction(target_metric=self.hyperparams['metric'])
 
     def __getstate__(self) -> dict:

@@ -65,7 +65,7 @@ class DistilSeededGraphMatchingPrimitive(PrimitiveBase[container.List, container
                  hyperparams: Hyperparams,
                  random_seed: int = 0) -> None:
 
-        super().__init__(self, hyperparams=hyperparams, random_seed=random_seed)
+        super().__init__(hyperparams=hyperparams, random_seed=random_seed)
         self._model = SGMGraphMatcher(target_metric='accuracy')
 
     def __getstate__(self) -> dict:

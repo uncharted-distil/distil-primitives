@@ -75,7 +75,7 @@ class TextEncoderPrimitive(base.PrimitiveBase[Inputs, Outputs, Params, Hyperpara
     def __init__(self, *,
                  hyperparams: Hyperparams,
                  random_seed: int = 0) -> None:
-        super().__init__(self, hyperparams=hyperparams, random_seed=random_seed)
+        super().__init__(hyperparams=hyperparams, random_seed=random_seed)
 
     def __getstate__(self) -> dict:
         state = base.PrimitiveBase.__getstate__(self)

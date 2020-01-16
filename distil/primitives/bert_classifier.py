@@ -105,7 +105,7 @@ class BertPairClassificationPrimitive(PrimitiveBase[container.DataFrame, contain
                  hyperparams: Hyperparams,
                  random_seed: int = 0,
                  volumes: Dict[str, str] = None) -> None:
-        super().__init__(self, hyperparams=hyperparams, random_seed=random_seed, volumes=volumes)
+        super().__init__(hyperparams=hyperparams, random_seed=random_seed, volumes=volumes)
         self._volumes = volumes
         self._model: Optional[BERTPairClassification] = None
 

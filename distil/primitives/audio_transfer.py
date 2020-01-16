@@ -103,7 +103,7 @@ class AudioTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
                  random_seed: int=0,
                  volumes: Dict[str, str] = None) -> None:
 
-        super().__init__(self, hyperparams=hyperparams, random_seed=random_seed, volumes=volumes)
+        super().__init__(hyperparams=hyperparams, random_seed=random_seed, volumes=volumes)
         self.volumes = volumes
         self.audio_set = pretrained_audio.AudiosetModel(model_path=self.volumes["vggish_model"])
 
