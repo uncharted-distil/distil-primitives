@@ -50,7 +50,7 @@ class TimeSeriesFormatterPrimitiveTestCase(unittest.TestCase):
 
         # verify that we have the expected shape
         self.assertEqual(timeseries_df.shape[0], 664)
-        self.assertEqual(timeseries_df.shape[1], 5)
+        self.assertEqual(timeseries_df.shape[1], 4)
 
         # check that learning metadata was copied
         name = timeseries_dataset.metadata.query_column_field(0, 'name', at=(self._resource_id,))
@@ -58,10 +58,8 @@ class TimeSeriesFormatterPrimitiveTestCase(unittest.TestCase):
         name = timeseries_dataset.metadata.query_column_field(1, 'name', at=(self._resource_id,))
         self.assertEqual("timeseries_file", name)
         name = timeseries_dataset.metadata.query_column_field(2, 'name', at=(self._resource_id,))
-        self.assertEqual("label", name)
-        name = timeseries_dataset.metadata.query_column_field(3, 'name', at=(self._resource_id,))
         self.assertEqual("time", name)
-        name = timeseries_dataset.metadata.query_column_field(4, 'name', at=(self._resource_id,))
+        name = timeseries_dataset.metadata.query_column_field(3, 'name', at=(self._resource_id,))
         self.assertEqual("value", name)
 
         # verify that the d3mIndex is now marked as a multi key
@@ -71,11 +69,10 @@ class TimeSeriesFormatterPrimitiveTestCase(unittest.TestCase):
         self.assertIn("https://metadata.datadrivendiscovery.org/types/GroupingKey", timeseries_dataset.metadata.query_column_field(1, 'semantic_types', at=(self._resource_id,)))
 
         # verify that data columns have correct semantic types
-        self.assertIn("https://metadata.datadrivendiscovery.org/types/SuggestedTarget", timeseries_dataset.metadata.query_column_field(2, 'semantic_types', at=(self._resource_id,)))
-        self.assertIn("https://metadata.datadrivendiscovery.org/types/Time", timeseries_dataset.metadata.query_column_field(3, 'semantic_types', at=(self._resource_id,)))
-        self.assertIn('http://schema.org/Integer', timeseries_dataset.metadata.query_column_field(3, 'semantic_types', at=(self._resource_id,)))
-        self.assertIn("https://metadata.datadrivendiscovery.org/types/Attribute", timeseries_dataset.metadata.query_column_field(4, 'semantic_types', at=(self._resource_id,)))
-        self.assertIn('http://schema.org/Float', timeseries_dataset.metadata.query_column_field(4, 'semantic_types', at=(self._resource_id,)))
+        self.assertIn("https://metadata.datadrivendiscovery.org/types/Time", timeseries_dataset.metadata.query_column_field(2, 'semantic_types', at=(self._resource_id,)))
+        self.assertIn('http://schema.org/Integer', timeseries_dataset.metadata.query_column_field(2, 'semantic_types', at=(self._resource_id,)))
+        self.assertIn("https://metadata.datadrivendiscovery.org/types/Attribute", timeseries_dataset.metadata.query_column_field(3, 'semantic_types', at=(self._resource_id,)))
+        self.assertIn('http://schema.org/Float', timeseries_dataset.metadata.query_column_field(3, 'semantic_types', at=(self._resource_id,)))
 
     def test_hyperparams(self) -> None:
         dataset = test_utils.load_dataset(self._dataset_path)
@@ -93,7 +90,7 @@ class TimeSeriesFormatterPrimitiveTestCase(unittest.TestCase):
 
         # verify that we have the expected shape
         self.assertEqual(timeseries_df.shape[0], 664)
-        self.assertEqual(timeseries_df.shape[1], 5)
+        self.assertEqual(timeseries_df.shape[1], 4)
 
     def test_no_column_info(self) -> None:
         dataset = test_utils.load_dataset(self._dataset_2_path)
