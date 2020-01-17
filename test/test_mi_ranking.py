@@ -46,7 +46,7 @@ class MIRankingPrimitiveTestCase(unittest.TestCase):
         # verify the output
         self.assertListEqual(list(result_dataframe['idx']), [2, 5, 3])
         self.assertListEqual(list(result_dataframe['name']), ['bravo', 'echo', 'charlie'])
-        expected_ranks = [1.405357, 0.562335, 0.042475]
+        expected_ranks = [1.342857, 0.861607, 0.0]
         for i, r in enumerate(result_dataframe['rank']):
             self.assertAlmostEqual(r, expected_ranks[i], places=6)
 
