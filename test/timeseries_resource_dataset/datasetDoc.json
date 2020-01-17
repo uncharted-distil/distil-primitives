@@ -24,14 +24,6 @@
           "role": [
             "timeIndicator"
           ]
-        },
-        {
-          "colIndex": 1,
-          "colName": "value",
-          "colType": "real",
-          "role": [
-            "attribute"
-          ]
         }
       ]
     },
@@ -42,7 +34,6 @@
       "resFormat": [
         "text/csv"
       ],
-      "isCollection": false,
       "columns": [
         {
           "colIndex": 0,
@@ -63,14 +54,6 @@
             "resID": "0",
             "resObject": "item"
           }
-        },
-        {
-          "colIndex": 2,
-          "colName": "label",
-          "colType": "categorical",
-          "role": [
-            "suggestedTarget"
-          ]
         }
       ]
     }

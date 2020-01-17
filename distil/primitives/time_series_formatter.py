@@ -174,33 +174,37 @@ class TimeSeriesFormatterPrimitive(transformer.TransformerPrimitiveBase[containe
         # copy timeseries column metadata to timeseries if its available in the metadata (which is not necssarily true anymore)
         source = self._find_timeseries_metadata(inputs)
         i = 0
+        start_idx = 0
         if source is not None:
             for col_info in source['file_columns']:
                 timeseries_dataset.metadata = timeseries_dataset.metadata.update_column(i + num_main_resource_cols,
                                                                                         col_info,
                                                                                         at=(self._resource_id,))
                 i += 1
+            # flag all other columns as attributes
+            start_idx = i + num_main_resource_cols
         else:
             # loop over the appended time series columns
             start_idx = original_dfs[0].shape[1]
-            for i in range(start_idx, timeseries_dataframe.shape[1]):
+
+        for i in range(start_idx, timeseries_dataframe.shape[1]):
+            timeseries_dataset.metadata = timeseries_dataset.metadata.add_semantic_type(
+                (self._resource_id, metadata_base.ALL_ELEMENTS, i),
+                'https://metadata.datadrivendiscovery.org/types/Attribute')
+            struct_type = timeseries_dataset.metadata.query((self._resource_id, metadata_base.ALL_ELEMENTS, i))[
+                'structural_type']
+            if struct_type == np.float64:
                 timeseries_dataset.metadata = timeseries_dataset.metadata.add_semantic_type(
                     (self._resource_id, metadata_base.ALL_ELEMENTS, i),
-                    'https://metadata.datadrivendiscovery.org/types/Attribute')
-                struct_type = timeseries_dataset.metadata.query((self._resource_id, metadata_base.ALL_ELEMENTS, i))[
-                    'structural_type']
-                if struct_type == np.float64:
-                    timeseries_dataset.metadata = timeseries_dataset.metadata.add_semantic_type(
-                        (self._resource_id, metadata_base.ALL_ELEMENTS, i),
-                        'http://schema.org/Float')
-                elif struct_type == np.int64:
-                    timeseries_dataset.metadata = timeseries_dataset.metadata.add_semantic_type(
-                        (self._resource_id, metadata_base.ALL_ELEMENTS, i),
-                        'http://schema.org/Integer')
-                else:
-                    timeseries_dataset.metadata = timeseries_dataset.metadata.add_semantic_type(
-                        (self._resource_id, metadata_base.ALL_ELEMENTS, i),
-                        'http://schema.org/Text')
+                    'http://schema.org/Float')
+            elif struct_type == np.int64:
+                timeseries_dataset.metadata = timeseries_dataset.metadata.add_semantic_type(
+                    (self._resource_id, metadata_base.ALL_ELEMENTS, i),
+                    'http://schema.org/Integer')
+            else:
+                timeseries_dataset.metadata = timeseries_dataset.metadata.add_semantic_type(
+                    (self._resource_id, metadata_base.ALL_ELEMENTS, i),
+                    'http://schema.org/Text')
 
         # mark the filename column as a grouping key
         timeseries_dataset.metadata = timeseries_dataset.metadata.add_semantic_type(
