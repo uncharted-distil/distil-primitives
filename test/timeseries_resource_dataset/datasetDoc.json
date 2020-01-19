@@ -12,18 +12,14 @@
       "resID": "0",
       "resPath": "timeseries/",
       "resType": "timeseries",
-      "resFormat": [
-        "text/csv"
-      ],
+      "resFormat": ["text/csv"],
       "isCollection": true,
       "columns": [
         {
           "colIndex": 0,
           "colName": "time",
           "colType": "integer",
-          "role": [
-            "timeIndicator"
-          ]
+          "role": ["timeIndicator"]
         }
       ]
     },
@@ -31,25 +27,19 @@
       "resID": "learningData",
       "resPath": "tables/learningData.csv",
       "resType": "table",
-      "resFormat": [
-        "text/csv"
-      ],
+      "resFormat": ["text/csv"],
       "columns": [
         {
           "colIndex": 0,
           "colName": "d3mIndex",
           "colType": "integer",
-          "role": [
-            "index"
-          ]
+          "role": ["index"]
         },
         {
           "colIndex": 1,
           "colName": "timeseries_file",
           "colType": "string",
-          "role": [
-            "attribute"
-          ],
+          "role": ["attribute"],
           "refersTo": {
             "resID": "0",
             "resObject": "item"
