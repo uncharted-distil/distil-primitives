@@ -14,7 +14,8 @@ SINGLETON_INDICATOR     = '__sing_salt_6df854b8-a0ba-41ba-b598-ddeba2edfb53'
 
 CATEGORICALS = ('https://metadata.datadrivendiscovery.org/types/CategoricalData',
                 'https://metadata.datadrivendiscovery.org/types/OrdinalData',
-                'http://schema.org/DateTime')
+                'http://schema.org/DateTime',
+                'http://schema.org/Boolean')
 
 VECTOR = ('https://metadata.datadrivendiscovery.org/types/FloatVector')
 
