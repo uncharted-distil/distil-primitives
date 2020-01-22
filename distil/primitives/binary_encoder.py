@@ -99,7 +99,7 @@ class BinaryEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
         filtered_cols: List[int] = []
         for c in cols:
             num_labels = len(set(self._inputs.iloc[:,c]))
-            if num_labels > self.hyperparams['min_binary']:
+            if num_labels >= self.hyperparams['min_binary']:
                 filtered_cols.append(c)
         self._cols = list(filtered_cols)
 
