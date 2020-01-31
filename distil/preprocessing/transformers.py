@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 
 from sklearn.base import BaseEstimator, TransformerMixin
-from sklearn.svm import LinearSVC
+from sklearn.svm import LinearSVC, LinearSVR
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import cross_val_predict
 from sklearn.cluster import MiniBatchKMeans
@@ -10,6 +10,8 @@ from typing import Dict,  Optional
 
 from distil.primitives.utils import MISSING_VALUE_INDICATOR, SINGLETON_INDICATOR
 from sklearn.decomposition import PCA
+from distil.modeling.metrics import metrics, classification_metrics, regression_metrics
+
 # --
 # Categorical
 
@@ -44,11 +46,20 @@ class BinaryEncoder(BaseEstimator, TransformerMixin):
 
 class SVMTextEncoder(BaseEstimator, TransformerMixin):
     # !! add tuning
-    def __init__(self):
+    def __init__(self, metric):
         super().__init__()
 
         self._vect  = TfidfVectorizer(ngram_range=[1, 2], max_features=30000)
-        self._model = LinearSVC(class_weight='balanced')
+
+
+        if metric in classification_metrics:
+            self._model = LinearSVC(class_weight='balanced')
+            self.mode = 'classification'
+        elif metric in regression_metrics:
+            self._model = LinearSVR()
+            self.mode = 'regression'
+        else:
+            raise AttributeError('metric not in classification or regression metrics')
 
     def fit(self, X, y):
         raise NotImplemented
@@ -57,7 +68,10 @@ class SVMTextEncoder(BaseEstimator, TransformerMixin):
         X = pd.Series(X.squeeze()).fillna(MISSING_VALUE_INDICATOR).values
 
         Xv  = self._vect.transform(X)
-        out = self._model.decision_function(Xv)
+        if self.mode == 'classification':
+            out = self._model.decision_function(Xv)
+        else:
+            out = self._model.predict(Xv)
 
         if len(out.shape) == 1:
             out = out.reshape(-1, 1)
@@ -71,7 +85,10 @@ class SVMTextEncoder(BaseEstimator, TransformerMixin):
 
         Xv  = self._vect.fit_transform(X)
         self._model = self._model.fit(Xv, y)
-        out = cross_val_predict(self._model, Xv, y, method='decision_function', n_jobs=3, cv=3)
+        if self.mode == 'classification':
+            out = cross_val_predict(self._model, Xv, y, method='decision_function', n_jobs=3, cv=3)
+        else:
+            out = cross_val_predict(self._model, Xv, y, n_jobs=3, cv=3)
 
         if len(out.shape) == 1:
             out = out.reshape(-1, 1)

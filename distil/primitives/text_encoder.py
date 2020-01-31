@@ -22,6 +22,14 @@ Outputs = container.DataFrame
 
 
 class Hyperparams(hyperparams.Hyperparams):
+    metric = hyperparams.Hyperparameter[str](
+        default="f1Macro",
+        semantic_types=[
+            "https://metadata.datadrivendiscovery.org/types/ControlParameter"
+        ],
+        description="The D3M scoring metric to use during the fit phase.  This can be any of the regression, classification or "
+                    + "clustering metrics.",
+    )
     use_columns = hyperparams.Set(
         elements=hyperparams.Hyperparameter[int](-1),
         default=(),
@@ -112,7 +120,7 @@ class TextEncoderPrimitive(base.PrimitiveBase[Inputs, Outputs, Params, Hyperpara
 
         for i, c in enumerate(self._cols):
             if self.hyperparams['encoder_type'] == 'svm':
-                self._encoders.append(SVMTextEncoder())
+                self._encoders.append(SVMTextEncoder(self.hyperparams["metric"]))
             elif self.hyperparams['encoder_type'] == 'tfidf':
                 self._encoders.append(TfidifEncoder())
             else:
