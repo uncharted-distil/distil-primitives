@@ -156,7 +156,7 @@ class AudioDatasetLoaderPrimitive(transformer.TransformerPrimitiveBase[container
         # find the column that is acting as the foreign key and extract the resource + column it references
         for i in range(learning_df.metadata.query((metadata_base.ALL_ELEMENTS,))['dimension']['length']):
             column_metadata = learning_df.metadata.query_column(i)
-            if 'foreign_key' in column_metadata and column_metadata['foreign_key']['type'] is 'COLUMN':
+            if 'foreign_key' in column_metadata and column_metadata['foreign_key']['type'] == 'COLUMN':
                 resource_id = column_metadata['foreign_key']['resource_id']
                 file_column_idx = column_metadata['foreign_key']['column_index']
 
