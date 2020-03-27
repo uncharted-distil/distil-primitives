@@ -34,7 +34,11 @@ class BinaryEncoder(BaseEstimator, TransformerMixin):
 
     def transform(self, X, y=None):
         assert self.lookup is not None
-        return np.vstack([self.lookup.get(xx, self.lookup[MISSING_VALUE_INDICATOR]) for xx in X.squeeze()])
+        squeezed = X.squeeze()
+        # single row element will become scalar after squeeze
+        if not isinstance(squeezed, pd.Series):
+            squeezed = [squeezed]
+        return np.vstack([self.lookup.get(xx, self.lookup[MISSING_VALUE_INDICATOR]) for xx in squeezed])
 
     def fit_transform(self, X, y=None, **kwargs):
         _ = self.fit(X)

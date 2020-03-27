@@ -10,61 +10,47 @@
   },
   "dataResources": [
     {
-      "resID": "0",
+      "resID": "learningData",
       "resPath": "tables/learningData.csv",
       "resType": "table",
-      "resFormat": [
-        "text/csv"
-      ],
+      "resFormat": ["text/csv"],
       "isCollection": false,
       "columns": [
         {
           "colIndex": 0,
           "colName": "d3mIndex",
           "colType": "integer",
-          "role": [
-            "index"
-          ]
+          "role": ["index"]
         },
         {
           "colIndex": 1,
           "colName": "alpha",
           "colType": "categorical",
-          "role": [
-            "attribute"
-          ]
+          "role": ["attribute"]
         },
         {
           "colIndex": 2,
           "colName": "bravo",
           "colType": "real",
-          "role": [
-            "attribute"
-          ]
+          "role": ["attribute"]
         },
         {
           "colIndex": 3,
           "colName": "charlie",
           "colType": "boolean",
-          "role": [
-            "attribute"
-          ]
+          "role": ["attribute"]
         },
         {
           "colIndex": 4,
           "colName": "delta",
           "colType": "string",
-          "role": [
-            "attribute"
-          ]
+          "role": ["attribute"]
         },
         {
           "colIndex": 5,
           "colName": "echo",
           "colType": "integer",
-          "role": [
-            "attribute"
-          ]
+          "role": ["attribute"]
         }
       ]
     }
