@@ -1,0 +1,101 @@
+{
+  "about": {
+    "datasetID": "sat_1",
+    "datasetName": "sat_1",
+    "datasetSchemaVersion": "4.0.0",
+    "description": "",
+    "license": "Unknown",
+    "parentDatasetIDs": null,
+    "rawData": false,
+    "redacted": false
+  },
+  "dataResources": [
+    {
+      "isCollection": true,
+      "resFormat": {
+        "image/tiff": ["tif", "tiff"]
+      },
+      "resID": "0",
+      "resPath": "media",
+      "resType": "image"
+    },
+    {
+      "columns": [
+        {
+          "colDescription": "D3M index",
+          "colDisplayName": "d3mIndex",
+          "colIndex": 0,
+          "colName": "d3mIndex",
+          "colType": "integer",
+          "role": ["multiIndex"],
+          "selectedRole": "multiIndex"
+        },
+        {
+          "colDescription": "Reference to image file",
+          "colDisplayName": "image_file",
+          "colIndex": 1,
+          "colName": "image_file",
+          "colType": "string",
+          "refersTo": {
+            "resID": "0",
+            "resObject": "item"
+          },
+          "role": ["attribute"],
+          "selectedRole": "attribute"
+        },
+        {
+          "colDescription": "Image band",
+          "colDisplayName": "group_id",
+          "colIndex": 2,
+          "colName": "group_id",
+          "colType": "string",
+          "role": ["attribute"],
+          "selectedRole": "attribute"
+        },
+        {
+          "colDescription": "Image band",
+          "colDisplayName": "band",
+          "colIndex": 3,
+          "colName": "band",
+          "colType": "string",
+          "role": ["attribute"],
+          "selectedRole": "attribute"
+        },
+        {
+          "colDescription": "Image timestamp",
+          "colDisplayName": "timestamp",
+          "colIndex": 4,
+          "colName": "timestamp",
+          "colType": "string",
+          "role": ["attribute"],
+          "selectedRole": "attribute"
+        },
+        {
+          "colDescription": "Coordinates of the image defined by a bounding box",
+          "colDisplayName": "coordinates",
+          "colIndex": 5,
+          "colName": "coordinates",
+          "colType": "realVector",
+          "role": ["attribute"],
+          "selectedRole": "attribute"
+        },
+        {
+          "colDescription": "Label of the image",
+          "colDisplayName": "label",
+          "colIndex": 6,
+          "colName": "label",
+          "colType": "string",
+          "role": ["suggestedTarget"],
+          "selectedRole": "suggestedTarget"
+        }
+      ],
+      "isCollection": false,
+      "resFormat": {
+        "text/csv": ["csv"]
+      },
+      "resID": "learningData",
+      "resPath": "tables/learningData.csv",
+      "resType": "table"
+    }
+  ]
+}
