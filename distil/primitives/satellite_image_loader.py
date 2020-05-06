@@ -17,39 +17,6 @@ from common_primitives import base
 from distil.utils import CYTHON_DEP
 from distil.primitives import utils as distil_utils
 
-class DataFrameSatelliteImageLoaderHyperparams(base.FileReaderHyperparams):
-    use_columns = hyperparams.Set(
-        elements=hyperparams.Hyperparameter[int](-1),
-        default=(),
-        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
-        description="A set of column indices to force primitive to operate on. If any specified column does not contain filenames for supported media types, it is skipped.",
-    )
-    exclude_columns = hyperparams.Set(
-        elements=hyperparams.Hyperparameter[int](-1),
-        default=(),
-        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
-        description="A set of column indices to not operate on. Applicable only if \"use_columns\" is not provided.",
-    )
-    return_result = hyperparams.Enumeration(
-        values=['append', 'replace', 'new'],
-        default='append',
-        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
-        description="Should columns with read files be appended, should they replace original columns, or should only columns with read files be returned?",
-    )
-    add_index_columns = hyperparams.UniformBool(
-        default=True,
-        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
-        description="Also include primary index columns if input data has them. Applicable only if \"return_result\" is set to \"new\".",
-    )
-    grouping_key_column = hyperparams.Hyperparameter[int](
-        default=-1,
-        semantic_types=[
-            "https://metadata.datadrivendiscovery.org/types/ControlParameter"
-        ],
-        description="grouping key identifying a unique set of satellite images connecting all bands"
-    )
-
-
 class DataFrameSatelliteImageLoaderPrimitive(base.FileReaderPrimitiveBase):
     """
     A primitive which reads columns referencing image files.
