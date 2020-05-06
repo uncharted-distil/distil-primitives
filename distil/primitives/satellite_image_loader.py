@@ -2,18 +2,47 @@ import os
 
 import frozendict  # type: ignore
 import imageio  # type: ignore
-import numpy  # type: ignore
+import numpy as np  # type: ignore
 
-from d3m import container, utils as d3m_utils
-from d3m.metadata import base as metadata_base
+from PIL import Image
+
+from d3m import container, utils as utils
+from d3m.base import utils as base_utils
+from d3m.metadata import base as metadata_base, hyperparams
+from d3m.primitive_interfaces import base as base_prim
 
 import common_primitives
-from common_primitives import dataframe_image_reader
 from common_primitives import base
 
+from distil.utils import CYTHON_DEP
+from distil.primitives import utils as distil_utils
 
-class DataFrameSatelliteImageReaderHyperparams(base.FileReaderHyperparams):
+class DataFrameSatelliteImageLoaderHyperparams(base.FileReaderHyperparams):
+    use_columns = hyperparams.Set(
+        elements=hyperparams.Hyperparameter[int](-1),
+        default=(),
+        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
+        description="A set of column indices to force primitive to operate on. If any specified column does not contain filenames for supported media types, it is skipped.",
+    )
+    exclude_columns = hyperparams.Set(
+        elements=hyperparams.Hyperparameter[int](-1),
+        default=(),
+        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
+        description="A set of column indices to not operate on. Applicable only if \"use_columns\" is not provided.",
+    )
+    return_result = hyperparams.Enumeration(
+        values=['append', 'replace', 'new'],
+        default='append',
+        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
+        description="Should columns with read files be appended, should they replace original columns, or should only columns with read files be returned?",
+    )
+    add_index_columns = hyperparams.UniformBool(
+        default=True,
+        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
+        description="Also include primary index columns if input data has them. Applicable only if \"return_result\" is set to \"new\".",
+    )
     grouping_key_column = hyperparams.Hyperparameter[int](
+        default=-1,
         semantic_types=[
             "https://metadata.datadrivendiscovery.org/types/ControlParameter"
         ],
@@ -21,7 +50,7 @@ class DataFrameSatelliteImageReaderHyperparams(base.FileReaderHyperparams):
     )
 
 
-class DataFrameSatelliteImageReaderPrimitive(dataframe_image_reader.DataFrameImageReaderPrimitive):
+class DataFrameSatelliteImageLoaderPrimitive(base.FileReaderPrimitiveBase):
     """
     A primitive which reads columns referencing image files.
 
@@ -41,12 +70,14 @@ class DataFrameSatelliteImageReaderPrimitive(dataframe_image_reader.DataFrameIma
     _file_structural_type = container.ndarray
     _file_semantic_types = ('http://schema.org/ImageObject',)
 
+    _band_order = {'01': 0, '02': 1, '03': 2, '04': 3, '05': 4, '06': 5, '07': 6, '08': 7, '8A': 8, '09': 9, '11': 10, '12': 11}
+
     metadata = metadata_base.PrimitiveMetadata(
         {
-            'id': '8f2e51e8-da59-456d-ae29-53912b2b9f3d',
+            'id': '77d20419-aeb6-44f9-8e63-349ea5b654f7',
             'version': '0.1.0',
-            'name': 'Columns satellite image reader',
-            'python_path': 'd3m.primitives.data_preprocessing.satellite_image_reader.DistilSatelliteImageReader',
+            'name': 'Columns satellite image loader',
+            'python_path': 'd3m.primitives.data_preprocessing.satellite_image_loader.DistilSatelliteImageLoader',
             'keywords': ['satellite', 'image', 'reader', 'tiff'],
             'source': {
                 'name': 'Distil',
@@ -59,7 +90,7 @@ class DataFrameSatelliteImageReaderPrimitive(dataframe_image_reader.DataFrameIma
             'installation': [CYTHON_DEP, {
                 'type': metadata_base.PrimitiveInstallationType.PIP,
                 'package_uri': 'git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=distil-primitives'.format(
-                    git_commit=d3m_utils.current_git_commit(os.path.dirname(__file__)),
+                    git_commit=utils.current_git_commit(os.path.dirname(__file__)),
                 ),
             }],
             'algorithm_types': [
@@ -70,38 +101,88 @@ class DataFrameSatelliteImageReaderPrimitive(dataframe_image_reader.DataFrameIma
         }
     )
 
-    def _produce_column(self, inputs: base.FileReaderInputs, column_index: int) -> base.FileReaderOutputs:
-        loaded_images = super()._produce_column(inputs, column_index)
-        loaded_images_clone = loaded_images.copy()
+    def _read_fileuri(self, metadata: frozendict.FrozenOrderedDict, fileuri: str) -> container.ndarray:
+        return None
 
-        # need to flatten the dataframe, having one column per band
-        # start by creating all the flat rows, using the grouping key to connect the bands together
-        grouping_column = self._get_grouping_key_column(loaded_images_clone)
+    def produce(self, *, inputs: base.FileReaderInputs, timeout: float = None, iterations: int = None) -> base_prim.CallResult[base.FileReaderOutputs]:
+        columns_to_use = self._get_columns(inputs.metadata)
+        inputs_clone = inputs.copy()
+        if len(columns_to_use) == 0:
+            return inputs_clone
+        column_index = columns_to_use[0]
+
+        # need to flatten the dataframe, creating a list of files per tile
+        grouping_column = self._get_grouping_key_column(inputs_clone)
         if grouping_column < 0:
             self.logger.warning('no columns to use for grouping key so returning loaded images as output')
-            return base.CallResult(loaded_images_clone)
+            return inputs_clone
 
-        flat_rows = {}
-        band_index = {}
-        for df_row in loaded_images_clone:
-            flat_row = flat_rows[df_row[grouping_column]]
-            if flat_row == none:
-                flat_row = df_row
-                flat_rows[df_row[grouping_column]] = flat_row
-            band_column = band_index[band]
-            flat_row[band_column] = df_row[column_index]
+        base_uri = inputs_clone.metadata.query((metadata_base.ALL_ELEMENTS, column_index))['location_base_uris'][0]
+        grouping_name = inputs_clone.columns[grouping_column]
+        file_column_name = inputs_clone.columns[column_index]
+        band_column_name = inputs_clone.columns[3]
 
+        # group by grouping key to get all the images loaded in one row
+        grouped_images = inputs_clone.groupby([grouping_name]) \
+            .apply(lambda x: self._load_image_group(x[file_column_name], x[band_column_name], base_uri)) \
+            .rename(file_column_name + '_loaded')
 
-        # set the metadata properly
+        # only keep one row / group from the input
+        first_band = list(self._band_order.keys())[0]
+        first_groups = inputs_clone.loc[inputs_clone[band_column_name] == first_band]
+        joined_df = first_groups.join(grouped_images, on=grouping_name)
+
+        # update the metadata
+        joined_df.metadata = joined_df.metadata.generate(joined_df)
+
+        return base_prim.CallResult(joined_df)
+
+    def _load_image_group(self, uris, bands, base_uri: str) -> container.ndarray:
+
+        images = list(map(lambda uri: self._load_image(uri, base_uri), uris))
+
+        # reshape images (upsample) to have it all fit within an array
+        max_dimension = max(i.shape[0] for i in images)
+        images_result = [None] * len(self._band_order)
+        for i in range(len(images)):
+            images_result[self._band_order[bands[i]]] = self._bilinear_upsample(images[i], max_dimension)
+
+        output = np.array(images_result)
+        output = container.ndarray(output, {
+            'schema': metadata_base.CONTAINER_SCHEMA_VERSION,
+            'structural_type': container.ndarray,
+        }, generate_metadata=False)
+
+        return output
+
+    def _load_image(self, uri: str, base_uri: str):
+        image_array = imageio.imread(base_uri + uri)
+        image_reader_metadata = image_array.meta
+
+        # make sure the image is of the expected size
+        assert image_array.dtype == np.uint16, image_array.dtype
+
+        return image_array
+
+    def _bilinear_upsample(self, x, n=120):
+        dtype = x.dtype
+        assert len(x.shape) == 2
+        if (x.shape[0] == n) and (x.shape[1] == n):
+            return x
+        else:
+            x = x.astype(np.float)
+            x = Image.fromarray(x)
+            x = x.resize((n, n), Image.BILINEAR)
+            x = np.array(x)
+            x = x.astype(dtype)
+
+        return x
 
     def _get_grouping_key_column(self, inputs: base.FileReaderInputs) -> int:
-        # use the hyperparam if provided
-        column = self.hyperparams['grouping_key_column']
-        if column >= 0:
-            return column
-
         # use the column typed as grouping key
-        cols = distil_utils.get_operating_columns(inputs, none, ('https://metadata.datadrivendiscovery.org/types/GroupingKey',))
+        cols = distil_utils.get_operating_columns(inputs, self.hyperparams['use_columns'],
+            ('https://metadata.datadrivendiscovery.org/types/GroupingKey',))
+
         if len(cols) == 1:
             return cols[0]
 

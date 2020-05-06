@@ -16,7 +16,7 @@
         "image/tiff": ["tif", "tiff"]
       },
       "resID": "0",
-      "resPath": "media",
+      "resPath": "media/",
       "resType": "image"
     },
     {
@@ -44,7 +44,7 @@
           "selectedRole": "attribute"
         },
         {
-          "colDescription": "Image band",
+          "colDescription": "Tile set grouping key",
           "colDisplayName": "group_id",
           "colIndex": 2,
           "colName": "group_id",
