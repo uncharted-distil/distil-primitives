@@ -87,7 +87,7 @@ class DataFrameSatelliteImageLoaderPrimitive(base.FileReaderPrimitiveBase):
         base_uri = inputs_clone.metadata.query((metadata_base.ALL_ELEMENTS, column_index))['location_base_uris'][0]
         grouping_name = inputs_clone.columns[grouping_column]
         file_column_name = inputs_clone.columns[column_index]
-        band_column_name = inputs_clone.columns[3]
+        band_column_name = 'band'
 
         # group by grouping key to get all the images loaded in one row
         grouped_images = inputs_clone.groupby([grouping_name]) \
