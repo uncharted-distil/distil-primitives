@@ -37,7 +37,7 @@ class DataFrameSatelliteImageLoaderPrimitive(base.FileReaderPrimitiveBase):
     _file_structural_type = container.ndarray
     _file_semantic_types = ('http://schema.org/ImageObject',)
 
-    _band_order = {'01': 0, '02': 1, '03': 2, '04': 3, '05': 4, '06': 5, '07': 6, '08': 7, '8A': 8, '09': 9, '11': 10, '12': 11}
+    _band_order = {'01': 0, '02': 1, '03': 2, '04': 3, '05': 4, '06': 5, '07': 6, '08': 7, '8a': 8, '09': 9, '11': 10, '12': 11}
 
     metadata = metadata_base.PrimitiveMetadata(
         {
@@ -75,14 +75,14 @@ class DataFrameSatelliteImageLoaderPrimitive(base.FileReaderPrimitiveBase):
         columns_to_use = self._get_columns(inputs.metadata)
         inputs_clone = inputs.copy()
         if len(columns_to_use) == 0:
-            return inputs_clone
+            return base_prim.CallResult(inputs_clone)
         column_index = columns_to_use[0]
 
         # need to flatten the dataframe, creating a list of files per tile
         grouping_column = self._get_grouping_key_column(inputs_clone)
         if grouping_column < 0:
             self.logger.warning('no columns to use for grouping key so returning loaded images as output')
-            return inputs_clone
+            return base_prim.CallResult(inputs_clone)
 
         base_uri = inputs_clone.metadata.query((metadata_base.ALL_ELEMENTS, column_index))['location_base_uris'][0]
         grouping_name = inputs_clone.columns[grouping_column]
@@ -92,44 +92,53 @@ class DataFrameSatelliteImageLoaderPrimitive(base.FileReaderPrimitiveBase):
         # group by grouping key to get all the images loaded in one row
         grouped_images = inputs_clone.groupby([grouping_name]) \
             .apply(lambda x: self._load_image_group(x[file_column_name], x[band_column_name], base_uri)) \
-            .rename(file_column_name + '_loaded')
+            .rename(file_column_name + '_loaded').reset_index(drop=True)
+        grouped_df = container.DataFrame({file_column_name: grouped_images}, generate_metadata=False)
+        grouped_df.metadata = grouped_df.metadata.generate(grouped_df, compact=True)
 
         # only keep one row / group from the input
         first_band = list(self._band_order.keys())[0]
         first_groups = inputs_clone.loc[inputs_clone[band_column_name] == first_band]
-        joined_df = first_groups.join(grouped_images, on=grouping_name)
+        #joined_df = first_groups.join(grouped_images, on=grouping_name)
+
+        outputs = base_utils.combine_columns(first_groups, [column_index], [grouped_df], return_result=self.hyperparams['return_result'], add_index_columns=self.hyperparams['add_index_columns'])
+        if self.hyperparams['return_result'] == 'append':
+            outputs.metadata = self._reassign_boundaries(outputs.metadata, columns_to_use)
+
 
         # update the metadata
-        joined_df.metadata = joined_df.metadata.generate(joined_df)
+        #joined_df.metadata = joined_df.metadata.generate(joined_df)
 
-        return base_prim.CallResult(joined_df)
+        return base_prim.CallResult(outputs)
 
     def _load_image_group(self, uris, bands, base_uri: str) -> container.ndarray:
 
-        images = list(map(lambda uri: self._load_image(uri, base_uri), uris))
+        zipped = zip(bands, uris)
+
+        images = list(map(lambda image: self._load_image(image[0], image[1], base_uri), zipped))
 
         # reshape images (upsample) to have it all fit within an array
-        max_dimension = max(i.shape[0] for i in images)
+        max_dimension = max(i[1].shape[0] for i in images)
         images_result = [None] * len(self._band_order)
-        for i in range(len(images)):
-            images_result[self._band_order[bands[i]]] = self._bilinear_upsample(images[i], max_dimension)
+        for band, image in images:
+            images_result[self._band_order[band.lower()]] = self._bilinear_upsample(image, max_dimension)
 
         output = np.array(images_result)
         output = container.ndarray(output, {
             'schema': metadata_base.CONTAINER_SCHEMA_VERSION,
             'structural_type': container.ndarray,
-        }, generate_metadata=False)
+        }, generate_metadata=True)
 
         return output
 
-    def _load_image(self, uri: str, base_uri: str):
+    def _load_image(self, band: str, uri: str, base_uri: str):
         image_array = imageio.imread(base_uri + uri)
         image_reader_metadata = image_array.meta
 
         # make sure the image is of the expected size
         assert image_array.dtype == np.uint16, image_array.dtype
 
-        return image_array
+        return (band, image_array)
 
     def _bilinear_upsample(self, x, n=120):
         dtype = x.dtype

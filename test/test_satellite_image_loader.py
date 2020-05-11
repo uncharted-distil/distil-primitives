@@ -31,7 +31,7 @@ class DataFrameSatelliteImageLoaderPrimitiveTestCase(unittest.TestCase):
 
     _dataset_path = path.abspath(path.join(path.dirname(__file__), 'satellite_image_dataset'))
 
-    def test_band_mapping(self) -> None:
+    def test_band_mapping_append(self) -> None:
         dataset = test_utils.load_dataset(self._dataset_path)
         dataset.metadata = dataset.metadata.add_semantic_type(('learningData', metadata_base.ALL_ELEMENTS, 2), 'https://metadata.datadrivendiscovery.org/types/GroupingKey')
         dataset.metadata = dataset.metadata.add_semantic_type(('learningData', metadata_base.ALL_ELEMENTS, 1), 'https://metadata.datadrivendiscovery.org/types/FileName')
@@ -47,7 +47,27 @@ class DataFrameSatelliteImageLoaderPrimitiveTestCase(unittest.TestCase):
 
         # verify the output
         self.assertListEqual(list(result_dataframe.shape), [1, 8])
-        self.assertListEqual(list(result_dataframe['image_file_loaded'][0].shape), [12, 120, 120])
+        self.assertListEqual(list(result_dataframe.iloc[0, 7].shape), [12, 120, 120])
+
+    def test_band_mapping_replace(self) -> None:
+        dataset = test_utils.load_dataset(self._dataset_path)
+        dataset.metadata = dataset.metadata.add_semantic_type(('learningData', metadata_base.ALL_ELEMENTS, 2), 'https://metadata.datadrivendiscovery.org/types/GroupingKey')
+        dataset.metadata = dataset.metadata.add_semantic_type(('learningData', metadata_base.ALL_ELEMENTS, 1), 'https://metadata.datadrivendiscovery.org/types/FileName')
+        dataset.metadata = dataset.metadata.update(('0', ), {'location_base_uris': 'file:///home/ubuntu/git-projects/distil-primitives/test/satellite_image_dataset/media/'})
+        dataset.metadata = dataset.metadata.update(('learningData', metadata_base.ALL_ELEMENTS, 1), {'location_base_uris': ['file:///home/ubuntu/git-projects/distil-primitives/test/satellite_image_dataset/media/']})
+        dataframe = test_utils.get_dataframe(dataset, 'learningData')
+
+        hyperparams_class = \
+            DataFrameSatelliteImageLoaderPrimitive.metadata.query()['primitive_code']['class_type_arguments']['Hyperparams']
+        hyperparams = hyperparams_class.defaults().replace({
+            "return_result": "replace"
+        })
+        loader = DataFrameSatelliteImageLoaderPrimitive(hyperparams=hyperparams)
+        result_dataframe = loader.produce(inputs=dataframe).value
+
+        # verify the output
+        self.assertListEqual(list(result_dataframe.shape), [1, 7])
+        self.assertListEqual(list(result_dataframe['image_file'][0].shape), [12, 120, 120])
 
 if __name__ == '__main__':
     unittest.main()
