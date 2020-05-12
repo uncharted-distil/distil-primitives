@@ -17,18 +17,22 @@ from common_primitives import base
 from distil.utils import CYTHON_DEP
 from distil.primitives import utils as distil_utils
 
+logger = logging.getLogger(__name__)
+
 class DataFrameSatelliteImageLoaderPrimitive(base.FileReaderPrimitiveBase):
     """
-    A primitive which reads columns referencing image files.
+    A primitive which reads columns referencing satellite image files, where each file is for a single band.
 
     Each column which has ``https://metadata.datadrivendiscovery.org/types/FileName`` semantic type
-    and a valid media type (``image/jpeg``, ``image/png``) has every filename read into an image
-    represented as a numpy array. By default the resulting column with read arrays is appended
+    and a valid media type (``image/tiff``) has every filename read into an image
+    represented as a numpy array. The input dataframe is then reduced to 1 row / tile
+    using the grouping column and the images are loaded into a single numpy array (1 dimension / band).
+    By default the resulting column with read arrays is appended
     to existing columns.
 
-    The shape of numpy arrays is H x W x C. C is the number of channels in an image
-    (e.g., C = 1 for greyscale, C = 3 for RGB), H is the height, and W is the width.
-    dtype is uint8.
+    The shape of numpy arrays is H x W x C. C is the number of bands captured,
+    H is the height, and W is the width. Images are upsampled to the biggest size.
+    dtype is uint16.
     """
 
     _supported_media_types = (
@@ -95,6 +99,7 @@ class DataFrameSatelliteImageLoaderPrimitive(base.FileReaderPrimitiveBase):
             .rename(file_column_name + '_loaded').reset_index(drop=True)
         grouped_df = container.DataFrame({file_column_name: grouped_images}, generate_metadata=False)
         grouped_df.metadata = grouped_df.metadata.generate(grouped_df, compact=True)
+        grouped_df.metadata = grouped_df.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, 0), 'http://schema.org/ImageObject')
 
         # only keep one row / group from the input
         first_band = list(self._band_order.keys())[0]
