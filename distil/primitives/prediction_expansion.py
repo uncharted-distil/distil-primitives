@@ -47,11 +47,11 @@ class PredictionExpansionPrimitive(construct_predictions.ConstructPredictionsPri
                     'https://github.com/uncharted-distil/distil-primitives',
                 ],
             },
-            'installation': [{
-               'type': metadata_base.PrimitiveInstallationType.PIP,
-               'package_uri': 'git+https://gitlab.com/datadrivendiscovery/common-primitives.git@{git_commit}#egg=common_primitives'.format(
-                   git_commit=d3m_utils.current_git_commit(os.path.dirname(__file__)),
-               ),
+            'installation': [CYTHON_DEP, {
+                'type': metadata_base.PrimitiveInstallationType.PIP,
+                'package_uri': 'git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=distil-primitives'.format(
+                    git_commit=utils.current_git_commit(os.path.dirname(__file__)),
+                ),
             }],
             'algorithm_types': [
                 metadata_base.PrimitiveAlgorithmType.DATA_CONVERSION,
