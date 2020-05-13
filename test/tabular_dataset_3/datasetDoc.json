@@ -25,7 +25,8 @@
         {
           "colIndex": 1,
           "colName": "prediction",
-          "colType": "categorical"
+          "colType": "categorical",
+          "role": ["attribute"]
         }
       ]
     }

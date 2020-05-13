@@ -46,7 +46,7 @@ class DataFrameSatelliteImageLoaderPrimitiveTestCase(unittest.TestCase):
         result_dataframe = loader.produce(inputs=dataframe).value
 
         # verify the output
-        self.assertListEqual(list(result_dataframe.shape), [1, 8])
+        self.assertListEqual(list(result_dataframe.shape), [2, 8])
         self.assertListEqual(list(result_dataframe.iloc[0, 7].shape), [12, 120, 120])
 
     def test_band_mapping_replace(self) -> None:
@@ -66,7 +66,7 @@ class DataFrameSatelliteImageLoaderPrimitiveTestCase(unittest.TestCase):
         result_dataframe = loader.produce(inputs=dataframe).value
 
         # verify the output
-        self.assertListEqual(list(result_dataframe.shape), [1, 7])
+        self.assertListEqual(list(result_dataframe.shape), [2, 7])
         self.assertListEqual(list(result_dataframe['image_file'][0].shape), [12, 120, 120])
 
 if __name__ == '__main__':

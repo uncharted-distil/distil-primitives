@@ -1,4 +1,5 @@
 import os
+import logging
 
 import frozendict  # type: ignore
 import imageio  # type: ignore
@@ -96,14 +97,14 @@ class DataFrameSatelliteImageLoaderPrimitive(base.FileReaderPrimitiveBase):
         # group by grouping key to get all the images loaded in one row
         grouped_images = inputs_clone.groupby([grouping_name]) \
             .apply(lambda x: self._load_image_group(x[file_column_name], x[band_column_name], base_uri)) \
-            .rename(file_column_name + '_loaded').reset_index(drop=True)
+            .rename(file_column_name).reset_index(drop=True)
         grouped_df = container.DataFrame({file_column_name: grouped_images}, generate_metadata=False)
         grouped_df.metadata = grouped_df.metadata.generate(grouped_df, compact=True)
         grouped_df.metadata = grouped_df.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, 0), 'http://schema.org/ImageObject')
 
         # only keep one row / group from the input
         first_band = list(self._band_order.keys())[0]
-        first_groups = inputs_clone.loc[inputs_clone[band_column_name] == first_band]
+        first_groups = inputs_clone.loc[inputs_clone[band_column_name] == first_band].reset_index(drop=True)
         #joined_df = first_groups.join(grouped_images, on=grouping_name)
 
         outputs = base_utils.combine_columns(first_groups, [column_index], [grouped_df], return_result=self.hyperparams['return_result'], add_index_columns=self.hyperparams['add_index_columns'])

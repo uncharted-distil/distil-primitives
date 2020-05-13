@@ -1,4 +1,5 @@
 import os
+import logging
 import typing
 
 from d3m import container, utils as d3m_utils
@@ -15,11 +16,14 @@ logger = logging.getLogger(__name__)
 Inputs = container.DataFrame
 Outputs = container.DataFrame
 
-class PredictionExpansionPrimitive(construct_predictions.ConstructPredictionsPrimitive[Inputs, Outputs, Hyperparams]):
+class PredictionExpansionPrimitive(construct_predictions.ConstructPredictionsPrimitive):
     """
     A primitive which takes as input a DataFrame and outputs a DataFrame in Lincoln Labs predictions
     format: first column is a d3mIndex column (and other primary index columns, e.g., for object detection
     problem), and then predicted targets, each in its column, followed by optional confidence column(s).
+
+    If the reference dataset has a multi index, the predictions will be expanded to match the reference
+    dataset shape.
 
     It supports both input columns annotated with semantic types (``https://metadata.datadrivendiscovery.org/types/PrimaryKey``,
     ``https://metadata.datadrivendiscovery.org/types/PrimaryMultiKey``, ``https://metadata.datadrivendiscovery.org/types/PredictedTarget``,
@@ -84,9 +88,17 @@ class PredictionExpansionPrimitive(construct_predictions.ConstructPredictionsPri
 
     def _expand_predictions(self, inputs: Inputs, reference: Inputs, index_columns: typing.Sequence[int], target_columns: typing.Sequence[int]) -> Outputs:
         # join the inputs to the reference dataset using the index columns
-        inputs_df.join(result_df.set_index('d3mIndex'), on='d3mIndex')
         if len(index_columns) != 1:
             return inputs
 
         reference_index = reference.metadata.get_index_columns()
-        return reference.join(inputs.set_index(inputs.columns[0]), on=reference.columns(reference_index))
+        if len(reference_index) != 1:
+            return inputs
+
+        # only the index column is needed from the reference dataset since the
+        # rest of the data will come from the inputs
+        reference_base = reference.select_columns(reference_index)
+        output = reference_base.join(inputs.set_index(inputs.columns[0]), on=reference_base.columns[0], rsuffix='predicted')
+        output.metadata = output.metadata.append_columns(inputs.metadata.remove_columns(index_columns))
+
+        return output

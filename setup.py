@@ -77,6 +77,7 @@ setup(
             'data_transformation.data_cleaning.OutputDataframe = distil.primitives.output_dataframe:OutputDataframePrimitive',
             'feature_selection.mutual_info_classif.DistilMIRanking = distil.primitives.mi_ranking:MIRankingPrimitive',
             'data_transformation.list_to_dataframe.DistilListEncoder = distil.primitives.list_to_dataframe:ListEncoderPrimitive',
+            'data_transformation.prediction_expansion.DistilPredictionExpansion = distil.primitives.prediction_expansion:PredictionExpansionPrimitive',
         ],
     }
 )

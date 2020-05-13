@@ -32,11 +32,14 @@ class PredictionExpansionPrimitiveTestCase(unittest.TestCase):
     _dataset_path_multi = path.abspath(path.join(path.dirname(__file__), 'satellite_image_dataset'))
     _dataset_path_single = path.abspath(path.join(path.dirname(__file__), 'tabular_dataset_3'))
 
-    def test_band_mapping_append(self) -> None:
+    def test_prediction_expansion(self) -> None:
         dataset_multi = test_utils.load_dataset(self._dataset_path_multi)
         dataframe_multi = test_utils.get_dataframe(dataset_multi, 'learningData')
+
         dataset_single = test_utils.load_dataset(self._dataset_path_single)
+        dataset_single.metadata = dataset_single.metadata.add_semantic_type(('learningData', metadata_base.ALL_ELEMENTS, 1), 'https://metadata.datadrivendiscovery.org/types/PredictedTarget')
         dataframe_single = test_utils.get_dataframe(dataset_single, 'learningData')
+
 
         hyperparams_class = \
             PredictionExpansionPrimitive.metadata.query()['primitive_code']['class_type_arguments']['Hyperparams']
@@ -45,5 +48,6 @@ class PredictionExpansionPrimitiveTestCase(unittest.TestCase):
         result_dataframe = primitive.produce(inputs=dataframe_single, reference=dataframe_multi).value
 
         # verify the output
-        self.assertListEqual(list(result_dataframe.shape), [1, 8])
-        self.assertListEqual(list(result_dataframe.iloc[0, 7].shape), [12, 120, 120])
+        self.assertListEqual(list(result_dataframe.shape), [24, 2])
+        self.assertEqual(result_dataframe.iloc[0, 1], 'whiskey')
+        self.assertEqual(result_dataframe.iloc[13, 1], 'tango')
