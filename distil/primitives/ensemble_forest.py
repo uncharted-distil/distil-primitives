@@ -76,6 +76,41 @@ class Hyperparams(hyperparams.Hyperparams):
         + "samples",
     )
 
+    n_estimators = hyperparams.UniformInt(
+        lower=1,
+        upper=2048,
+        default=32,
+        description='The number of trees in the forest.',
+        semantic_types=[
+            'https://metadata.datadrivendiscovery.org/types/TuningParameter',
+            'https://metadata.datadrivendiscovery.org/types/ResourcesUseParameter',
+        ],
+    )
+
+    min_samples_leaf = hyperparams.UniformInt(
+        lower=1,
+        upper=31,
+        default=2,
+        description='Minimum number of samples to split leaf',
+        semantic_types=[
+            'https://metadata.datadrivendiscovery.org/types/TuningParameter',
+            'https://metadata.datadrivendiscovery.org/types/ResourcesUseParameter',
+        ],
+    )
+    class_weight = hyperparams.Enumeration[str](
+        values=["None", 'balanced', 'balanced_subsample'],
+        default="None",
+        description='todo',
+        semantic_types=['https://metadata.datadrivendiscovery.org/types/TuningParameter'],
+    )
+
+    estimator = hyperparams.Enumeration[str](
+        values=["ExtraTrees", "RandomForest"],
+        default="ExtraTrees",
+        description='todo',
+        semantic_types=['https://metadata.datadrivendiscovery.org/types/TuningParameter'],
+    )
+
 
 class Params(params.Params):
     pass
@@ -120,7 +155,24 @@ class EnsembleForestPrimitive(
     def __init__(self, *, hyperparams: Hyperparams, random_seed: int = 0) -> None:
 
         super().__init__(hyperparams=hyperparams, random_seed=random_seed)
-        self._model = ForestCV(self.hyperparams["metric"])
+        # hack to get around typing constraints.
+        if self.hyperparams['class_weight'] == "None":
+            class_weight = None
+        else:
+            class_weight = self.hyperparams['class_weight']
+
+        current_hyperparams = {
+            "estimator"        : self.hyperparams['estimator'],
+            "n_estimators"     : self.hyperparams['n_estimators'], #[32, 64, 128, 256, 512, 1024, 2048],
+            "min_samples_leaf" : self.hyperparams['min_samples_leaf'], # '[1, 2, 4, 8, 16, 32],
+        }
+        if self.hyperparams["metric"] in classification_metrics:
+            current_hyperparams.update({"class_weight" : class_weight})
+        else:  # regression
+            current_hyperparams.update({"bootstrap": True})
+
+
+        self._model = ForestCV(self.hyperparams["metric"], hyperparams=current_hyperparams)
         self._needs_fit = True
         self.label_map: Optional[Dict[int, str]] = None
 

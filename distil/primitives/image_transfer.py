@@ -90,7 +90,7 @@ class ImageTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
         super().__init__(hyperparams=hyperparams, random_seed=random_seed, volumes=volumes)
 
         self.volumes = volumes
-        self.img2vec = Img2Vec(model_path=self.volumes["resnet18-5c106cde"])
+        self.img2vec = Img2Vec(model_path=self.volumes["resnet18-5c106cde"], cuda=False)
 
 
     def __getstate__(self) -> dict:
@@ -107,6 +107,7 @@ class ImageTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
 
     def _img_to_vec(self, image_array):
         image_array = image_array.squeeze()
+
         return self.img2vec.get_vec(Image.fromarray(image_array).convert('RGB'))
 
     def _transform_inputs(self, inputs):
