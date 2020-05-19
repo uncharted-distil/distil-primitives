@@ -67,6 +67,7 @@ setup(
             'data_transformation.one_hot_encoder.DistilOneHotEncoder = distil.primitives.one_hot_encoder:OneHotEncoderPrimitive',
             'data_transformation.encoder.DistilBinaryEncoder = distil.primitives.binary_encoder:BinaryEncoderPrimitive',
             'data_transformation.encoder.DistilTextEncoder = distil.primitives.text_encoder:TextEncoderPrimitive',
+            'data_preprocessing.satellite_image_loader.DistilSatelliteImageLoader = distil.primitives.satellite_image_loader:DataFrameSatelliteImageLoaderPrimitive',
             'data_preprocessing.data_cleaning.DistilTimeSeriesFormatter = distil.primitives.time_series_formatter:TimeSeriesFormatterPrimitive',
             'classification.text_classifier.DistilTextClassifier = distil.primitives.text_classifier:TextClassifierPrimitive',
             'feature_extraction.image_transfer.DistilImageTransfer = distil.primitives.image_transfer:ImageTransferPrimitive',
@@ -76,6 +77,7 @@ setup(
             'data_transformation.data_cleaning.OutputDataframe = distil.primitives.output_dataframe:OutputDataframePrimitive',
             'feature_selection.mutual_info_classif.DistilMIRanking = distil.primitives.mi_ranking:MIRankingPrimitive',
             'data_transformation.list_to_dataframe.DistilListEncoder = distil.primitives.list_to_dataframe:ListEncoderPrimitive',
+            'data_transformation.prediction_expansion.DistilPredictionExpansion = distil.primitives.prediction_expansion:PredictionExpansionPrimitive',
         ],
     }
 )

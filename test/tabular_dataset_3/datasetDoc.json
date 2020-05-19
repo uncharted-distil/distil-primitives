@@ -24,32 +24,8 @@
         },
         {
           "colIndex": 1,
-          "colName": "alpha",
+          "colName": "prediction",
           "colType": "categorical",
-          "role": ["attribute"]
-        },
-        {
-          "colIndex": 2,
-          "colName": "bravo",
-          "colType": "real",
-          "role": ["attribute"]
-        },
-        {
-          "colIndex": 3,
-          "colName": "charlie",
-          "colType": "boolean",
-          "role": ["attribute"]
-        },
-        {
-          "colIndex": 4,
-          "colName": "delta",
-          "colType": "string",
-          "role": ["attribute"]
-        },
-        {
-          "colIndex": 5,
-          "colName": "echo",
-          "colType": "integer",
           "role": ["attribute"]
         }
       ]

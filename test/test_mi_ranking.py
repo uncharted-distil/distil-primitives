@@ -111,7 +111,7 @@ class MIRankingPrimitiveTestCase(unittest.TestCase):
 
         # load the dataset and convert resource 0 to a dataframe
         dataset = container.Dataset.load('file://{dataset_doc_path}'.format(dataset_doc_path=dataset_doc_path))
-        dataframe = dataset['0']
+        dataframe = dataset['learningData']
         dataframe.metadata = dataframe.metadata.generate(dataframe)
 
         # set the struct type
