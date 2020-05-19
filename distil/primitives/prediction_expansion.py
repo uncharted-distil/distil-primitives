@@ -10,6 +10,8 @@ from d3m.contrib.primitives import compute_scores
 import common_primitives
 from common_primitives import construct_predictions
 
+from distil.utils import CYTHON_DEP
+
 __all__ = ('PredictionExpansionPrimitive',)
 logger = logging.getLogger(__name__)
 
@@ -50,7 +52,7 @@ class PredictionExpansionPrimitive(construct_predictions.ConstructPredictionsPri
             'installation': [CYTHON_DEP, {
                 'type': metadata_base.PrimitiveInstallationType.PIP,
                 'package_uri': 'git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=distil-primitives'.format(
-                    git_commit=utils.current_git_commit(os.path.dirname(__file__)),
+                    git_commit=d3m_utils.current_git_commit(os.path.dirname(__file__)),
                 ),
             }],
             'algorithm_types': [
