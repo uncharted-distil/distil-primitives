@@ -168,6 +168,14 @@ class EnsembleForestPrimitive(
             factor = pd.factorize(outputs[col])
             outputs = pd.DataFrame(factor[0], columns=[col])
             self.label_map = {k: v for k, v in enumerate(factor[1])}
+
+        # drop all non-numeric columns
+        num_cols = outputs.shape[1]
+        self._outputs = outputs.select_dtypes(include='number')
+        col_diff = num_cols - self._output.shape[1]
+        if col_diff > 0:
+            logger.warn(f"Removed {col_diff} unencoded columns.")
+
         # remove nans from outputs, apply changes to inputs as well to ensure alignment
         self._outputs = outputs[
             outputs[col] != ""
@@ -181,6 +189,7 @@ class EnsembleForestPrimitive(
 
         # same in other direction
         inputs_rows = self._inputs.shape[0]
+        self._inputs = self._inputs.select_dtypes(include='number')
         self._inputs = (
             self._inputs.dropna()
         )  # not in place because because selection above doesn't create a copy
@@ -199,6 +208,7 @@ class EnsembleForestPrimitive(
 
     def fit(self, *, timeout: float = None, iterations: int = None) -> CallResult[None]:
         logger.debug(f"Fitting {__name__}")
+
         if self._needs_fit:
             self._model.fit(self._inputs.values, self._outputs.values)
             self._needs_fit = False
