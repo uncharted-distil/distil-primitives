@@ -172,7 +172,7 @@ class EnsembleForestPrimitive(
         # drop all non-numeric columns
         num_cols = outputs.shape[1]
         self._outputs = outputs.select_dtypes(include='number')
-        col_diff = num_cols - self._output.shape[1]
+        col_diff = num_cols - self._outputs.shape[1]
         if col_diff > 0:
             logger.warn(f"Removed {col_diff} unencoded columns.")
 
