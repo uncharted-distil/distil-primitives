@@ -84,6 +84,8 @@ class TextEncoderPrimitive(base.PrimitiveBase[Inputs, Outputs, Params, Hyperpara
                  hyperparams: Hyperparams,
                  random_seed: int = 0) -> None:
         super().__init__(hyperparams=hyperparams, random_seed=random_seed)
+        self._encoders: List[SVMTextEncoder] = []
+        self._cols: List[int] = []
 
     def __getstate__(self) -> dict:
         state = base.PrimitiveBase.__getstate__(self)
@@ -114,7 +116,6 @@ class TextEncoderPrimitive(base.PrimitiveBase[Inputs, Outputs, Params, Hyperpara
 
         self._cols = list(cols)
         self._encoders: List[SVMTextEncoder] = []
-        self._encoder: None
         if len(cols) is 0:
             return base.CallResult(None)
 
