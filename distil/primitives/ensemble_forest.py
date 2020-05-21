@@ -120,7 +120,7 @@ class EnsembleForestPrimitive(
     def __init__(self, *, hyperparams: Hyperparams, random_seed: int = 0) -> None:
 
         super().__init__(hyperparams=hyperparams, random_seed=random_seed)
-        self._model = ForestCV(self.hyperparams["metric"])
+        self._model = ForestCV(self.hyperparams["metric"], self.random_seed)
         self._needs_fit = True
         self.label_map: Optional[Dict[int, str]] = None
 
@@ -227,6 +227,14 @@ class EnsembleForestPrimitive(
         # force a fit it hasn't yet been done
         if self._needs_fit:
             self.fit()
+
+        # drop any non-numeric columns
+         # drop all non-numeric columns
+        num_cols = inputs.shape[1]
+        inputs = inputs.select_dtypes(include='number')
+        col_diff = num_cols - inputs.shape[1]
+        if col_diff > 0:
+            logger.warn(f"Removed {col_diff} unencoded columns.")
 
         # create dataframe to hold the result
         result = self._model.predict(inputs.values)

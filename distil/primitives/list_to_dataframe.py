@@ -65,6 +65,8 @@ class ListEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBas
                  hyperparams: Hyperparams,
                  random_seed: int = 0) -> None:
         super().__init__(hyperparams=hyperparams, random_seed=random_seed)
+        self._encoder = None
+        self._cols = []
 
     def __getstate__(self) -> dict:
         state = base.PrimitiveBase.__getstate__(self)
@@ -86,8 +88,7 @@ class ListEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBas
         # figure out columns to operate on
         cols = list(range(len(self._inputs.columns)))
         if len(self.hyperparams['use_columns']) > 0:
-            cols = list(set(cols) & self.hyperparams['use_columns'])
-
+            cols = list(set(cols) & set(self.hyperparams['use_columns']))
         filtered_cols: List[int] = []
         for c in cols:
             is_list = type(self._inputs.iloc[0, c]) == container.numpy.ndarray

@@ -108,7 +108,7 @@ class BinaryEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
         # add the binary encoded columns and remove the source
         self._encoders: List[BinaryEncoder] = []
         for c in self._cols:
-            encoder = BinaryEncoder()
+            encoder = BinaryEncoder(self.random_seed)
             categorical_inputs = self._inputs.iloc[:,c]
             encoder.fit(categorical_inputs)
             self._encoders.append(encoder)
