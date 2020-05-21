@@ -133,7 +133,7 @@ class ForestCV(DistilBaseModel):
             oob_score=True,
             n_jobs=self.inner_jobs,
             **params,
-            random_state=self.random_seed)
+            random_state=self.random_seed
         )
 
         model       = model.fit(X, y)
