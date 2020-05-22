@@ -90,8 +90,6 @@ class ImageTransferPrimitive(transformer.TransformerPrimitiveBase[container.Data
         df = pd.DataFrame(result['image_vec'].values.tolist())
         df.columns = ['v{}'.format(i) for i in range(0, df.shape[1])]
 
-        print(df)
-
         return container.DataFrame(df, generate_metadata=True)
 
     def produce(self, *, inputs: container.DataFrame, timeout: float = None, iterations: int = None) -> CallResult[container.DataFrame]:
@@ -102,7 +100,7 @@ class ImageTransferPrimitive(transformer.TransformerPrimitiveBase[container.Data
             raise ValueError(f'no volume information found for {VOLUME_KEY}')
 
         if self._img2vec is None:
-            logger.info('Loading pre-trained model from {model_path}')
+            logger.info(f'Loading pre-trained model from {model_path}')
             self._img2vec = Img2Vec(model_path)
 
         return base.CallResult(self._transform_inputs(inputs))
