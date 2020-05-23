@@ -1,5 +1,5 @@
 import os
-from typing import List, Set, Any, Sequence
+from typing import List, Set, Any, Sequence, Optional
 import logging
 
 from d3m import container, utils
@@ -35,7 +35,7 @@ class Hyperparams(hyperparams.Hyperparams):
     )
 
 class Params(params.Params):
-    encoder: preprocessing.OneHotEncoder
+    encoder: Optional[preprocessing.OneHotEncoder]
     cols: List[int]
 
 class OneHotEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBase[container.DataFrame, container.DataFrame, Params, Hyperparams]):
@@ -75,6 +75,8 @@ class OneHotEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
                  hyperparams: Hyperparams,
                  random_seed: int = 0) -> None:
         super().__init__(hyperparams=hyperparams, random_seed=random_seed)
+        self._encoder: Optional[preprocessing.OneHotEncoder] = None
+        self._cols: List[int] = []
 
     def set_training_data(self, *, inputs: container.DataFrame) -> None:
         self._inputs = inputs
@@ -107,7 +109,8 @@ class OneHotEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
     def produce(self, *, inputs: container.DataFrame, timeout: float = None, iterations: int = None) -> base.CallResult[container.DataFrame]:
         logger.debug(f'Producing {__name__}')
 
-        if len(self._cols) == 0:
+        # fallthrough if there's nothing to do
+        if len(self._cols) == 0 or self._encoder is None:
             return base.CallResult(inputs)
 
         # map encoded cols to source column names

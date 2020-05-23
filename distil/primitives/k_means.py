@@ -1,6 +1,6 @@
 import os
 import logging
-
+from typing import List
 from d3m import container, utils
 from d3m.metadata import base as metadata_base, hyperparams, params
 from d3m.primitive_interfaces import unsupervised_learning, transformer, base
@@ -40,7 +40,7 @@ class Hyperparams(hyperparams.Hyperparams):
 
 
 class Params(params.Params):
-    pass
+    columns: List[int]
 
 class KMeansPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBase[container.DataFrame, container.DataFrame, Params, Hyperparams]):
     """
@@ -80,15 +80,6 @@ class KMeansPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBase[con
                  random_seed: int = 0) -> None:
         super().__init__(hyperparams=hyperparams, random_seed=random_seed)
 
-    def __getstate__(self) -> dict:
-        state = base.PrimitiveBase.__getstate__(self)
-        state['columns'] = self._cols
-        return state
-
-    def __setstate__(self, state: dict) -> None:
-        base.PrimitiveBase.__setstate__(self, state)
-        self._cols = state['columns']
-
     def set_training_data(self, *, inputs: container.DataFrame) -> None:
         self._inputs = inputs
 
@@ -107,7 +98,7 @@ class KMeansPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBase[con
             return base.CallResult(inputs)
 
         numerical_inputs = inputs.iloc[:,self._cols]
-        k_means = KMeans(n_clusters = self.hyperparams['n_clusters'])
+        k_means = KMeans(n_clusters = self.hyperparams['n_clusters'], random_state=self.random_seed)
         result = k_means.fit_predict(numerical_inputs)
         result_df = container.DataFrame({self.hyperparams['cluster_col_name']: result}, generate_metadata=True)
         result_df.metadata = result_df.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, 0), 'https://metadata.datadrivendiscovery.org/types/PredictedTarget')
@@ -115,7 +106,10 @@ class KMeansPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBase[con
         return base.CallResult(result_df)
 
     def get_params(self) -> Params:
-        return Params()
+        return Params(
+            columns=self._cols
+        )
 
     def set_params(self, *, params: Params) -> None:
+        self._cols=params['columns']
         return
