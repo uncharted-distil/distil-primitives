@@ -4,11 +4,12 @@ import logging
 import frozendict  # type: ignore
 import imageio  # type: ignore
 import numpy as np  # type: ignore
+from typing import List
 
 from PIL import Image
 
 from d3m import container, utils as utils
-from d3m.base import utils as base_utils
+from d3m.base import utils as base_utils, primitives
 from d3m.metadata import base as metadata_base, hyperparams
 from d3m.primitive_interfaces import base as base_prim
 
@@ -20,7 +21,7 @@ from distil.primitives import utils as distil_utils
 
 logger = logging.getLogger(__name__)
 
-class DataFrameSatelliteImageLoaderPrimitive(base.FileReaderPrimitiveBase):
+class DataFrameSatelliteImageLoaderPrimitive(primitives.FileReaderPrimitiveBase):
     """
     A primitive which reads columns referencing satellite image files, where each file is for a single band.
 

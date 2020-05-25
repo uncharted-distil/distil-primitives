@@ -26,17 +26,20 @@ from d3m.metadata import base as metadata_base
 
 from distil.primitives.satellite_image_loader import DataFrameSatelliteImageLoaderPrimitive
 import utils as test_utils
+import pathlib
+import os
 
 class DataFrameSatelliteImageLoaderPrimitiveTestCase(unittest.TestCase):
 
     _dataset_path = path.abspath(path.join(path.dirname(__file__), 'satellite_image_dataset'))
+    _media_path = pathlib.Path(path.abspath(path.join(path.dirname(__file__), 'satellite_image_dataset', "media", ""))).as_uri() + os.sep #pathlib strips trailing slash
 
     def test_band_mapping_append(self) -> None:
         dataset = test_utils.load_dataset(self._dataset_path)
         dataset.metadata = dataset.metadata.add_semantic_type(('learningData', metadata_base.ALL_ELEMENTS, 2), 'https://metadata.datadrivendiscovery.org/types/GroupingKey')
         dataset.metadata = dataset.metadata.add_semantic_type(('learningData', metadata_base.ALL_ELEMENTS, 1), 'https://metadata.datadrivendiscovery.org/types/FileName')
-        dataset.metadata = dataset.metadata.update(('0', ), {'location_base_uris': 'file:///home/ubuntu/git-projects/distil-primitives/test/satellite_image_dataset/media/'})
-        dataset.metadata = dataset.metadata.update(('learningData', metadata_base.ALL_ELEMENTS, 1), {'location_base_uris': ['file:///home/ubuntu/git-projects/distil-primitives/test/satellite_image_dataset/media/']})
+        dataset.metadata = dataset.metadata.update(('0', ), {'location_base_uris': self._media_path})
+        dataset.metadata = dataset.metadata.update(('learningData', metadata_base.ALL_ELEMENTS, 1), {'location_base_uris': [self._media_path]})
         dataframe = test_utils.get_dataframe(dataset, 'learningData')
 
         hyperparams_class = \
@@ -53,8 +56,8 @@ class DataFrameSatelliteImageLoaderPrimitiveTestCase(unittest.TestCase):
         dataset = test_utils.load_dataset(self._dataset_path)
         dataset.metadata = dataset.metadata.add_semantic_type(('learningData', metadata_base.ALL_ELEMENTS, 2), 'https://metadata.datadrivendiscovery.org/types/GroupingKey')
         dataset.metadata = dataset.metadata.add_semantic_type(('learningData', metadata_base.ALL_ELEMENTS, 1), 'https://metadata.datadrivendiscovery.org/types/FileName')
-        dataset.metadata = dataset.metadata.update(('0', ), {'location_base_uris': 'file:///home/ubuntu/git-projects/distil-primitives/test/satellite_image_dataset/media/'})
-        dataset.metadata = dataset.metadata.update(('learningData', metadata_base.ALL_ELEMENTS, 1), {'location_base_uris': ['file:///home/ubuntu/git-projects/distil-primitives/test/satellite_image_dataset/media/']})
+        dataset.metadata = dataset.metadata.update(('0', ), {'location_base_uris': self._media_path})
+        dataset.metadata = dataset.metadata.update(('learningData', metadata_base.ALL_ELEMENTS, 1), {'location_base_uris': [self._media_path]})
         dataframe = test_utils.get_dataframe(dataset, 'learningData')
 
         hyperparams_class = \

@@ -79,7 +79,7 @@ class ForestCV(DistilBaseModel):
     }
 
     def __init__(self, target_metric, subset=100000, final_subset=1500000,
-        verbose=10, num_fits=1, inner_jobs=1, param_grid=None):
+        verbose=10, num_fits=1, inner_jobs=1, param_grid=None, random_seed=None):
 
         self.target_metric = target_metric
 
@@ -96,6 +96,7 @@ class ForestCV(DistilBaseModel):
         self.num_fits     = num_fits
         self.inner_jobs   = inner_jobs
         self.outer_jobs   = 64
+        self.random_seed = random_seed
 
         if param_grid is not None:
             self.param_grid = param_grid
@@ -131,7 +132,8 @@ class ForestCV(DistilBaseModel):
             mode=self.mode,
             oob_score=True,
             n_jobs=self.inner_jobs,
-            **params
+            **params,
+            random_state=self.random_seed
         )
 
         model       = model.fit(X, y)
@@ -154,7 +156,7 @@ class ForestCV(DistilBaseModel):
 
         # Refit best model, possibly on more data
         X, y  = maybe_subset(Xf_train, y_train, n=self.final_subset)
-        model = AnyForest(mode=self.mode, n_jobs=self.outer_jobs, **self.best_params)
+        model = AnyForest(mode=self.mode, n_jobs=self.outer_jobs, random_state=self.random_seed, **self.best_params)
         model = model.fit(X, y)
 
         return model

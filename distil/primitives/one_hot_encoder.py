@@ -1,5 +1,5 @@
 import os
-from typing import List, Set, Any, Sequence
+from typing import List, Set, Any, Sequence, Optional
 import logging
 
 from d3m import container, utils
@@ -35,7 +35,8 @@ class Hyperparams(hyperparams.Hyperparams):
     )
 
 class Params(params.Params):
-    pass
+    encoder: Optional[preprocessing.OneHotEncoder]
+    cols: List[int]
 
 class OneHotEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBase[container.DataFrame, container.DataFrame, Params, Hyperparams]):
     """
@@ -74,17 +75,8 @@ class OneHotEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
                  hyperparams: Hyperparams,
                  random_seed: int = 0) -> None:
         super().__init__(hyperparams=hyperparams, random_seed=random_seed)
-
-    def __getstate__(self) -> dict:
-        state = base.PrimitiveBase.__getstate__(self)
-        state['models'] = self._encoder
-        state['columns'] = self._cols
-        return state
-
-    def __setstate__(self, state: dict) -> None:
-        base.PrimitiveBase.__setstate__(self, state)
-        self._encoder = state['models']
-        self._cols = state['columns']
+        self._encoder: Optional[preprocessing.OneHotEncoder] = None
+        self._cols: List[int] = []
 
     def set_training_data(self, *, inputs: container.DataFrame) -> None:
         self._inputs = inputs
@@ -117,7 +109,8 @@ class OneHotEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
     def produce(self, *, inputs: container.DataFrame, timeout: float = None, iterations: int = None) -> base.CallResult[container.DataFrame]:
         logger.debug(f'Producing {__name__}')
 
-        if len(self._cols) == 0:
+        # fallthrough if there's nothing to do
+        if len(self._cols) == 0 or self._encoder is None:
             return base.CallResult(inputs)
 
         # map encoded cols to source column names
@@ -158,14 +151,12 @@ class OneHotEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
         return base.CallResult(outputs)
 
     def get_params(self) -> Params:
-        return Params()
+        return Params(
+            encoder = self._encoder,
+            cols = self._cols
+        )
 
     def set_params(self, *, params: Params) -> None:
+        self._encoder = params['encoder']
+        self._cols = params['cols']
         return
-
-    @classmethod
-    def _detect_text(cls, X: container.DataFrame, thresh: int = 8) -> bool:
-        """ returns true if median entry has more than `thresh` tokens"""
-        X = X[X.notnull()]
-        n_toks = X.apply(lambda xx: len(str(xx).split(' '))).values
-        return np.median(n_toks) >= thresh

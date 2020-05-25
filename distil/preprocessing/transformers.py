@@ -16,13 +16,16 @@ from distil.modeling.metrics import metrics, classification_metrics, regression_
 # Categorical
 
 class BinaryEncoder(BaseEstimator, TransformerMixin):
-    def __init__(self):
+    def __init__(self, random_seed = None):
         super().__init__()
         self.lookup = None
+        self.random_seed = random_seed if random_seed is not None else int(np.random.randint)
 
     def fit(self, X):
         levels = list(set(X.squeeze())) + [MISSING_VALUE_INDICATOR] # !! How to sort? Randomly? Alphabetically?
-        levels = np.random.permutation(levels)
+        # use th
+        random_state = np.random.RandomState(self.random_seed)
+        levels = random_state.permutation(levels)
 
         vals      = range(len(levels))
         max_width = len(np.binary_repr(max(vals)))

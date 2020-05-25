@@ -70,7 +70,8 @@ class ReplaceSingletonsPrimitive(transformer.TransformerPrimitiveBase[container.
             vcs = pd.value_counts(list(inputs.iloc[:,c]))
             singletons = set(vcs[vcs == 1].index)
             if singletons:
-                outputs.iloc[:,c][outputs.iloc[:,c].isin(singletons)] = SINGLETON_INDICATOR
+                mask = outputs.iloc[:,c].isin(singletons)
+                outputs.loc[mask, outputs.columns[c]] = SINGLETON_INDICATOR
 
         logger.debug(f'\n{outputs}')
 
