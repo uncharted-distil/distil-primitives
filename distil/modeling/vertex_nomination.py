@@ -11,20 +11,20 @@ from .metrics import metrics, classification_metrics
 
 
 class VertexNominationCV(DistilBaseModel):
-    
-    def __init__(self, target_metric, num_components=8):
+
+    def __init__(self, target_metric, num_components=8,random_seed=None):
         self.target_metric  = target_metric
         self.num_components = num_components
-        
+        self._random_seed = random_seed
         self.feats = None
-    
+
     def fit(self, X_train, y_train, U_train=None):
         graph = U_train['graph']
         X_train = X_train.copy()
         assert X_train.shape[1] == 1
-        
+
         X_train.columns = ('nodeID',)
-        
+
         # --
         # Featurize
 
@@ -33,20 +33,20 @@ class VertexNominationCV(DistilBaseModel):
         U, _, _ = linalg.svds(adj, k=self.num_components)
 
         self.feats = pd.DataFrame(np.hstack([df.values, U])).set_index(df.index)
-        
+
         Xf_train = self.feats.loc[X_train.nodeID].values
-        
+
         # --
         # Choose the best model
-        
+
         print('VertexNominationCV: ForestCV', file=sys.stderr)
         forest = False
         try:
-            forest = ForestCV(target_metric=self.target_metric)
+            forest = ForestCV(target_metric=self.target_metric,random_seed=self._random_seed)
             forest = forest.fit(Xf_train, y_train)
         except:
             pass
-        
+
         print('VertexNominationCV: SupportVectorCV', file=sys.stderr)
         svm = False
         try:
@@ -58,15 +58,15 @@ class VertexNominationCV(DistilBaseModel):
         self.model        = forest
         self.best_params  = forest.best_params
         self.best_fitness = forest.best_fitness
-        
+
         if hasattr(svm, 'best_fitness'):
             if (svm.best_fitness > forest.best_fitness):
                 self.model       = svm.model
                 self.best_params = svm.best_params
                 self.score_cv    = svm.best_fitness
-        
+
         return self
-    
+
     def predict(self, X, U):
         # X = X.copy()
         # assert X.shape[1] == 1
