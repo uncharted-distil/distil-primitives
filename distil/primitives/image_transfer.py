@@ -7,6 +7,7 @@ from d3m.metadata import base as metadata_base, hyperparams, params
 from d3m.primitive_interfaces import base, transformer
 from d3m.primitive_interfaces.supervised_learning import PrimitiveBase
 from d3m.primitive_interfaces.base import CallResult
+from d3m.primitive_interfaces import unsupervised_learning
 import pandas as pd
 import numpy as np
 from PIL import Image
@@ -23,7 +24,10 @@ VOLUME_KEY = 'resnet18-5c106cde'
 class Hyperparams(hyperparams.Hyperparams):
     pass
 
-class ImageTransferPrimitive(transformer.TransformerPrimitiveBase[container.DataFrame, container.DataFrame, Hyperparams]):
+class Params(params.Params):
+    model: Img2Vec
+
+class ImageTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBase[container.DataFrame, container.DataFrame, Params, Hyperparams]):
     """
     A primitive that converts an input image to a vector of 512 numerical features.
     """
@@ -92,9 +96,10 @@ class ImageTransferPrimitive(transformer.TransformerPrimitiveBase[container.Data
 
         return container.DataFrame(df, generate_metadata=True)
 
-    def produce(self, *, inputs: container.DataFrame, timeout: float = None, iterations: int = None) -> CallResult[container.DataFrame]:
-        logger.debug(f'Producing {__name__}')
+    def set_training_data(self, *, inputs: container.DataFrame) -> None:
+        pass
 
+    def fit(self, *, timeout: float = None, iterations: int = None) -> base.CallResult[None]:
         model_path = self._volumes[VOLUME_KEY]
         if model_path is None:
             raise ValueError(f'no volume information found for {VOLUME_KEY}')
@@ -102,6 +107,18 @@ class ImageTransferPrimitive(transformer.TransformerPrimitiveBase[container.Data
         if self._img2vec is None:
             logger.info(f'Loading pre-trained model from {model_path}')
             self._img2vec = Img2Vec(model_path)
+            logger.info(f'Finished loading pre-trained model')
+        return base.CallResult(None)
 
+    def produce(self, *, inputs: container.DataFrame, timeout: float = None, iterations: int = None) -> CallResult[container.DataFrame]:
+        logger.debug(f'Producing {__name__}')
         return base.CallResult(self._transform_inputs(inputs))
 
+    def get_params(self) -> Params:
+        return Params(
+            model=self._img2vec
+        )
+
+    def set_params(self, *, params: Params) -> None:
+        self._img2vec=params['model']
+        return
