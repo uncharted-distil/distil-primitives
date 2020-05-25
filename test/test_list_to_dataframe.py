@@ -59,6 +59,30 @@ class ListEncoderPrimitiveTestCase(unittest.TestCase):
         result = encoder.produce(inputs=dataframe).value
         self._assert_result(result)
 
+    def test_get_set_params(self) -> None:
+        # load test data into a dataframe
+        dataset = test_utils.load_dataset(self._dataset_path)
+        dataframe = test_utils.get_dataframe(dataset, 'learningData')
+        dataframe = ListEncoderPrimitiveTestCase._convert_lists(dataframe)
+
+        # create the imputer
+        # create the imputer
+        hyperparams_class = \
+            ListEncoderPrimitive.metadata.query()['primitive_code']['class_type_arguments']['Hyperparams']
+        encoder = ListEncoderPrimitive(hyperparams=hyperparams_class.defaults().replace({"use_columns": [1, 2]}))
+        encoder.set_training_data(inputs=dataframe)
+        encoder.fit()
+
+        hyperparams = encoder.hyperparams
+        params = encoder.get_params()
+        encoder = ListEncoderPrimitive(hyperparams=hyperparams)
+        encoder.set_params(params=params)
+
+        result = encoder.produce(inputs=dataframe).value
+        print(result)
+
+        self._assert_result(result)
+
     def _assert_result(self, result: container.DataFrame) -> None:
         self.assertEqual(result['bravo_0'].iloc[0], 1)
         self.assertEqual(result['bravo_1'].iloc[0], 2)
