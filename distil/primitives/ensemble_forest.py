@@ -153,7 +153,6 @@ class EnsembleForestPrimitive(
     def __init__(self, *, hyperparams: Hyperparams, random_seed: int = 0) -> None:
 
         super().__init__(hyperparams=hyperparams, random_seed=random_seed)
-<<<<<<< HEAD
         # hack to get around typing constraints.
         if self.hyperparams['class_weight'] == "None":
             class_weight = None
@@ -171,9 +170,10 @@ class EnsembleForestPrimitive(
             current_hyperparams.update({"bootstrap": True})
 
 
-        self._model = ForestCV(self.hyperparams["metric"], hyperparams=current_hyperparams)
+        self._model = ForestCV(self.hyperparams["metric"], self.random_seed, hyperparams=current_hyperparams)
         self._needs_fit = True
         self.label_map: Optional[Dict[int, str]] = None
+        self._target_cols: List[str] = []
 
     def __getstate__(self) -> dict:
         state = PrimitiveBase.__getstate__(self)
@@ -184,11 +184,6 @@ class EnsembleForestPrimitive(
     def __setstate__(self, state: dict) -> None:
         PrimitiveBase.__setstate__(self, state)
         self._model = state["models"]
-=======
-        self._model = ForestCV(self.hyperparams["metric"], self.random_seed)
-        self._label_map: Dict[int, str] = {}
-        self._target_cols: List[str] = []
->>>>>>> master
         self._needs_fit = True
 
     def _get_component_columns(

@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import Optional, List
+from typing import List
 
 import pandas as pd
 from d3m import container, utils

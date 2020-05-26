@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import Optional, List, Union, Any
+from typing import Optional, List, Any
 
 from d3m import container, utils
 from d3m.metadata import base as metadata_base, hyperparams, params

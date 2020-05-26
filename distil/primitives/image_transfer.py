@@ -6,16 +6,9 @@ import pandas as pd
 from PIL import Image
 from d3m import container, utils
 from d3m.metadata import base as metadata_base, hyperparams, params
-
-from d3m.primitive_interfaces import base, transformer
-from d3m.primitive_interfaces.supervised_learning import PrimitiveBase
-from d3m.primitive_interfaces.base import CallResult
+from d3m.primitive_interfaces import base
 from d3m.primitive_interfaces import unsupervised_learning
-import pandas as pd
-import numpy as np
-from PIL import Image
-
-from distil.utils import Img2Vec
+from d3m.primitive_interfaces.base import CallResult
 from distil.utils import CYTHON_DEP
 from distil.utils import Img2Vec
 

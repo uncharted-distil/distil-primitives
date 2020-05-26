@@ -1,8 +1,3 @@
-<<<<<<< HEAD
-=======
-import os
-from typing import List, Set, Any, Sequence, Optional
->>>>>>> master
 import logging
 import os
 from typing import List
@@ -36,13 +31,9 @@ class Hyperparams(hyperparams.Hyperparams):
     )
 
 class Params(params.Params):
-<<<<<<< HEAD
-    _cols: Optional[List[int]]
-    _encoder: Optional[preprocessing.OneHotEncoder]
-=======
     encoder: Optional[preprocessing.OneHotEncoder]
     cols: List[int]
->>>>>>> master
+
 
 class OneHotEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBase[container.DataFrame, container.DataFrame, Params, Hyperparams]):
     """

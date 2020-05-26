@@ -1,13 +1,6 @@
 import logging
-<<<<<<< HEAD
 import os
-from typing import Dict, Any, Optional
-from typing import Tuple
-=======
-from typing import List, Tuple, Mapping, Dict, Any
-from collections import defaultdict
-import random
->>>>>>> master
+from typing import Tuple, Dict, Any
 
 import numpy as np
 import torch

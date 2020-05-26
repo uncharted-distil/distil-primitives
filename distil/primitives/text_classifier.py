@@ -1,14 +1,12 @@
 import logging
 import os
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 
-import numpy as np
 import pandas as pd
 from d3m import container, utils
 from d3m.metadata import base as metadata_base, hyperparams, params
 from d3m.primitive_interfaces import base
 from d3m.primitive_interfaces.base import CallResult
-from d3m.primitive_interfaces.supervised_learning import PrimitiveBase
 from distil.modeling.metrics import classification_metrics, regression_metrics
 from distil.modeling.text_classification import TextClassifierCV
 from distil.utils import CYTHON_DEP
@@ -30,14 +28,10 @@ class Hyperparams(hyperparams.Hyperparams):
 
 
 class Params(params.Params):
-<<<<<<< HEAD
-    _models: Optional[TextClassifierCV]
-    _grid: Optional[Dict]
-=======
     model: TextClassifierCV
     label_map: Dict[int, str]
     target_col_names: List[str]
->>>>>>> master
+
 
 
 class TextClassifierPrimitive(base.PrimitiveBase[container.DataFrame, container.DataFrame, Params, Hyperparams]):

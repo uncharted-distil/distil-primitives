@@ -1,17 +1,14 @@
 import logging
-
 import os
-
-import numpy as np
 from typing import List
 
+import numpy as np
 from d3m import container, utils
 from d3m.metadata import base as metadata_base, hyperparams, params
 from d3m.primitive_interfaces import unsupervised_learning, base
 from distil.primitives import utils as distil_utils
 from distil.utils import CYTHON_DEP
 from sklearn.cluster import KMeans
-from typing import Optional, List
 
 logger = logging.getLogger(__name__)
 

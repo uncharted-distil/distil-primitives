@@ -8,7 +8,6 @@ from d3m.primitive_interfaces.base import CallResult
 from d3m.primitive_interfaces.supervised_learning import PrimitiveBase
 from distil.modeling.vertex_nomination import VertexNominationCV
 from distil.utils import CYTHON_DEP
-from typing import Optional
 
 __all__ = ('VertexNomination',)
 

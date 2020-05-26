@@ -4,18 +4,11 @@ import os
 import frozendict  # type: ignore
 import imageio  # type: ignore
 import numpy as np  # type: ignore
-from typing import List
-
 from PIL import Image
 from common_primitives import base
 from d3m import container, utils as utils
-
-from d3m.base import utils as base_utils
-from d3m.metadata import base as metadata_base
-
 from d3m.base import utils as base_utils, primitives
-from d3m.metadata import base as metadata_base, hyperparams
-
+from d3m.metadata import base as metadata_base
 from d3m.primitive_interfaces import base as base_prim
 from distil.primitives import utils as distil_utils
 from distil.utils import CYTHON_DEP
