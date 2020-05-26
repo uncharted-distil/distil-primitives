@@ -23,7 +23,8 @@ class Hyperparams(hyperparams.Hyperparams):
 
 
 class Params(params.Params):
-    _cols: Optional[List[int]]
+    columns: List[int]
+
 
 
 class ListEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBase[
@@ -64,17 +65,8 @@ class ListEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBas
                  hyperparams: Hyperparams,
                  random_seed: int = 0) -> None:
         super().__init__(hyperparams=hyperparams, random_seed=random_seed)
+        self._cols: List[int] = []
 
-    # def __getstate__(self) -> dict:
-    #     state = base.PrimitiveBase.__getstate__(self)
-    #     state['models'] = self._encoder
-    #     state['columns'] = self._cols
-    #     return state
-    #
-    # def __setstate__(self, state: dict) -> None:
-    #     base.PrimitiveBase.__setstate__(self, state)
-    #     self._encoder = state['models']
-    #     self._cols = state['columns']
 
     def set_training_data(self, *, inputs: container.DataFrame) -> None:
         self._inputs = inputs
@@ -85,8 +77,7 @@ class ListEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBas
         # figure out columns to operate on
         cols = list(range(len(self._inputs.columns)))
         if len(self.hyperparams['use_columns']) > 0:
-            cols = list(set(cols) & self.hyperparams['use_columns'])
-
+            cols = list(set(cols) & set(self.hyperparams['use_columns']))
         filtered_cols: List[int] = []
         for c in cols:
             is_list = type(self._inputs.iloc[0, c]) == container.numpy.ndarray
@@ -96,6 +87,8 @@ class ListEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBas
         logger.debug(f'Found {len(filtered_cols)} columns to encode')
 
         self._cols = list(filtered_cols)
+        if len(self._cols) is 0:
+            return base.CallResult(None)
 
         return base.CallResult(None)
 
@@ -134,8 +127,11 @@ class ListEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBas
         return base.CallResult(outputs)
 
     def get_params(self) -> Params:
-        return Params(_cols = self._cols)
+        return Params(
+            columns=self._cols
+        )
 
     def set_params(self, *, params: Params) -> None:
-        self._cols = params['_cols']
+        self._cols=params['columns']
+        return
 

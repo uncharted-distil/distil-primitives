@@ -19,12 +19,6 @@ logger = logging.getLogger(__name__)
 
 
 class Hyperparams(hyperparams.Hyperparams):
-    use_columns = hyperparams.Set(
-        elements=hyperparams.Hyperparameter[int](-1),
-        default=(),
-        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
-        description="A set of column indices to force primitive to operate on. If any specified column cannot be parsed, it is skipped.",
-    )
     metric = hyperparams.Hyperparameter[str](
         default='f1',
         semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter']
@@ -36,8 +30,14 @@ class Hyperparams(hyperparams.Hyperparams):
 
 
 class Params(params.Params):
+<<<<<<< HEAD
     _models: Optional[TextClassifierCV]
     _grid: Optional[Dict]
+=======
+    model: TextClassifierCV
+    label_map: Dict[int, str]
+    target_col_names: List[str]
+>>>>>>> master
 
 
 class TextClassifierPrimitive(base.PrimitiveBase[container.DataFrame, container.DataFrame, Params, Hyperparams]):
@@ -74,52 +74,28 @@ class TextClassifierPrimitive(base.PrimitiveBase[container.DataFrame, container.
         },
     )
 
-    _FAST_GRIDS = {
-        "classification": {
-            "vect__ngram_range": [(1, 1)],
-            "vect__max_features": [1000, ],
-            "cls__C": [float(xx) for xx in np.logspace(-3, 1, 100)],
-            "cls__class_weight": ['balanced', None],
-        }
-    }
-
-    _FAST_FIT_ROWS = 15
-
     def __init__(self, *,
                  hyperparams: Hyperparams,
                  random_seed: int = 0) -> None:
 
         super().__init__(hyperparams=hyperparams, random_seed=random_seed)
 
-        self._grid = self._get_grid_for_metric() if self.hyperparams['fast'] else None
-
-        self._model = TextClassifierCV(self.hyperparams['metric'], param_grid=self._grid)
-
-        self.label_map = None
-
-    def __getstate__(self) -> dict:
-        state = PrimitiveBase.__getstate__(self)
-        state['models'] = self._model
-        state['grid'] = self._grid
-        return state
-
-    def __setstate__(self, state: dict) -> None:
-        PrimitiveBase.__setstate__(self, state)
-        self._model = state['models']
-        self._grid = state['grid']
+        self._model = TextClassifierCV(self.hyperparams['metric'], random_seed=random_seed)
+        self._label_map: Dict[int, str] = {}
 
     def set_training_data(self, *, inputs: container.DataFrame, outputs: container.DataFrame) -> None:
-        """ TODO: `TextReaderPrimivite` has a weird output format from `read_file_uri`
+        """ TODO: `TextReaderPrimitive` has a weird output format from `read_file_uri`
         to remain consistent with common primitives base `FileReaderPrimitive` """
 
         self._inputs = inputs
+        self._target_col_names = list(outputs.columns)
 
         # map labels instead of trying to force to int.
         col = outputs.columns[0]
         if len(pd.factorize(outputs[col])[1]) <= 2:
             factor = pd.factorize(outputs[col])
             outputs = pd.DataFrame(factor[0], columns=[col])
-            self.label_map = {k: v for k, v in enumerate(factor[1])}
+            self._label_map = {k: v for k, v in enumerate(factor[1])}
 
         self._outputs = outputs
 
@@ -127,20 +103,11 @@ class TextClassifierPrimitive(base.PrimitiveBase[container.DataFrame, container.
         return inputs['filename'].values
 
     def _format_output(self, outputs):
-        return outputs
+        return outputs.values.ravel(order='C')
 
     def fit(self, *, timeout: float = None, iterations: int = None) -> CallResult[None]:
         logger.debug(f'Fitting {__name__}')
-
-        if self.hyperparams['fast']:
-            rows = self._inputs.shape[0]  # len(self._inputs.index)
-            if rows > self._FAST_FIT_ROWS:
-                sampled_inputs = self._inputs.sample(n=self._FAST_FIT_ROWS, random_state=1)
-                sampled_outputs = self._outputs.loc[self._outputs.index.intersection(sampled_inputs.index),]
-                self._model.fit(self._format_text(sampled_inputs), self._format_output(sampled_outputs))
-        else:
-            self._model.fit(self._format_text(self._inputs), self._format_output(self._outputs))
-
+        self._model.fit(self._format_text(self._inputs), self._format_output(self._outputs))
         return CallResult(None)
 
     def produce(self, *, inputs: container.DataFrame, timeout: float = None, iterations: int = None) -> CallResult[
@@ -148,27 +115,23 @@ class TextClassifierPrimitive(base.PrimitiveBase[container.DataFrame, container.
         logger.debug(f'Producing {__name__}')
 
         # create dataframe to hold d3mIndex and result
-
         result = self._model.predict(self._format_text(inputs))
-        result_df = container.DataFrame({self._outputs.columns[0]: result}, generate_metadata=True)
-        # if we mapped values earlier map them back.
-        if self.label_map:
-            result_df[self._outputs.columns[0]] = result_df[self._outputs.columns[0]].map(self.label_map)
+        df = pd.DataFrame(result)
+
+        # pipline run saving is now getting fussy about the prediction names matching the original target column
+        # name
+        df.columns = self._target_col_names
+
+        #if we mapped values earlier map them back.
+        if self._label_map:
+            df.replace(self._label_map, inplace=True)
+        result_df = container.DataFrame(df, generate_metadata=True)
 
         # mark the semantic types on the dataframe
-        # result_df.metadata = result_df.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, 0), 'https://metadata.datadrivendiscovery.org/types/PrimaryKey')
         result_df.metadata = result_df.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, 0),
                                                                   'https://metadata.datadrivendiscovery.org/types/PredictedTarget')
 
         return base.CallResult(result_df)
-
-    def get_params(self) -> Params:
-        return Params(_models = self._model,
-                      _grid = self._grid)
-
-    def set_params(self, *, params: Params) -> None:
-        self._model = params['_models']
-        self._grid = params['_grid']
 
     def _get_grid_for_metric(self) -> Dict[str, Any]:
         if self.hyperparams['metric'] in classification_metrics:
@@ -177,3 +140,16 @@ class TextClassifierPrimitive(base.PrimitiveBase[container.DataFrame, container.
             raise NotImplementedError
         else:
             raise Exception('ForestCV: unknown metric')
+
+    def get_params(self) -> Params:
+        return Params(
+            model=self._model,
+            label_map=self._label_map,
+            target_col_names=self._target_col_names
+        )
+
+    def set_params(self, *, params: Params) -> None:
+        self._model = params['model']
+        self._label_map = params['label_map']
+        self._target_col_names = params['target_col_names']
+        return

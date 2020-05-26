@@ -79,7 +79,11 @@ class ForestCV(DistilBaseModel):
     }
 
     def __init__(self, target_metric, subset=100000, final_subset=1500000,
+<<<<<<< HEAD
         verbose=10, num_fits=1, inner_jobs=1, param_grid=None, hyperparams=None):
+=======
+        verbose=10, num_fits=1, inner_jobs=1, param_grid=None, random_seed=None):
+>>>>>>> master
 
         self.target_metric = target_metric
 
@@ -96,7 +100,11 @@ class ForestCV(DistilBaseModel):
         self.num_fits     = num_fits
         self.inner_jobs   = inner_jobs
         self.outer_jobs   = 64
+<<<<<<< HEAD
         self.params = hyperparams
+=======
+        self.random_seed = random_seed
+>>>>>>> master
 
         if param_grid is not None:
             self.param_grid = param_grid
@@ -132,7 +140,8 @@ class ForestCV(DistilBaseModel):
             mode=self.mode,
             oob_score=True,
             n_jobs=self.inner_jobs,
-            **params
+            **params,
+            random_state=self.random_seed
         )
 
         model       = model.fit(X, y)
@@ -146,6 +155,7 @@ class ForestCV(DistilBaseModel):
 
         # Run grid search
 
+<<<<<<< HEAD
         # self.results = parmap(self._eval_grid_point,
         #     ParameterGrid(self.param_grid), X=X, y=y, verbose=self.verbose, n_jobs=self.outer_jobs)
 
@@ -161,6 +171,18 @@ class ForestCV(DistilBaseModel):
         # if 'estimator' in current_params:
         #     current_params.pop('estimator')
         model = AnyForest(mode=self.mode, n_jobs=self.outer_jobs, **current_params)
+=======
+        self.results = parmap(self._eval_grid_point,
+            ParameterGrid(self.param_grid), X=X, y=y, verbose=self.verbose, n_jobs=self.outer_jobs)
+
+        # Find best run
+        best_run = sorted(self.results, key=lambda x: x['fitness'])[-1] # bigger is better
+        self.best_params, self.best_fitness = best_run['params'], best_run['fitness']
+
+        # Refit best model, possibly on more data
+        X, y  = maybe_subset(Xf_train, y_train, n=self.final_subset)
+        model = AnyForest(mode=self.mode, n_jobs=self.outer_jobs, random_state=self.random_seed, **self.best_params)
+>>>>>>> master
         model = model.fit(X, y)
 
         return model

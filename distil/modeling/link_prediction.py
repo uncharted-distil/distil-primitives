@@ -18,7 +18,7 @@ def edgelist2tensor(edgelist, num_nodes, num_edge_types):
     adj = [sparse.lil_matrix((num_nodes, num_nodes)) for _ in range(num_edge_types)]
     for ii, jj, kk in edgelist:
         adj[kk][ii, jj] = 1
-    
+
     return adj
 
 
@@ -32,7 +32,7 @@ def nx2edgelist(graph, attr_name='linkType'):
 def rescal_link_prediction(adj, rank=100, lambda_A=10, lambda_R=10, conv=1e-3, maxIter=500):
     num_nodes      = adj[0].shape[0]
     num_edge_types = len(adj)
-    
+
     A, R, _, _, _ = rescal_als(
         X=adj,
         rank=rank,
@@ -41,7 +41,7 @@ def rescal_link_prediction(adj, rank=100, lambda_A=10, lambda_R=10, conv=1e-3, m
         conv=conv,
         maxIter=maxIter,
     )
-    
+
     adj_lr = np.stack([(A @ R[k] @ A.T) for k in range(num_edge_types)], axis=-1)
     adj_lr /= (np.linalg.norm(adj_lr, axis=-1, keepdims=True) + 1e-10) # Normalize by link type
     return adj_lr
@@ -57,25 +57,25 @@ def sample_missing_edges(edgelist, n):
 
 
 def cv_fold(edgelist, num_nodes, num_edge_types, train_idx, valid_idx, target_metric):
-    
+
     n_edges = edgelist.shape[0]
     n_train = train_idx.shape[0]
     n_valid = valid_idx.shape[0]
-    
+
     zero_entries   = sample_missing_edges(edgelist, n_valid)
     edgelist_train = edgelist[train_idx]
-    
+
     edgelist_valid   = np.row_stack([edgelist[valid_idx], zero_entries])
     y_valid          = np.hstack([np.ones(n_valid), np.zeros(n_valid)])
-    
+
     adj_train    = edgelist2tensor(edgelist_train, num_nodes, num_edge_types)
     adj_train_lr = rescal_link_prediction(adj_train)
-    
+
     scores_valid = adj_train_lr[tuple(edgelist_valid.T)]
-    
+
     threshs = np.linspace(-1, 1, 512)
     scores  = [metrics[target_metric](y_valid, scores_valid > i) for i in threshs]
-    
+
     return {
         "thresh" : threshs[np.argmax(scores)],
         "score"  : scores[np.argmax(scores)],
@@ -83,43 +83,44 @@ def cv_fold(edgelist, num_nodes, num_edge_types, train_idx, valid_idx, target_me
 
 
 class RescalLinkPrediction(DistilBaseModel):
-    
-    def __init__(self, target_metric):
-        
+
+    def __init__(self, target_metric, random_seed):
+
         self.target_metric = target_metric
         self.adj_lr = None
-    
+        self.random_seed = random_seed
+
     def fit(self, X_train, y_train, U_train):
         global _cv_fold
-        
+
         graph = U_train['graph']
-        
+
         edgelist = nx2edgelist(graph)
 
         num_nodes      = len(graph.nodes())
         num_edge_types = len(set(edgelist[:,-1]))
-        
+
         # --
         # Use CV to estimate optimal threshold
-        
+
         def _cv_fold(args):
             train_idx, valid_idx = args
             return cv_fold(edgelist, num_nodes, num_edge_types, train_idx, valid_idx, target_metric=self.target_metric)
-            
-        _x = KFold(n_splits=10, shuffle=True).split(edgelist)
+
+        _x = KFold(n_splits=10, shuffle=True, random_state=self.random_seed).split(edgelist)
         _x = [d for d in _x]
         cv_res = parmap(_cv_fold, _x)
         cv_res = pd.DataFrame(cv_res)
         self.opt_thresh = cv_res.thresh.mean()
-        
+
         # --
         # Factorize whole matrix
-        
+
         adj         = edgelist2tensor(edgelist, num_nodes, num_edge_types)
         self.adj_lr = rescal_link_prediction(adj)
-        
+
         return self
-    
+
     def predict(self, X):
         X.source_nodeID = X.source_nodeID.astype(int)
         X.target_nodeID = X.target_nodeID.astype(int)

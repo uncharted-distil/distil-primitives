@@ -22,7 +22,9 @@ class Hyperparams(hyperparams.Hyperparams):
     )
 
 class Params(params.Params):
-    _models: Optional[VertexNominationCV]
+    model: VertexNominationCV
+    target_col: str
+
 
 class DistilVertexNominationPrimitive(PrimitiveBase[container.List, container.DataFrame, Params, Hyperparams]):
     """
@@ -61,20 +63,12 @@ class DistilVertexNominationPrimitive(PrimitiveBase[container.List, container.Da
                  random_seed: int = 0) -> None:
 
         super().__init__(hyperparams=hyperparams, random_seed=random_seed)
-        self._model = VertexNominationCV(target_metric=self.hyperparams['metric'])
-
-    def __getstate__(self) -> dict:
-        state = PrimitiveBase.__getstate__(self)
-        state['models'] = self._model
-        return state
-
-    def __setstate__(self, state: dict) -> None:
-        PrimitiveBase.__setstate__(self, state)
-        self._model = state['models']
+        self._model = VertexNominationCV(target_metric=self.hyperparams['metric'], random_seed=random_seed)
 
     def set_training_data(self, *, inputs: container.List, outputs: container.DataFrame) -> None:
         self._inputs = inputs
         self._outputs = outputs
+        self._target_col = outputs.columns[0]
 
     def fit(self, *, timeout: float = None, iterations: int = None) -> CallResult[None]:
         logger.debug(f'Fitting {__name__}')
@@ -94,7 +88,7 @@ class DistilVertexNominationPrimitive(PrimitiveBase[container.List, container.Da
         result = self._model.predict(X_train, U)
 
         # create dataframe to hold d3mIndex and result
-        result_df = container.DataFrame({X_train.index.name: X_train.index, self._outputs.columns[0]: result})
+        result_df = container.DataFrame({X_train.index.name: X_train.index, self._target_col: result})
 
         # mark the semantic types on the dataframe
         result_df.metadata = result_df.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, 0), 'https://metadata.datadrivendiscovery.org/types/PrimaryKey')
@@ -103,7 +97,13 @@ class DistilVertexNominationPrimitive(PrimitiveBase[container.List, container.Da
         return base.CallResult(result_df)
 
     def get_params(self) -> Params:
-        return Params(_models = self._model)
+        return Params(
+            model=self._model,
+            target_col=self._target_col
+        )
 
     def set_params(self, *, params: Params) -> None:
-        self._model = params['_models']
+        self._target_col=params['target_col']
+        self._model=params['model']
+        return
+

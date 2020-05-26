@@ -83,6 +83,8 @@ class TextEncoderPrimitive(base.PrimitiveBase[Inputs, Outputs, Params, Hyperpara
                  hyperparams: Hyperparams,
                  random_seed: int = 0) -> None:
         super().__init__(hyperparams=hyperparams, random_seed=random_seed)
+        self._encoders: List[SVMTextEncoder] = []
+        self._cols: List[int] = []
 
     def __getstate__(self) -> dict:
         state = base.PrimitiveBase.__getstate__(self)
@@ -97,10 +99,11 @@ class TextEncoderPrimitive(base.PrimitiveBase[Inputs, Outputs, Params, Hyperpara
 
     def set_training_data(self, *, inputs: Inputs, outputs: Outputs) -> None:
         self._inputs = inputs
+
         # https://github.com/scikit-learn/scikit-learn/issues/14429#issuecomment-513887163
         if type(outputs) == container.pandas.DataFrame and outputs.shape[1] == 1:
             outputs = outputs.values.reshape(outputs.shape[0], )
-        self._outputs = outputs
+        self._outputs = pd.Series(outputs)
 
     def fit(self, *, timeout: float = None, iterations: int = None) -> base.CallResult[None]:
         logger.debug(f'Fitting {__name__}')
@@ -113,7 +116,6 @@ class TextEncoderPrimitive(base.PrimitiveBase[Inputs, Outputs, Params, Hyperpara
 
         self._cols = list(cols)
         self._encoders: List[SVMTextEncoder] = []
-        self._encoder: None
         if len(cols) is 0:
             return base.CallResult(None)
 

@@ -47,7 +47,8 @@ class Hyperparams(hyperparams.Hyperparams):
     )
 
 class Params(params.Params):
-    model: Optional[BERTPairClassification]
+    model: BERTPairClassification
+    target_col: str
 
 
 class BertPairClassificationPrimitive(PrimitiveBase[container.DataFrame, container.DataFrame, Params, Hyperparams]):
@@ -103,19 +104,13 @@ class BertPairClassificationPrimitive(PrimitiveBase[container.DataFrame, contain
         super().__init__(hyperparams=hyperparams, random_seed=random_seed, volumes=volumes)
         self._volumes = volumes
         self._model: Optional[BERTPairClassification] = None
+        self._target_col: str = ""
 
-    def __getstate__(self) -> dict:
-        state = base.PrimitiveBase.__getstate__(self)
-        state['model'] = self._model
-        return state
-
-    def __setstate__(self, state: dict) -> None:
-        base.PrimitiveBase.__setstate__(self, state)
-        self._model = state['model']
 
     def set_training_data(self, *, inputs: container.DataFrame, outputs: container.DataFrame) -> None:
         self._inputs = inputs
         self._outputs = outputs
+        self._target_col = self._outputs.columns[0]
 
     def fit(self, *, timeout: float = None, iterations: int = None) -> base.CallResult[None]:
         logger.debug(f'Fitting {__name__}')
@@ -152,19 +147,29 @@ class BertPairClassificationPrimitive(PrimitiveBase[container.DataFrame, contain
         inputs = inputs
 
         # create dataframe to hold result
+        if self._model is None:
+            raise ValueError("No model available for primitive")
         result = self._model.predict(inputs)
 
-        result_df = container.DataFrame({self._outputs.columns[0]: result}, generate_metadata=True)
+        # use the original saved target column name
+        result_df = container.DataFrame({self._target_col: result}, generate_metadata=True)
 
         # mark the semantic types on the dataframe
         result_df.metadata = result_df.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, 0), 'https://metadata.datadrivendiscovery.org/types/PredictedTarget')
 
         logger.debug(f'\n{result_df}')
 
+        print(result_df)
+
         return base.CallResult(result_df)
 
     def get_params(self) -> Params:
-        return Params(model = self._model)
+        return Params(
+            model=self._model,
+            target_col=self._target_col
+        )
 
     def set_params(self, *, params: Params) -> None:
         self._model = params['model']
+        self._target_col = params['target_col']
+        return

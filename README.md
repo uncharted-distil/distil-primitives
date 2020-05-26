@@ -6,5 +6,6 @@ A repository of D3M compliant primitives used in baseline Distil AutoML pipeline
 To install for local development, from project root run:
 
 ```console
+pip install -r build_requirements.txt
 pip install -e .
 ```

@@ -16,13 +16,16 @@ from distil.modeling.metrics import metrics, classification_metrics, regression_
 # Categorical
 
 class BinaryEncoder(BaseEstimator, TransformerMixin):
-    def __init__(self):
+    def __init__(self, random_seed = None):
         super().__init__()
         self.lookup = None
+        self.random_seed = random_seed if random_seed is not None else int(np.random.randint)
 
     def fit(self, X):
         levels = list(set(X.squeeze())) + [MISSING_VALUE_INDICATOR] # !! How to sort? Randomly? Alphabetically?
-        levels = np.random.permutation(levels)
+        # use th
+        random_state = np.random.RandomState(self.random_seed)
+        levels = random_state.permutation(levels)
 
         vals      = range(len(levels))
         max_width = len(np.binary_repr(max(vals)))
@@ -49,6 +52,11 @@ class BinaryEncoder(BaseEstimator, TransformerMixin):
 # Text
 
 class SVMTextEncoder(BaseEstimator, TransformerMixin):
+    # number of jobs to execute in parallel
+    NUM_JOBS=3
+    # number of folds to apply to svm fit
+    NUM_FOLDS=3
+
     # !! add tuning
     def __init__(self, metric):
         super().__init__()
@@ -86,13 +94,17 @@ class SVMTextEncoder(BaseEstimator, TransformerMixin):
         assert y is not None, 'SVMTextEncoder.fit_transform requires y'
 
         X = pd.Series(X.squeeze()).fillna(MISSING_VALUE_INDICATOR).values
-
         Xv  = self._vect.fit_transform(X)
         self._model = self._model.fit(Xv, y)
+
         if self.mode == 'classification':
-            out = cross_val_predict(self._model, Xv, y, method='decision_function', n_jobs=3, cv=3)
+            # Aim for NUM_FOLDS, but ensure that we don't have more folds than the min label count of a particular class.
+            num_folds = min(self.NUM_FOLDS, y.value_counts().min())
+            if num_folds < 2:
+                raise ValueError("label class with count of 1 encountered - cannot perform stratified cross validation")
+            out = cross_val_predict(self._model, Xv, y, method='decision_function', n_jobs=self.NUM_JOBS, cv=num_folds)
         else:
-            out = cross_val_predict(self._model, Xv, y, n_jobs=3, cv=3)
+            out = cross_val_predict(self._model, Xv, y, n_jobs=self.NUM_JOBS, cv=self.NUM_FOLDS)
 
         if len(out.shape) == 1:
             out = out.reshape(-1, 1)

@@ -1,14 +1,21 @@
 import logging
 import os
-from typing import Dict
+from typing import Dict, Optional
 
 import pandas as pd
 from PIL import Image
 from d3m import container, utils
 from d3m.metadata import base as metadata_base, hyperparams, params
-from d3m.primitive_interfaces import base, unsupervised_learning
-from d3m.primitive_interfaces.base import CallResult
+
+from d3m.primitive_interfaces import base, transformer
 from d3m.primitive_interfaces.supervised_learning import PrimitiveBase
+from d3m.primitive_interfaces.base import CallResult
+from d3m.primitive_interfaces import unsupervised_learning
+import pandas as pd
+import numpy as np
+from PIL import Image
+
+from distil.utils import Img2Vec
 from distil.utils import CYTHON_DEP
 from distil.utils import Img2Vec
 
@@ -16,25 +23,13 @@ __all__ = ('ImageTransferPrimitive',)
 
 logger = logging.getLogger(__name__)
 
-class Hyperparams(hyperparams.Hyperparams):
-    use_columns = hyperparams.Set(
-        elements=hyperparams.Hyperparameter[int](-1),
-        default=(),
-        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
-        description="A set of column indices to force primitive to operate on. If any specified column cannot be parsed, it is skipped.",
-    )
-    metric = hyperparams.Hyperparameter[str](
-        default='',
-        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter']
-    )
-    fast = hyperparams.Hyperparameter[bool](
-        default=False,
-        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter']
-    )
+VOLUME_KEY = 'resnet18-5c106cde'
 
-class Params(params.Params):
+class Hyperparams(hyperparams.Hyperparams):
     pass
 
+class Params(params.Params):
+    model: Img2Vec
 
 class ImageTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBase[container.DataFrame, container.DataFrame, Params, Hyperparams]):
     """
@@ -64,7 +59,7 @@ class ImageTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
                 },
                 {
                     "type": "FILE",
-                    "key": "resnet18-5c106cde",
+                    "key": VOLUME_KEY,
                     "file_uri": "http://public.datadrivendiscovery.org/resnet18-5c106cde.pth",
                     "file_digest": "5c106cde386e87d4033832f2996f5493238eda96ccf559d1d62760c4de0613f8",
                 }
@@ -81,30 +76,17 @@ class ImageTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
     def __init__(self, *,
                  hyperparams: Hyperparams,
                  random_seed: int=0,
-                 volumes: Dict[str, str] = None) -> None:
+                 volumes: Optional[Dict[str, str]]=None) -> None:
 
         super().__init__(hyperparams=hyperparams, random_seed=random_seed, volumes=volumes)
-
-        self.volumes = volumes
-        self.img2vec = Img2Vec(model_path=self.volumes["resnet18-5c106cde"], cuda=False)
-
-
-    def __getstate__(self) -> dict:
-        state = PrimitiveBase.__getstate__(self)
-
-        return state
-
-    def __setstate__(self, state: dict) -> None:
-        PrimitiveBase.__setstate__(self, state)
-
-
-    def set_training_data(self, *, inputs: container.DataFrame) -> None:
-        self._inputs = inputs
+        if volumes is None:
+            raise ValueError('volumes cannot be None')
+        self._volumes: Dict[str, str] = volumes
+        self._img2vec: Optional[Img2Vec] = None
 
     def _img_to_vec(self, image_array):
         image_array = image_array.squeeze()
-
-        return self.img2vec.get_vec(Image.fromarray(image_array).convert('RGB'))
+        return self._img2vec.get_vec(Image.fromarray(image_array).convert('RGB'))
 
     def _transform_inputs(self, inputs):
         result = inputs.copy()
@@ -113,30 +95,33 @@ class ImageTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
             result['filename']
                 .apply(lambda image_file: self._img_to_vec(image_file))) #self.img2vec.get_vec(image_file))
 
-
         df = pd.DataFrame(result['image_vec'].values.tolist())
         df.columns = ['v{}'.format(i) for i in range(0, df.shape[1])]
 
         return container.DataFrame(df, generate_metadata=True)
 
-    def fit(self, *, timeout: float = None, iterations: int = None) -> CallResult[None]:
-        # create dataframe to hold d3mIndex and result
+    def set_training_data(self, *, inputs: container.DataFrame) -> None:
+        pass
 
-        self.features_df = self._transform_inputs(self._inputs)
+    def fit(self, *, timeout: float = None, iterations: int = None) -> base.CallResult[None]:
+        model_path = self._volumes[VOLUME_KEY]
+        if model_path is None:
+            raise ValueError(f'no volume information found for {VOLUME_KEY}')
 
-        logger.debug(self.features_df)
-        logger.debug(self.features_df.metadata)
-
-        return CallResult(None)
+        if self._img2vec is None:
+            logger.info(f'Loading pre-trained model from {model_path}')
+            self._img2vec = Img2Vec(model_path)
+            logger.info(f'Finished loading pre-trained model')
+        return base.CallResult(None)
 
     def produce(self, *, inputs: container.DataFrame, timeout: float = None, iterations: int = None) -> CallResult[container.DataFrame]:
         logger.debug(f'Producing {__name__}')
-
         return base.CallResult(self._transform_inputs(inputs))
 
     def get_params(self) -> Params:
-        return Params()
+        return Params(
+            model=self._img2vec
+        )
 
     def set_params(self, *, params: Params) -> None:
-        return
-
+        self._img2vec=params['model']

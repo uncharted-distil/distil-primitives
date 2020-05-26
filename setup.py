@@ -11,33 +11,34 @@ except Exception as e:
 
 setup(
     name='distil-primitives',
-    version='0.1.0',
+    version='0.2.0',
     description='Distil primitives as a single library',
     packages=find_packages(),
     keywords=['d3m_primitive'],
     install_requires=[
-        # Commented out packages are required but handled by
-        # upstream versions :/
-        #'fastai==1.0.52',
-        'joblib',
-        'scikit-learn>=0.20.2,<=0.21.3',
-        'scipy>=1.2.1,<=1.3.1',
-        'numpy>=1.15.4,<=1.17.3',
-        'pandas>=0.23.4,<=0.25.2',
-        'torch>=1.3.1',
+        # shared d3m versions - need to be aligned with core package
+        'd3m==v2020.5.18',
+        'scikit-learn==0.22.2.post1',
+        'scipy==1.4.1',
+        'numpy==1.18.2',
+        'pandas==1.0.3',
+        'torch==1.4.0',
+        'networkx==2.4',
+        'tensorflow-gpu==2.1.0',
+        'pillow==7.1.1',
+
+        # additional dependencies
+        'joblib>=0.13.2',
         'torchvision>=0.4.2',
         #'pytorch-pretrained-bert==0.4.0', has print statements on import that break d3m annotation validation
-        #'sklearn_pandas==1.8.0',
+        #'sklearn_pandas==1.8.0', use fork to address bugs
         'sklearn_pandas @ git+https://github.com/cdbethune/sklearn-pandas.git@c009c3a5a26f883f759cf123c0f5a509b1df013b',
-        'tensorflow-gpu==2.0.0',
         'frozendict>=1.2',
-        'nose==1.3.7',
+        # 'nose>=1.3.7', Needs to be installed in the primitive install section
         #'python-prctl==1.7', Needs to be installed in the primitive install section
-        'fastdtw==0.3.2',
-        'networkx==2.4',
-        'resampy==0.2.1',
-        'soundfile==0.10.2',
-        'pillow==6.2.1',
+        'fastdtw>=0.3.2',
+        'resampy>=0.2.1',
+        'soundfile>=0.10.2',
         'sgm @ git+https://github.com/nowfred/sgm.git@v1.0.3#egg=sgm',
         'basenet @ git+https://github.com/bkj/basenet.git@903756540b89809ef458f35257287b937b333417',
         'rescal @ git+https://github.com/cdbethune/rescal.py.git@af2091c1d5521c987edd3be41627b9c563582fe8',

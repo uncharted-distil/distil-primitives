@@ -29,8 +29,8 @@ class Hyperparams(hyperparams.Hyperparams):
     )
 
 class Params(params.Params):
-    _cols: Optional[List[int]]
-    _encoders: List[BinaryEncoder]
+    cols: List[int]
+    encoders: List[BinaryEncoder]
 
 class BinaryEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBase[container.DataFrame, container.DataFrame, Params, Hyperparams]):
     """
@@ -71,17 +71,6 @@ class BinaryEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
                  random_seed: int = 0) -> None:
         super().__init__(hyperparams=hyperparams, random_seed=random_seed)
 
-    def __getstate__(self) -> dict:
-        state = base.PrimitiveBase.__getstate__(self)
-        state['models'] = self._encoders
-        state['columns'] = self._cols
-        return state
-
-    def __setstate__(self, state: dict) -> None:
-        base.PrimitiveBase.__setstate__(self, state)
-        self._encoders = state['models']
-        self._cols = state['columns']
-
     def set_training_data(self, *, inputs: container.DataFrame) -> None:
         self._inputs = inputs
 
@@ -103,7 +92,7 @@ class BinaryEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
         # add the binary encoded columns and remove the source
         self._encoders: List[BinaryEncoder] = []
         for c in self._cols:
-            encoder = BinaryEncoder()
+            encoder = BinaryEncoder(self.random_seed)
             categorical_inputs = self._inputs.iloc[:,c]
             encoder.fit(categorical_inputs)
             self._encoders.append(encoder)
@@ -120,13 +109,15 @@ class BinaryEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
         outputs = inputs.copy()
         encoded_cols = container.DataFrame()
         encoded_cols_source = []
+        bin_idx = 0
         for i, c in enumerate(self._cols):
             categorical_inputs = outputs.iloc[:,c]
             result = self._encoders[i].transform(categorical_inputs)
             for j in range(result.shape[1]):
-                bin_idx = i * result.shape[1] + j
                 encoded_cols[(f'__binary_{bin_idx}')] = result[:,j]
                 encoded_cols_source.append(c)
+                bin_idx += 1
+
         encoded_cols.metadata = encoded_cols.metadata.generate(encoded_cols)
 
         for c in range(encoded_cols.shape[1]):
@@ -143,9 +134,12 @@ class BinaryEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
         return base.CallResult(outputs)
 
     def get_params(self) -> Params:
-        return Params(_encoders=self._encoders,
-                      _cols=self._cols)
+        return Params(
+            encoders = self._encoders,
+            cols = self._cols,
+        )
 
     def set_params(self, *, params: Params) -> None:
-        self._encoders = params['_encoders']
-        self._cols = params['_cols']
+        self._encoders = params['encoders'];
+        self._cols = params['cols'];
+        return

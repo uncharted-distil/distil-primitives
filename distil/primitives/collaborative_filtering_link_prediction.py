@@ -1,7 +1,13 @@
 import logging
+<<<<<<< HEAD
 import os
 from typing import Dict, Any, Optional
 from typing import Tuple
+=======
+from typing import List, Tuple, Mapping, Dict, Any
+from collections import defaultdict
+import random
+>>>>>>> master
 
 import numpy as np
 import torch
@@ -35,8 +41,9 @@ class Hyperparams(hyperparams.Hyperparams):
     )
 
 class Params(params.Params):
-    _labels: Dict[int, Dict[Any, int]]
-    _model: Optional[SGDCollaborativeFilter]
+    model: SGDCollaborativeFilter
+    labels: Dict[int, Dict[Any, int]]
+    target_col: str
 
 
 class CollaborativeFilteringPrimitive(PrimitiveBase[container.DataFrame, container.DataFrame, Params, Hyperparams]):
@@ -79,24 +86,11 @@ class CollaborativeFilteringPrimitive(PrimitiveBase[container.DataFrame, contain
         super().__init__(hyperparams=hyperparams, random_seed=random_seed)
         self._labels: Dict[int, Dict[Any, int]] = {}
 
-
-    def __getstate__(self) -> dict:
-        state = base.PrimitiveBase.__getstate__(self)
-        state['model'] = self._model
-        state['labels'] = self._labels
-        return state
-
-
-    def __setstate__(self, state: dict) -> None:
-        base.PrimitiveBase.__setstate__(self, state)
-        self._model = state['model']
-        self._labels = state['labels']
-
-
     def set_training_data(self, *, inputs: container.DataFrame, outputs: container.DataFrame) -> None:
         self._inputs = inputs
         self._outputs = outputs
         self._labels = {}
+        self._target_col = outputs.columns[0]
 
 
     def fit(self, *, timeout: float = None, iterations: int = None) -> base.CallResult[None]:
@@ -134,7 +128,7 @@ class CollaborativeFilteringPrimitive(PrimitiveBase[container.DataFrame, contain
         # predict ratings
         result = self._model.predict(inputs)
         # create dataframe to hold result
-        result_df = container.DataFrame({self._outputs.columns[0]: result}, generate_metadata=True)
+        result_df = container.DataFrame({self._target_col: result}, generate_metadata=True)
 
         # mark the semantic types on the dataframe
         result_df.metadata = result_df.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, 0), 'https://metadata.datadrivendiscovery.org/types/PredictedTarget')
@@ -144,13 +138,17 @@ class CollaborativeFilteringPrimitive(PrimitiveBase[container.DataFrame, contain
 
 
     def get_params(self) -> Params:
-        return Params(_model = self._model,
-                      _labels = self._labels)
-
+        return Params(
+            model = self._model,
+            labels = self._labels,
+            target_col = self._target_col
+        )
 
     def set_params(self, *, params: Params) -> None:
-        self._model = params['_model']
-        self._labels = params['_labels']
+        self._model = params['model']
+        self._labels = params['labels']
+        self._target_col = params['target_col']
+        return
 
     def _generate_labels(self, inputs: container.DataFrame) -> None:
         self._labels = {}
