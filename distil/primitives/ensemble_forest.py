@@ -78,7 +78,10 @@ class Hyperparams(hyperparams.Hyperparams):
 
 
 class Params(params.Params):
-    pass
+    model: ForestCV
+    target_cols: List[str]
+    label_map: Dict[int, str]
+    needs_fit: bool
 
 
 class EnsembleForestPrimitive(
@@ -121,18 +124,8 @@ class EnsembleForestPrimitive(
 
         super().__init__(hyperparams=hyperparams, random_seed=random_seed)
         self._model = ForestCV(self.hyperparams["metric"], self.random_seed)
-        self._needs_fit = True
-        self.label_map: Optional[Dict[int, str]] = None
-
-    def __getstate__(self) -> dict:
-        state = PrimitiveBase.__getstate__(self)
-        state["models"] = self._model
-        state["needs_fit"] = self._needs_fit
-        return state
-
-    def __setstate__(self, state: dict) -> None:
-        PrimitiveBase.__setstate__(self, state)
-        self._model = state["models"]
+        self._label_map: Dict[int, str] = {}
+        self._target_cols: List[str] = []
         self._needs_fit = True
 
     def _get_component_columns(
@@ -167,7 +160,9 @@ class EnsembleForestPrimitive(
         if len(pd.factorize(outputs[col])[1]) <= 2:
             factor = pd.factorize(outputs[col])
             outputs = pd.DataFrame(factor[0], columns=[col])
-            self.label_map = {k: v for k, v in enumerate(factor[1])}
+            self._label_map = {k: v for k, v in enumerate(factor[1])}
+
+        self._target_cols = list(outputs.columns)
 
         # drop all non-numeric columns
         num_cols = outputs.shape[1]
@@ -238,9 +233,9 @@ class EnsembleForestPrimitive(
 
         # create dataframe to hold the result
         result = self._model.predict(inputs.values)
-        if len(self._outputs.columns) > 1:
+        if len(self._target_cols) > 1:
             result_df = container.DataFrame()
-            for i, c in enumerate(self._outputs.columns):
+            for i, c in enumerate(self._target_cols):
                 col = container.DataFrame({c: result[:, i]})
                 result_df = pd.concat([result_df, col], axis=1)
             for c in range(result_df.shape[1]):
@@ -249,14 +244,14 @@ class EnsembleForestPrimitive(
                 )
         else:
             result_df = container.DataFrame(
-                {self._outputs.columns[0]: result}, generate_metadata=True
+                {self._target_cols[0]: result}, generate_metadata=True
             )
         # if we mapped values earlier map them back.
-        if self.label_map:
+        if len(self._label_map) > 0:
             # TODO label map will not work if there are multiple output columns.
-            result_df[self._outputs.columns[0]] = result_df[
-                self._outputs.columns[0]
-            ].map(self.label_map)
+            result_df[self._target_cols[0]] = result_df[
+                self._target_cols[0]
+            ].map(self._label_map)
         # mark the semantic types on the dataframe
         for i, _ in enumerate(result_df.columns):
             result_df.metadata = result_df.metadata.add_semantic_type(
@@ -375,7 +370,16 @@ class EnsembleForestPrimitive(
         return CallResult(output_df)
 
     def get_params(self) -> Params:
-        return Params()
+        return Params(
+            model = self._model,
+            target_cols = self._target_cols,
+            label_map = self._label_map,
+            needs_fit = self._needs_fit,
+        )
 
     def set_params(self, *, params: Params) -> None:
+        self._model = params['model']
+        self._target_cols = params['target_cols']
+        self._label_map = params['label_map']
+        self._needs_fit = params['needs_fit']
         return
