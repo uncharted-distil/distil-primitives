@@ -1,20 +1,14 @@
-import os
 import logging
-from typing import List
+import os
+from typing import Optional, List
 
 from d3m import container, utils
 from d3m.metadata import base as metadata_base, hyperparams, params
 from d3m.primitive_interfaces import base, unsupervised_learning
-
+from distil.preprocessing.transformers import BinaryEncoder
 from distil.primitives import utils as distil_utils
 from distil.primitives.utils import CATEGORICALS
-
-import pandas as pd
-import numpy as np
-
-from distil.preprocessing.transformers import BinaryEncoder
 from distil.utils import CYTHON_DEP
-
 
 __all__ = ('BinaryEncoderPrimitive',)
 
@@ -35,7 +29,8 @@ class Hyperparams(hyperparams.Hyperparams):
     )
 
 class Params(params.Params):
-    pass
+    _cols: Optional[List[int]]
+    _encoders: List[BinaryEncoder]
 
 class BinaryEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBase[container.DataFrame, container.DataFrame, Params, Hyperparams]):
     """
@@ -148,7 +143,9 @@ class BinaryEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
         return base.CallResult(outputs)
 
     def get_params(self) -> Params:
-        return Params()
+        return Params(_encoders=self._encoders,
+                      _cols=self._cols)
 
     def set_params(self, *, params: Params) -> None:
-        return
+        self._encoders = params['_encoders']
+        self._cols = params['_cols']

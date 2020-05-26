@@ -1,23 +1,17 @@
-import os
-import sys
 import logging
-from typing import Set, List, Dict, Any, Optional
+import os
+from typing import List, Dict, Optional
 
+import numpy as np
+import pandas as pd
+from ShapExplainers import tree
 from d3m import container, utils
 from d3m.metadata import base as metadata_base, hyperparams, params
-from d3m.primitive_interfaces import base, transformer
-from d3m.primitive_interfaces.supervised_learning import PrimitiveBase
+from d3m.primitive_interfaces import base
 from d3m.primitive_interfaces.base import CallResult
-
+from d3m.primitive_interfaces.supervised_learning import PrimitiveBase
 from distil.modeling.forest import ForestCV
-from distil.modeling.metrics import classification_metrics, regression_metrics
-
-from ShapExplainers import tree
-
-import pandas as pd
-import numpy as np
-
-from common_primitives import denormalize, dataset_to_dataframe as DatasetToDataFrame
+from distil.modeling.metrics import classification_metrics
 from distil.utils import CYTHON_DEP
 
 __all__ = ("EnsembleForest",)
@@ -113,7 +107,9 @@ class Hyperparams(hyperparams.Hyperparams):
 
 
 class Params(params.Params):
-    pass
+    _model: Optional[ForestCV]
+    needs_fit: bool
+    _outputs: Optional[container.DataFrame]
 
 
 class EnsembleForestPrimitive(
@@ -409,7 +405,11 @@ class EnsembleForestPrimitive(
         return CallResult(output_df)
 
     def get_params(self) -> Params:
-        return Params()
+        return Params(_model = self._model,
+                      needs_fit = self._needs_fit,
+                      _outputs = self._outputs)
 
     def set_params(self, *, params: Params) -> None:
-        return
+        self._model = params["_model"]
+        self._outputs = params["_outputs"]
+        self._needs_fit = params['needs_fit']

@@ -1,14 +1,10 @@
-import os
 import logging
-from typing import List, Sequence
+import os
+from typing import Optional, List, Union, Any
 
 from d3m import container, utils
 from d3m.metadata import base as metadata_base, hyperparams, params
 from d3m.primitive_interfaces import base
-
-import pandas as pd
-import numpy as np
-
 from distil.preprocessing.transformers import SVMTextEncoder, TfidifEncoder
 from distil.primitives import utils as distil_utils
 from distil.utils import CYTHON_DEP
@@ -45,8 +41,11 @@ class Hyperparams(hyperparams.Hyperparams):
         description="Vectorization Strategy.",
     )
 
+
 class Params(params.Params):
-    pass
+    _cols: Optional[List[int]]
+    _encoders: Any
+    # _encoders: Optional[List[Union[SVMTextEncoder, TfidifEncoder]]]
 
 class TextEncoderPrimitive(base.PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
     """
@@ -167,7 +166,9 @@ class TextEncoderPrimitive(base.PrimitiveBase[Inputs, Outputs, Params, Hyperpara
         return base.CallResult(outputs)
 
     def get_params(self) -> Params:
-        return Params()
+        return Params(_encoders=self._encoders,
+                      _cols=self._cols)
 
     def set_params(self, *, params: Params) -> None:
-        return
+        self._encoders = params['_encoders']
+        self._cols = params['_cols']

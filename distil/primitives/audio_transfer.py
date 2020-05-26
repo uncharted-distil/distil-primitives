@@ -1,18 +1,15 @@
-import os
 import logging
-from typing import Set, List, Dict, Any, Optional
+import os
+from typing import Dict
+
+import pandas as pd
 from d3m import container, utils
 from d3m.metadata import base as metadata_base, hyperparams, params
 from d3m.primitive_interfaces import base, unsupervised_learning
-from d3m.primitive_interfaces.supervised_learning import PrimitiveBase
 from d3m.primitive_interfaces.base import CallResult
-import pandas as pd
-import numpy as np
-from PIL import Image
-from distil.utils import CYTHON_DEP
-
-from distil.modeling.metrics import classification_metrics, regression_metrics
+from d3m.primitive_interfaces.supervised_learning import PrimitiveBase
 from distil.primitives import utils as primitive_utils
+from distil.utils import CYTHON_DEP
 
 __all__ = ('AudioTransferPrimitive',)
 

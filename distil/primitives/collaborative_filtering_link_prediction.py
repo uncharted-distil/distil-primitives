@@ -1,24 +1,16 @@
-import os
 import logging
-from typing import List, Tuple, Mapping
-from collections import defaultdict
-import random
+import os
+from typing import Dict, Any, Optional
+from typing import Tuple
 
+import numpy as np
+import torch
 from d3m import container, utils as d3m_utils
 from d3m.metadata import base as metadata_base, hyperparams, params
 from d3m.primitive_interfaces import base
 from d3m.primitive_interfaces.supervised_learning import PrimitiveBase
-
-import pandas as pd
-import numpy as np
-
-from sklearn import preprocessing
-import torch
-
 from distil.modeling.collaborative_filtering import SGDCollaborativeFilter
-from distil.primitives import utils
 from distil.utils import CYTHON_DEP
-
 
 _all__ = ('CollaborativeFilteringPrimtive',)
 
@@ -43,7 +35,8 @@ class Hyperparams(hyperparams.Hyperparams):
     )
 
 class Params(params.Params):
-    pass
+    _labels: Dict[int, Dict[Any, int]]
+    _model: Optional[SGDCollaborativeFilter]
 
 
 class CollaborativeFilteringPrimitive(PrimitiveBase[container.DataFrame, container.DataFrame, Params, Hyperparams]):
@@ -151,11 +144,13 @@ class CollaborativeFilteringPrimitive(PrimitiveBase[container.DataFrame, contain
 
 
     def get_params(self) -> Params:
-        return Params()
+        return Params(_model = self._model,
+                      _labels = self._labels)
 
 
     def set_params(self, *, params: Params) -> None:
-        return
+        self._model = params['_model']
+        self._labels = params['_labels']
 
     def _generate_labels(self, inputs: container.DataFrame) -> None:
         self._labels = {}

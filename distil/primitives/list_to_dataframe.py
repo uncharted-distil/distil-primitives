@@ -1,13 +1,12 @@
-import os
-from typing import List, Set, Any, Sequence
 import logging
+import os
+from typing import Optional, List
 
+import pandas as pd
 from d3m import container, utils
 from d3m.metadata import base as metadata_base, hyperparams, params
 from d3m.primitive_interfaces import base, unsupervised_learning
 from distil.utils import CYTHON_DEP
-
-import pandas as pd
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +23,7 @@ class Hyperparams(hyperparams.Hyperparams):
 
 
 class Params(params.Params):
-    pass
+    _cols: Optional[List[int]]
 
 
 class ListEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBase[
@@ -66,16 +65,16 @@ class ListEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBas
                  random_seed: int = 0) -> None:
         super().__init__(hyperparams=hyperparams, random_seed=random_seed)
 
-    def __getstate__(self) -> dict:
-        state = base.PrimitiveBase.__getstate__(self)
-        state['models'] = self._encoder
-        state['columns'] = self._cols
-        return state
-
-    def __setstate__(self, state: dict) -> None:
-        base.PrimitiveBase.__setstate__(self, state)
-        self._encoder = state['models']
-        self._cols = state['columns']
+    # def __getstate__(self) -> dict:
+    #     state = base.PrimitiveBase.__getstate__(self)
+    #     state['models'] = self._encoder
+    #     state['columns'] = self._cols
+    #     return state
+    #
+    # def __setstate__(self, state: dict) -> None:
+    #     base.PrimitiveBase.__setstate__(self, state)
+    #     self._encoder = state['models']
+    #     self._cols = state['columns']
 
     def set_training_data(self, *, inputs: container.DataFrame) -> None:
         self._inputs = inputs
@@ -97,9 +96,6 @@ class ListEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBas
         logger.debug(f'Found {len(filtered_cols)} columns to encode')
 
         self._cols = list(filtered_cols)
-        self._encoder = None
-        if len(self._cols) is 0:
-            return base.CallResult(None)
 
         return base.CallResult(None)
 
@@ -138,7 +134,8 @@ class ListEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBas
         return base.CallResult(outputs)
 
     def get_params(self) -> Params:
-        return Params()
+        return Params(_cols = self._cols)
 
     def set_params(self, *, params: Params) -> None:
-        return
+        self._cols = params['_cols']
+

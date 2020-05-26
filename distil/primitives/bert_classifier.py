@@ -1,19 +1,14 @@
-import os
 import logging
-from typing import List, Dict, Optional
+import os
+from typing import Dict, Optional
 
+import torch
 from d3m import container, utils
 from d3m.metadata import base as metadata_base, hyperparams, params
 from d3m.primitive_interfaces import base
 from d3m.primitive_interfaces.supervised_learning import PrimitiveBase
-
-import pandas as pd
-import numpy as np
-import torch
-
 from distil.modeling.bert_models import BERTPairClassification
 from distil.utils import CYTHON_DEP
-
 
 _all__ = ('BertPairClassification',)
 
@@ -52,7 +47,7 @@ class Hyperparams(hyperparams.Hyperparams):
     )
 
 class Params(params.Params):
-    pass
+    model: Optional[BERTPairClassification]
 
 
 class BertPairClassificationPrimitive(PrimitiveBase[container.DataFrame, container.DataFrame, Params, Hyperparams]):
@@ -169,7 +164,7 @@ class BertPairClassificationPrimitive(PrimitiveBase[container.DataFrame, contain
         return base.CallResult(result_df)
 
     def get_params(self) -> Params:
-        return Params()
+        return Params(model = self._model)
 
     def set_params(self, *, params: Params) -> None:
-        return
+        self._model = params['model']

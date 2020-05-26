@@ -1,20 +1,14 @@
-import os
 import logging
-from typing import Set, List, Dict, Any, Optional
+import os
 
 from d3m import container, utils
 from d3m.metadata import base as metadata_base, hyperparams, params
-from d3m.primitive_interfaces import base, transformer
-from d3m.primitive_interfaces.supervised_learning import PrimitiveBase
+from d3m.primitive_interfaces import base
 from d3m.primitive_interfaces.base import CallResult
-from distil.utils import CYTHON_DEP
-
-import pandas as pd
-import numpy as np
-import networkx as nx
-from scipy import sparse
-
+from d3m.primitive_interfaces.supervised_learning import PrimitiveBase
 from distil.modeling.vertex_nomination import VertexNominationCV
+from distil.utils import CYTHON_DEP
+from typing import Optional
 
 __all__ = ('VertexNomination',)
 
@@ -28,7 +22,7 @@ class Hyperparams(hyperparams.Hyperparams):
     )
 
 class Params(params.Params):
-    pass
+    _models: Optional[VertexNominationCV]
 
 class DistilVertexNominationPrimitive(PrimitiveBase[container.List, container.DataFrame, Params, Hyperparams]):
     """
@@ -109,7 +103,7 @@ class DistilVertexNominationPrimitive(PrimitiveBase[container.List, container.Da
         return base.CallResult(result_df)
 
     def get_params(self) -> Params:
-        return Params()
+        return Params(_models = self._model)
 
     def set_params(self, *, params: Params) -> None:
-        return
+        self._model = params['_models']

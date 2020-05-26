@@ -1,20 +1,16 @@
-import os
-from typing import List, Set, Any, Sequence
 import logging
+import os
+from typing import List
+from typing import Optional
 
+import numpy as np
 from d3m import container, utils
 from d3m.metadata import base as metadata_base, hyperparams, params
 from d3m.primitive_interfaces import base, unsupervised_learning
-
-import pandas as pd
-import numpy as np
-
 from distil.primitives import utils as distil_utils
 from distil.primitives.utils import CATEGORICALS
 from distil.utils import CYTHON_DEP
-
 from sklearn import preprocessing
-from sklearn import compose
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +31,8 @@ class Hyperparams(hyperparams.Hyperparams):
     )
 
 class Params(params.Params):
-    pass
+    _cols: Optional[List[int]]
+    _encoder: Optional[preprocessing.OneHotEncoder]
 
 class OneHotEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBase[container.DataFrame, container.DataFrame, Params, Hyperparams]):
     """
@@ -158,10 +155,12 @@ class OneHotEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
         return base.CallResult(outputs)
 
     def get_params(self) -> Params:
-        return Params()
+        return Params(_encoder=self._encoder,
+                      _cols=self._cols)
 
     def set_params(self, *, params: Params) -> None:
-        return
+        self._encoder = params['_encoder']
+        self._cols = params['_cols']
 
     @classmethod
     def _detect_text(cls, X: container.DataFrame, thresh: int = 8) -> bool:

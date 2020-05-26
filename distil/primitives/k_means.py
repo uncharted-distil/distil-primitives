@@ -1,20 +1,14 @@
-import os
 import logging
+import os
 
+import numpy as np
 from d3m import container, utils
 from d3m.metadata import base as metadata_base, hyperparams, params
-from d3m.primitive_interfaces import unsupervised_learning, transformer, base
-
+from d3m.primitive_interfaces import unsupervised_learning, base
 from distil.primitives import utils as distil_utils
-
-import pandas as pd
-import numpy as np
-from sklearn.cluster import KMeans
 from distil.utils import CYTHON_DEP
-
-
-
-from distil.primitives.utils import MISSING_VALUE_INDICATOR
+from sklearn.cluster import KMeans
+from typing import Optional, List
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +34,7 @@ class Hyperparams(hyperparams.Hyperparams):
 
 
 class Params(params.Params):
-    pass
+    _columns: Optional[List[int]]
 
 class KMeansPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBase[container.DataFrame, container.DataFrame, Params, Hyperparams]):
     """
@@ -115,7 +109,7 @@ class KMeansPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBase[con
         return base.CallResult(result_df)
 
     def get_params(self) -> Params:
-        return Params()
+        return Params(_columns = self._cols)
 
     def set_params(self, *, params: Params) -> None:
-        return
+        self._cols = params['_columns']

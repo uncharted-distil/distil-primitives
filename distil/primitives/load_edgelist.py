@@ -1,20 +1,15 @@
 import os
 import typing
+from typing import Sequence
 
-from typing import List, Sequence
-
-
+import pandas as pd
+from common_primitives import dataset_to_dataframe
+from common_primitives.utils import list_columns_with_semantic_types
 from d3m import container, utils
 from d3m.base import utils as base_utils
 from d3m.metadata import base as metadata_base, hyperparams
 from d3m.primitive_interfaces import base, transformer
 from distil.utils import CYTHON_DEP
-
-import pandas as pd
-
-import common_primitives
-from common_primitives.utils import list_columns_with_semantic_types
-from common_primitives import dataset_to_dataframe
 
 __all__ = ('DistilEdgeListLoaderPrimitive',)
 
