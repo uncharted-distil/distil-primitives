@@ -1,19 +1,13 @@
-import typing
 import os
-import csv
-import collections
-import sys
+import typing
 
-import frozendict  # type: ignore
-import pandas as pd  # type: ignore
 import numpy as np
-from sklearn.feature_selection import mutual_info_regression, mutual_info_classif
-
-from d3m import container, exceptions, utils as d3m_utils
+import pandas as pd  # type: ignore
+from d3m import container, utils as d3m_utils
 from d3m.metadata import base as metadata_base, hyperparams
 from d3m.primitive_interfaces import base, transformer
-
 from distil.utils import CYTHON_DEP
+from sklearn.feature_selection import mutual_info_regression, mutual_info_classif
 
 __all__ = ('MIRankingPrimitive',)
 

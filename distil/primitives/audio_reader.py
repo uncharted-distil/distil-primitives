@@ -1,26 +1,21 @@
+import logging
 import os
 import signal
 import subprocess
+import tempfile
+from typing import List, Sequence, Optional, Tuple, Union
 
-import logging
-import copy
-
+import numpy as np
+import pandas as pd
+import prctl
+import soundfile as sf
 from d3m import container, utils
 from d3m.base import utils as base_utils
 from d3m.metadata import base as metadata_base, hyperparams
 from d3m.primitive_interfaces import base, transformer
-
-
-from typing import List, Sequence, Optional, Tuple, Union
-import numpy as np
-import pandas as pd
-import soundfile as sf
-import prctl
-import tempfile
+from distil.utils import CYTHON_DEP
 from joblib import Parallel, delayed
 from tqdm import tqdm
-from scipy.io import wavfile
-from distil.utils import CYTHON_DEP
 
 __all__ = ('AudioDatasetLoaderPrimitive',)
 

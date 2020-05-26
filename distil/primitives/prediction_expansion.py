@@ -1,15 +1,12 @@
-import os
 import logging
+import os
 import typing
 
-from d3m import container, utils as d3m_utils
-from d3m.metadata import base as metadata_base, hyperparams
-from d3m.primitive_interfaces import base, transformer
-from d3m.contrib.primitives import compute_scores
-
-import common_primitives
 from common_primitives import construct_predictions
-
+from d3m import container, utils as d3m_utils
+from d3m.contrib.primitives import compute_scores
+from d3m.metadata import base as metadata_base
+from d3m.primitive_interfaces import base
 from distil.utils import CYTHON_DEP
 
 __all__ = ('PredictionExpansionPrimitive',)

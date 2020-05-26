@@ -1,18 +1,11 @@
-import os
 import logging
-from typing import Set, List, Dict, Any, Optional
+import os
 
 from d3m import container, utils
 from d3m.metadata import base as metadata_base, hyperparams, params
-from d3m.primitive_interfaces import base, transformer
-from d3m.primitive_interfaces.supervised_learning import PrimitiveBase
+from d3m.primitive_interfaces import base
 from d3m.primitive_interfaces.base import CallResult
-
-import pandas as pd
-import numpy as np
-import networkx as nx
-from scipy import sparse
-
+from d3m.primitive_interfaces.supervised_learning import PrimitiveBase
 from distil.modeling.link_prediction import RescalLinkPrediction
 from distil.utils import CYTHON_DEP
 
@@ -30,6 +23,7 @@ class Hyperparams(hyperparams.Hyperparams):
 class Params(params.Params):
     model: RescalLinkPrediction
     target_col: str
+
 
 class DistilLinkPredictionPrimitive(PrimitiveBase[container.List, container.DataFrame, Params, Hyperparams]):
     """
@@ -110,4 +104,4 @@ class DistilLinkPredictionPrimitive(PrimitiveBase[container.List, container.Data
     def set_params(self, *, params: Params) -> None:
         self._model=params['model']
         self._target_col=params['target_col']
-        return
+

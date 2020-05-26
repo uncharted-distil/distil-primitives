@@ -1,24 +1,15 @@
-import os
 import logging
-from typing import List, Tuple, Mapping, Dict, Any
-from collections import defaultdict
-import random
+import os
+from typing import Tuple, Dict, Any
 
+import numpy as np
+import torch
 from d3m import container, utils as d3m_utils
 from d3m.metadata import base as metadata_base, hyperparams, params
 from d3m.primitive_interfaces import base
 from d3m.primitive_interfaces.supervised_learning import PrimitiveBase
-
-import pandas as pd
-import numpy as np
-
-from sklearn import preprocessing
-import torch
-
 from distil.modeling.collaborative_filtering import SGDCollaborativeFilter
-from distil.primitives import utils
 from distil.utils import CYTHON_DEP
-
 
 _all__ = ('CollaborativeFilteringPrimtive',)
 

@@ -1,16 +1,13 @@
-import os
 import logging
+import os
 
+import pandas as pd
 from d3m import container, utils
 from d3m.metadata import base as metadata_base, hyperparams
 from d3m.primitive_interfaces import base, transformer
 from distil.primitives import utils as distil_utils
 from distil.primitives.utils import SINGLETON_INDICATOR, CATEGORICALS
 from distil.utils import CYTHON_DEP
-
-import typing
-import numpy as np
-import pandas as pd
 
 __all__ = ('ReplaceSingletonsPrimitive',)
 

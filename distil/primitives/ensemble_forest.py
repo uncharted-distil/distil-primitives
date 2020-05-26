@@ -1,23 +1,17 @@
-import os
-import sys
 import logging
-from typing import Set, List, Dict, Any, Optional
+import os
+from typing import List, Dict, Optional
 
+import numpy as np
+import pandas as pd
+from ShapExplainers import tree
 from d3m import container, utils
 from d3m.metadata import base as metadata_base, hyperparams, params
-from d3m.primitive_interfaces import base, transformer
-from d3m.primitive_interfaces.supervised_learning import PrimitiveBase
+from d3m.primitive_interfaces import base
 from d3m.primitive_interfaces.base import CallResult
-
+from d3m.primitive_interfaces.supervised_learning import PrimitiveBase
 from distil.modeling.forest import ForestCV
-from distil.modeling.metrics import classification_metrics, regression_metrics
-
-from ShapExplainers import tree
-
-import pandas as pd
-import numpy as np
-
-from common_primitives import denormalize, dataset_to_dataframe as DatasetToDataFrame
+from distil.modeling.metrics import classification_metrics
 from distil.utils import CYTHON_DEP
 
 __all__ = ("EnsembleForest",)
@@ -76,12 +70,48 @@ class Hyperparams(hyperparams.Hyperparams):
         + "samples",
     )
 
+    n_estimators = hyperparams.UniformInt(
+        lower=1,
+        upper=2048,
+        default=32,
+        description='The number of trees in the forest.',
+        semantic_types=[
+            'https://metadata.datadrivendiscovery.org/types/TuningParameter',
+            'https://metadata.datadrivendiscovery.org/types/ResourcesUseParameter',
+        ],
+    )
+
+    min_samples_leaf = hyperparams.UniformInt(
+        lower=1,
+        upper=31,
+        default=2,
+        description='Minimum number of samples to split leaf',
+        semantic_types=[
+            'https://metadata.datadrivendiscovery.org/types/TuningParameter',
+            'https://metadata.datadrivendiscovery.org/types/ResourcesUseParameter',
+        ],
+    )
+    class_weight = hyperparams.Enumeration[str](
+        values=["None", 'balanced', 'balanced_subsample'],
+        default="None",
+        description='todo',
+        semantic_types=['https://metadata.datadrivendiscovery.org/types/TuningParameter'],
+    )
+
+    estimator = hyperparams.Enumeration[str](
+        values=["ExtraTrees", "RandomForest"],
+        default="ExtraTrees",
+        description='todo',
+        semantic_types=['https://metadata.datadrivendiscovery.org/types/TuningParameter'],
+    )
+
 
 class Params(params.Params):
     model: ForestCV
     target_cols: List[str]
     label_map: Dict[int, str]
     needs_fit: bool
+
 
 
 class EnsembleForestPrimitive(
@@ -123,9 +153,37 @@ class EnsembleForestPrimitive(
     def __init__(self, *, hyperparams: Hyperparams, random_seed: int = 0) -> None:
 
         super().__init__(hyperparams=hyperparams, random_seed=random_seed)
-        self._model = ForestCV(self.hyperparams["metric"], self.random_seed)
-        self._label_map: Dict[int, str] = {}
+        # hack to get around typing constraints.
+        if self.hyperparams['class_weight'] == "None":
+            class_weight = None
+        else:
+            class_weight = self.hyperparams['class_weight']
+
+        current_hyperparams = {
+            "estimator"        : self.hyperparams['estimator'],
+            "n_estimators"     : self.hyperparams['n_estimators'], #[32, 64, 128, 256, 512, 1024, 2048],
+            "min_samples_leaf" : self.hyperparams['min_samples_leaf'], # '[1, 2, 4, 8, 16, 32],
+        }
+        if self.hyperparams["metric"] in classification_metrics:
+            current_hyperparams.update({"class_weight" : class_weight})
+        else:  # regression
+            current_hyperparams.update({"bootstrap": True})
+
+
+        self._model = ForestCV(self.hyperparams["metric"], self.random_seed, hyperparams=current_hyperparams)
+        self._needs_fit = True
+        self.label_map: Optional[Dict[int, str]] = None
         self._target_cols: List[str] = []
+
+    def __getstate__(self) -> dict:
+        state = PrimitiveBase.__getstate__(self)
+        state["models"] = self._model
+        state["needs_fit"] = self._needs_fit
+        return state
+
+    def __setstate__(self, state: dict) -> None:
+        PrimitiveBase.__setstate__(self, state)
+        self._model = state["models"]
         self._needs_fit = True
 
     def _get_component_columns(

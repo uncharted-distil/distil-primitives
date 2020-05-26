@@ -19,7 +19,7 @@ def maybe_subset(X, y, n):
     else:
         return X, y
 
-def parmap(fn, x, n_jobs=32, backend='multiprocessing', verbose=1, **kwargs):
+def parmap(fn, x, n_jobs=1, backend='loky', verbose=1, **kwargs):
     if len(list(x)) < n_jobs: # TODO: I'm surprised this is necessary
         n_jobs = len(list(x))
 

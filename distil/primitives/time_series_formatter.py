@@ -14,19 +14,15 @@
    limitations under the License.
 """
 
-import typing
 import os
-import csv
-import collections
+import typing
 
-import frozendict  # type: ignore
-import pandas as pd  # type: ignore
-
-from d3m import container, exceptions, utils as d3m_utils
-from d3m.metadata import base as metadata_base, hyperparams
-from d3m.base import utils as base_utils
-from d3m.primitive_interfaces import base, transformer
 import numpy as np
+import pandas as pd  # type: ignore
+from d3m import container, exceptions, utils as d3m_utils
+from d3m.base import utils as base_utils
+from d3m.metadata import base as metadata_base, hyperparams
+from d3m.primitive_interfaces import base, transformer
 from distil.utils import CYTHON_DEP
 
 __all__ = ('TimeSeriesFormatterPrimitive',)

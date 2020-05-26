@@ -1,13 +1,11 @@
-import io
-from typing import Sequence
-import sys
-import importlib.util
 import importlib.machinery
+import importlib.util
+import io
+import sys
+from typing import Sequence
 
-import numpy as np
-
-from d3m.metadata import base
 from d3m import container
+from d3m.metadata import base
 
 MISSING_VALUE_INDICATOR = '__miss_salt_8acf6447-fd14-480e-9cfb-0cb46accfafd'
 SINGLETON_INDICATOR     = '__sing_salt_6df854b8-a0ba-41ba-b598-ddeba2edfb53'

@@ -1,24 +1,15 @@
-import os
 import logging
-from typing import Set, List, Dict, Any, Optional
+import os
+from typing import Dict, Any, List
 
+import pandas as pd
 from d3m import container, utils
 from d3m.metadata import base as metadata_base, hyperparams, params
 from d3m.primitive_interfaces import base
-from d3m.primitive_interfaces.supervised_learning import PrimitiveBase
 from d3m.primitive_interfaces.base import CallResult
-import pandas as pd
-import numpy as np
-
-from sklearn.model_selection import RepeatedStratifiedKFold
-from sklearn.pipeline import Pipeline
-from sklearn.model_selection import RandomizedSearchCV
-from sklearn.feature_extraction.text import TfidfVectorizer
-
 from distil.modeling.metrics import classification_metrics, regression_metrics
-from distil.utils import CYTHON_DEP
-
 from distil.modeling.text_classification import TextClassifierCV
+from distil.utils import CYTHON_DEP
 
 __all__ = ('TextClassifierPrimitive',)
 
@@ -40,6 +31,7 @@ class Params(params.Params):
     model: TextClassifierCV
     label_map: Dict[int, str]
     target_col_names: List[str]
+
 
 
 class TextClassifierPrimitive(base.PrimitiveBase[container.DataFrame, container.DataFrame, Params, Hyperparams]):
@@ -134,6 +126,14 @@ class TextClassifierPrimitive(base.PrimitiveBase[container.DataFrame, container.
                                                                   'https://metadata.datadrivendiscovery.org/types/PredictedTarget')
 
         return base.CallResult(result_df)
+
+    def _get_grid_for_metric(self) -> Dict[str, Any]:
+        if self.hyperparams['metric'] in classification_metrics:
+            return self._FAST_GRIDS['classification']
+        elif self.hyperparams['metric'] in regression_metrics:
+            raise NotImplementedError
+        else:
+            raise Exception('ForestCV: unknown metric')
 
     def get_params(self) -> Params:
         return Params(

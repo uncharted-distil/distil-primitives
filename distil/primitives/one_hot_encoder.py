@@ -1,20 +1,16 @@
-import os
-from typing import List, Set, Any, Sequence, Optional
 import logging
+import os
+from typing import List
+from typing import Optional
 
+import numpy as np
 from d3m import container, utils
 from d3m.metadata import base as metadata_base, hyperparams, params
 from d3m.primitive_interfaces import base, unsupervised_learning
-
-import pandas as pd
-import numpy as np
-
 from distil.primitives import utils as distil_utils
 from distil.primitives.utils import CATEGORICALS
 from distil.utils import CYTHON_DEP
-
 from sklearn import preprocessing
-from sklearn import compose
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +33,7 @@ class Hyperparams(hyperparams.Hyperparams):
 class Params(params.Params):
     encoder: Optional[preprocessing.OneHotEncoder]
     cols: List[int]
+
 
 class OneHotEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBase[container.DataFrame, container.DataFrame, Params, Hyperparams]):
     """
@@ -149,6 +146,13 @@ class OneHotEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
         logger.debug(f'\n{outputs}')
 
         return base.CallResult(outputs)
+
+    @classmethod
+    def _detect_text(cls, X: container.DataFrame, thresh: int = 8) -> bool:
+        """ returns true if median entry has more than `thresh` tokens"""
+        X = X[X.notnull()]
+        n_toks = X.apply(lambda xx: len(str(xx).split(' '))).values
+        return np.median(n_toks) >= thresh
 
     def get_params(self) -> Params:
         return Params(

@@ -1,13 +1,12 @@
-import os
-from typing import List, Set, Any, Sequence
 import logging
+import os
+from typing import List
 
+import pandas as pd
 from d3m import container, utils
 from d3m.metadata import base as metadata_base, hyperparams, params
 from d3m.primitive_interfaces import base, unsupervised_learning
 from distil.utils import CYTHON_DEP
-
-import pandas as pd
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +24,7 @@ class Hyperparams(hyperparams.Hyperparams):
 
 class Params(params.Params):
     columns: List[int]
+
 
 
 class ListEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBase[
@@ -66,6 +66,7 @@ class ListEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBas
                  random_seed: int = 0) -> None:
         super().__init__(hyperparams=hyperparams, random_seed=random_seed)
         self._cols: List[int] = []
+
 
     def set_training_data(self, *, inputs: container.DataFrame) -> None:
         self._inputs = inputs
@@ -133,3 +134,4 @@ class ListEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBas
     def set_params(self, *, params: Params) -> None:
         self._cols=params['columns']
         return
+
