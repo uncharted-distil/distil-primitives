@@ -40,7 +40,7 @@ class TextClassifierCV(DistilBaseModel):
         self.model = RandomizedSearchCV(
             Pipeline([
                 ('vect', TfidfVectorizer()),
-                ('cls', LinearSVC())
+                ('cls', LinearSVC(random_state=self.random_seed))
             ]),
             n_iter=self.n_iter,
             param_distributions=self.param_grid,

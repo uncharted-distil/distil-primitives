@@ -21,11 +21,6 @@ class Hyperparams(hyperparams.Hyperparams):
         default='f1',
         semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter']
     )
-    fast = hyperparams.Hyperparameter[bool](
-        default=False,
-        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter']
-    )
-
 
 class Params(params.Params):
     model: TextClassifierCV
@@ -126,14 +121,6 @@ class TextClassifierPrimitive(base.PrimitiveBase[container.DataFrame, container.
                                                                   'https://metadata.datadrivendiscovery.org/types/PredictedTarget')
 
         return base.CallResult(result_df)
-
-    def _get_grid_for_metric(self) -> Dict[str, Any]:
-        if self.hyperparams['metric'] in classification_metrics:
-            return self._FAST_GRIDS['classification']
-        elif self.hyperparams['metric'] in regression_metrics:
-            raise NotImplementedError
-        else:
-            raise Exception('ForestCV: unknown metric')
 
     def get_params(self) -> Params:
         return Params(
