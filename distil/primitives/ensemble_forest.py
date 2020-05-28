@@ -11,7 +11,7 @@ from d3m.primitive_interfaces import base
 from d3m.primitive_interfaces.base import CallResult
 from d3m.primitive_interfaces.supervised_learning import PrimitiveBase
 from distil.modeling.forest import ForestCV
-from distil.modeling.metrics import classification_metrics
+from distil.modeling.metrics import classification_metrics, regression_metrics
 from distil.utils import CYTHON_DEP
 
 __all__ = ("EnsembleForest",)
@@ -20,7 +20,8 @@ logger = logging.getLogger(__name__)
 
 
 class Hyperparams(hyperparams.Hyperparams):
-    metric = hyperparams.Hyperparameter[str](
+    metric = hyperparams.Enumeration[str](
+        values=classification_metrics.union(regression_metrics),
         default="f1Macro",
         semantic_types=[
             "https://metadata.datadrivendiscovery.org/types/ControlParameter"

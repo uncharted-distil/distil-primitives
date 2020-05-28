@@ -41,6 +41,7 @@ class AnyForest:
         #     assert y.dtype == int
         #     assert y.min() == 0, 'may need to remap_labels'
         #     assert y.max() == len(set(y)) - 1, 'may need to remap_labels'
+        y = y.ravel(order='C')
         self.model = self.model_cls(**self.params).fit(X, y)
         return self
 
