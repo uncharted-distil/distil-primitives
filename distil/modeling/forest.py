@@ -41,7 +41,6 @@ class AnyForest:
         #     assert y.dtype == int
         #     assert y.min() == 0, 'may need to remap_labels'
         #     assert y.max() == len(set(y)) - 1, 'may need to remap_labels'
-
         self.model = self.model_cls(**self.params).fit(X, y)
         return self
 
@@ -137,7 +136,6 @@ class ForestCV(DistilBaseModel):
             oob_score=True,
             n_jobs=self.inner_jobs,
             **params,
-            random_state=self.random_seed
         )
 
         model       = model.fit(X, y)
@@ -149,6 +147,7 @@ class ForestCV(DistilBaseModel):
         X, y = maybe_subset(Xf_train, y_train, n=self.subset)
 
         current_params = self.params
+        current_params['random_state'] = self.random_seed
 
         model = AnyForest(mode=self.mode, n_jobs=self.outer_jobs, **current_params)
 
