@@ -7,7 +7,7 @@ from d3m import container, utils
 from d3m.metadata import base as metadata_base, hyperparams, params
 from d3m.primitive_interfaces import base
 from d3m.primitive_interfaces.base import CallResult
-from distil.modeling.metrics import classification_metrics, regression_metrics
+from distil.modeling.metrics import classification_metrics
 from distil.modeling.text_classification import TextClassifierCV
 from distil.utils import CYTHON_DEP
 
@@ -17,7 +17,8 @@ logger = logging.getLogger(__name__)
 
 
 class Hyperparams(hyperparams.Hyperparams):
-    metric = hyperparams.Hyperparameter[str](
+    metric = hyperparams.Enumeration[str](
+        values=classification_metrics,
         default='f1',
         semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter']
     )
