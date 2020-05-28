@@ -11,7 +11,7 @@ from d3m.primitive_interfaces import base
 from d3m.primitive_interfaces.base import CallResult
 from d3m.primitive_interfaces.supervised_learning import PrimitiveBase
 from distil.modeling.forest import ForestCV
-from distil.modeling.metrics import classification_metrics
+from distil.modeling.metrics import classification_metrics, regression_metrics
 from distil.utils import CYTHON_DEP
 
 __all__ = ("EnsembleForest",)
@@ -20,7 +20,8 @@ logger = logging.getLogger(__name__)
 
 
 class Hyperparams(hyperparams.Hyperparams):
-    metric = hyperparams.Hyperparameter[str](
+    metric = hyperparams.Enumeration[str](
+        values=classification_metrics.union(regression_metrics),
         default="f1Macro",
         semantic_types=[
             "https://metadata.datadrivendiscovery.org/types/ControlParameter"
@@ -37,7 +38,7 @@ class Hyperparams(hyperparams.Hyperparams):
         + "fewer rows than the threshold value, 'small_dateset_fits' will be used when fitting.  Otherwise, 'num_large_fits' is used.",
     )
     small_dataset_fits = hyperparams.Hyperparameter[int](
-        default=1,
+        default=5,
         semantic_types=[
             "https://metadata.datadrivendiscovery.org/types/ControlParameter"
         ],
@@ -170,21 +171,10 @@ class EnsembleForestPrimitive(
             current_hyperparams.update({"bootstrap": True})
 
 
-        self._model = ForestCV(self.hyperparams["metric"], self.random_seed, hyperparams=current_hyperparams)
+        self._model = ForestCV(self.hyperparams["metric"], random_seed=self.random_seed, hyperparams=current_hyperparams)
         self._needs_fit = True
-        self.label_map: Optional[Dict[int, str]] = None
+        self._label_map: Dict[int, str] = {}
         self._target_cols: List[str] = []
-
-    def __getstate__(self) -> dict:
-        state = PrimitiveBase.__getstate__(self)
-        state["models"] = self._model
-        state["needs_fit"] = self._needs_fit
-        return state
-
-    def __setstate__(self, state: dict) -> None:
-        PrimitiveBase.__setstate__(self, state)
-        self._model = state["models"]
-        self._needs_fit = True
 
     def _get_component_columns(
         self, output_df: container.DataFrame, source_col_index: int

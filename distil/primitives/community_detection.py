@@ -15,10 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 class Hyperparams(hyperparams.Hyperparams):
-    metric = hyperparams.Hyperparameter[str](
-        default='normalizedMutualInformation',
-        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter']
-    )
+    pass
 
 class Params(params.Params):
     model: _CommunityDetection
@@ -61,7 +58,7 @@ class DistilCommunityDetectionPrimitive(PrimitiveBase[container.List, container.
                  random_seed: int = 0) -> None:
 
         super().__init__(hyperparams=hyperparams, random_seed=random_seed)
-        self._model = _CommunityDetection(target_metric=self.hyperparams['metric'], overlapping=False)
+        self._model = _CommunityDetection(overlapping=False)
         self._target_col = ""
 
     def set_training_data(self, *, inputs: container.List, outputs: container.DataFrame) -> None:

@@ -1,11 +1,11 @@
 import logging
 import os
-from typing import Dict
+from typing import Dict, Optional
 
 import pandas as pd
 from d3m import container, utils
 from d3m.metadata import base as metadata_base, hyperparams, params
-from d3m.primitive_interfaces import base, unsupervised_learning
+from d3m.primitive_interfaces import base, transformer
 from d3m.primitive_interfaces.base import CallResult
 from d3m.primitive_interfaces.supervised_learning import PrimitiveBase
 from distil.primitives import utils as primitive_utils
@@ -15,8 +15,11 @@ __all__ = ('AudioTransferPrimitive',)
 
 logger = logging.getLogger(__name__)
 
+Inputs = container.List
+Outputs = container.DataFrame
+
 # lazy load pretrained audio due to lengthy import time
-pretrained_audio = primitive_utils.lazy_load("distil.modeling.pretrained_audio")
+_pretrained_audio = primitive_utils.lazy_load("distil.modeling.pretrained_audio")
 
 class Hyperparams(hyperparams.Hyperparams):
     use_columns = hyperparams.Set(
@@ -25,24 +28,14 @@ class Hyperparams(hyperparams.Hyperparams):
         semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
         description="A set of column indices to force primitive to operate on. If any specified column cannot be parsed, it is skipped.",
     )
-    metric = hyperparams.Hyperparameter[str](
-        default='',
-        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter']
-    )
-    fast = hyperparams.Hyperparameter[bool](
-        default=False,
-        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter']
-    )
 
-class Params(params.Params):
-    pass
-
-
-class AudioTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBase[container.List, container.DataFrame, Params, Hyperparams]):
+class AudioTransferPrimitive(transformer.TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
     """
     A primitive that converts an input audio waveform to a vector of VGGish features.
 
     """
+
+    _VOLUME_KEY = 'vggish_model'
 
     metadata = metadata_base.PrimitiveMetadata(
         {
@@ -60,7 +53,7 @@ class AudioTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
             },
             'installation': [{
                     "type": "FILE",
-                    "key": "vggish_model",
+                    "key": _VOLUME_KEY,
                     "file_uri": "https://github.com/harritaylor/torchvggish/releases/download/v0.1/vggish-10086976.pth",
                     "file_digest": "10086976245803799d9194e9a73d9b6c1549c71d1b80106f5cade5608a561f4b",
                 }, {
@@ -94,53 +87,33 @@ class AudioTransferPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
         },
     )
 
+    _audio_set: Optional[_pretrained_audio.AudiosetModel] = None
 
     def __init__(self, *,
                  hyperparams: Hyperparams,
                  random_seed: int=0,
                  volumes: Dict[str, str] = None) -> None:
-
         super().__init__(hyperparams=hyperparams, random_seed=random_seed, volumes=volumes)
-        self.volumes = volumes
-        self.audio_set = pretrained_audio.AudiosetModel(model_path=self.volumes["vggish_model"])
-
-    def __getstate__(self) -> dict:
-        state = PrimitiveBase.__getstate__(self)
-
-        return state
-
-    def __setstate__(self, state: dict) -> None:
-        PrimitiveBase.__setstate__(self, state)
-
-
-    def set_training_data(self, *, inputs: container.List) -> None:
-        self._inputs = inputs
-
+        if volumes is None:
+            raise ValueError('volumes cannot be None')
 
     def _transform_inputs(self, inputs):
-        feats = self.audio_set._featurize(inputs.audio)
+        feats = self._audio_set._featurize(inputs.audio)
         audio_vecs = pd.DataFrame(feats.tolist())
         audio_vecs.columns = ['v{}'.format(i) for i in range(0, audio_vecs.shape[1])]
 
         return container.DataFrame(audio_vecs) # TODO: fix index setup
 
-
-    def fit(self, *, timeout: float = None, iterations: int = None) -> CallResult[None]:
-        return CallResult(None)
-
-
-    def produce(self, *, inputs: container.List, timeout: float = None, iterations: int = None) -> CallResult[container.DataFrame]:
+    def produce(self, *, inputs: Inputs, timeout: float = None, iterations: int = None) -> CallResult[container.DataFrame]:
         logger.debug(f'Producing {__name__}')
+
+         # lazy init the audio set model
+        if self._audio_set is None:
+            model_path = self.volumes[self._VOLUME_KEY]
+            logger.debug(f'Loading pretrained model from {model_path}')
+            self._audio_set = _pretrained_audio.AudiosetModel(model_path=model_path)
+
         outputs = self._transform_inputs(inputs)
         logger.debug(f'Audio transfer completed on {len(outputs.columns)} samples')
 
         return base.CallResult(outputs)
-
-
-    def get_params(self) -> Params:
-        return Params()
-
-
-    def set_params(self, *, params: Params) -> None:
-        return
-

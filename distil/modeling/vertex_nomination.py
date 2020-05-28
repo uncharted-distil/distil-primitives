@@ -15,7 +15,7 @@ class VertexNominationCV(DistilBaseModel):
     def __init__(self, target_metric, num_components=8,random_seed=None):
         self.target_metric  = target_metric
         self.num_components = num_components
-        self._random_seed = random_seed
+        self.random__seed = random_seed
         self.feats = None
 
     def fit(self, X_train, y_train, U_train=None):
@@ -42,7 +42,7 @@ class VertexNominationCV(DistilBaseModel):
         print('VertexNominationCV: ForestCV', file=sys.stderr)
         forest = False
         try:
-            forest = ForestCV(target_metric=self.target_metric,random_seed=self._random_seed)
+            forest = ForestCV(target_metric=self.target_metric,random_seed=self.random__seed,grid_search=True)
             forest = forest.fit(Xf_train, y_train)
         except:
             pass
@@ -50,8 +50,8 @@ class VertexNominationCV(DistilBaseModel):
         print('VertexNominationCV: SupportVectorCV', file=sys.stderr)
         svm = False
         try:
-            svm = SupportVectorCV(target_metric=self.target_metric)
-            #svm = svm.fit(Xf_train, y_train)
+            svm = SupportVectorCV(target_metric=self.target_metric, random_seed=self.random__seed)
+            svm = svm.fit(Xf_train, y_train)
         except:
             pass
 

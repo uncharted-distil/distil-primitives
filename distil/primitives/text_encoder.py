@@ -8,6 +8,7 @@ from d3m.metadata import base as metadata_base, hyperparams, params
 from d3m.primitive_interfaces import base
 from distil.preprocessing.transformers import SVMTextEncoder, TfidifEncoder
 from distil.primitives import utils as distil_utils
+from distil.modeling.metrics import classification_metrics, clustering_metrics, regression_metrics
 from distil.utils import CYTHON_DEP
 
 __all__ = ('TextEncoderPrimitive',)
@@ -19,7 +20,8 @@ Outputs = container.DataFrame
 
 
 class Hyperparams(hyperparams.Hyperparams):
-    metric = hyperparams.Hyperparameter[str](
+    metric = hyperparams.Enumeration[str](
+        values=clustering_metrics.union(classification_metrics).union(regression_metrics),
         default="f1Macro",
         semantic_types=[
             "https://metadata.datadrivendiscovery.org/types/ControlParameter"

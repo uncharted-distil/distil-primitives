@@ -41,7 +41,7 @@ class AnyForest:
         #     assert y.dtype == int
         #     assert y.min() == 0, 'may need to remap_labels'
         #     assert y.max() == len(set(y)) - 1, 'may need to remap_labels'
-
+        y = y.ravel(order='C')
         self.model = self.model_cls(**self.params).fit(X, y)
         return self
 
@@ -79,8 +79,8 @@ class ForestCV(DistilBaseModel):
     }
 
     def __init__(self, target_metric, subset=100000, final_subset=1500000,
-
-        verbose=10, num_fits=1, inner_jobs=1, param_grid=None, random_seed=None, hyperparams=None):
+        verbose=10, num_fits=1, inner_jobs=1, grid_search=False, param_grid=None, random_seed=None,
+        hyperparams=None):
 
         self.target_metric = target_metric
 
@@ -101,18 +101,21 @@ class ForestCV(DistilBaseModel):
         self.params = hyperparams
         self.random_seed = random_seed
 
-
-        if param_grid is not None:
-            self.param_grid = param_grid
+        # optional support for internal grid search
+        if grid_search:
+            if param_grid is not None:
+                self.param_grid = param_grid
+            else:
+                self.param_grid = deepcopy(self.default_param_grids[self.mode])
         else:
-            self.param_grid = deepcopy(self.default_param_grids[self.mode])
+            self.param_grid = None
 
         self._models  = []
         self._y_train = None
 
     def fit(self, Xf_train, y_train, U_train=None):
         self._y_train = y_train
-        self._models  = [self._fit(Xf_train, y_train) for _ in range(self.num_fits)]
+        self._models  = [self._fit(Xf_train, y_train, self.param_grid) for _ in range(self.num_fits)]
         return self
 
     # def score(self, X, y):
@@ -131,13 +134,13 @@ class ForestCV(DistilBaseModel):
     def feature_importances(self):
         return self._models[0].feature_importances()
 
-    def _eval_grid_point(self, params, X, y):
+    def _eval_grid_point(self, params, X, y, random_seed=None):
+        params['random_state'] = random_seed
         model = AnyForest(
             mode=self.mode,
             oob_score=True,
             n_jobs=self.inner_jobs,
             **params,
-            random_state=self.random_seed
         )
 
         model       = model.fit(X, y)
@@ -148,11 +151,24 @@ class ForestCV(DistilBaseModel):
 
         X, y = maybe_subset(Xf_train, y_train, n=self.subset)
 
-        current_params = self.params
+        # Run grid search
+        if param_grid is not None:
+            self.results = parmap(self._eval_grid_point,
+                ParameterGrid(self.param_grid), X=X, y=y, verbose=self.verbose, n_jobs=self.outer_jobs, random_seed=self.random_seed)
 
-        model = AnyForest(mode=self.mode, n_jobs=self.outer_jobs, **current_params)
+            # Find best run
+            best_run = sorted(self.results, key=lambda x: x['fitness'])[-1] # bigger is better
+            self.best_params, self.best_fitness = best_run['params'], best_run['fitness']
 
-        model = model.fit(X, y)
+            # Refit best model, possibly on more data
+            X, y  = maybe_subset(Xf_train, y_train, n=self.final_subset)
+            model = AnyForest(mode=self.mode, n_jobs=self.outer_jobs, **self.best_params)
+            model = model.fit(X, y)
+        else:
+            current_params = self.params
+            current_params['random_state'] = self.random_seed
+            model = AnyForest(mode=self.mode, n_jobs=self.outer_jobs, **current_params)
+            model = model.fit(X, y)
 
         return model
 

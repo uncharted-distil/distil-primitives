@@ -8,6 +8,7 @@ from d3m.primitive_interfaces.base import CallResult
 from d3m.primitive_interfaces.supervised_learning import PrimitiveBase
 from distil.modeling.vertex_nomination import VertexNominationCV
 from distil.utils import CYTHON_DEP
+from distil.modeling.metrics import classification_metrics
 
 __all__ = ('VertexNomination',)
 
@@ -15,8 +16,9 @@ logger = logging.getLogger(__name__)
 
 
 class Hyperparams(hyperparams.Hyperparams):
-    metric = hyperparams.Hyperparameter[str](
-        default='normalizedMutualInformation',
+    metric = hyperparams.Enumeration[str](
+        values=classification_metrics,
+        default='accuracy',
         semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter']
     )
 

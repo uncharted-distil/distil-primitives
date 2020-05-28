@@ -7,7 +7,7 @@ from d3m import container, utils
 from d3m.metadata import base as metadata_base, hyperparams, params
 from d3m.primitive_interfaces import base
 from d3m.primitive_interfaces.base import CallResult
-from distil.modeling.metrics import classification_metrics, regression_metrics
+from distil.modeling.metrics import classification_metrics
 from distil.modeling.text_classification import TextClassifierCV
 from distil.utils import CYTHON_DEP
 
@@ -17,15 +17,11 @@ logger = logging.getLogger(__name__)
 
 
 class Hyperparams(hyperparams.Hyperparams):
-    metric = hyperparams.Hyperparameter[str](
+    metric = hyperparams.Enumeration[str](
+        values=classification_metrics,
         default='f1',
         semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter']
     )
-    fast = hyperparams.Hyperparameter[bool](
-        default=False,
-        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter']
-    )
-
 
 class Params(params.Params):
     model: TextClassifierCV
@@ -126,14 +122,6 @@ class TextClassifierPrimitive(base.PrimitiveBase[container.DataFrame, container.
                                                                   'https://metadata.datadrivendiscovery.org/types/PredictedTarget')
 
         return base.CallResult(result_df)
-
-    def _get_grid_for_metric(self) -> Dict[str, Any]:
-        if self.hyperparams['metric'] in classification_metrics:
-            return self._FAST_GRIDS['classification']
-        elif self.hyperparams['metric'] in regression_metrics:
-            raise NotImplementedError
-        else:
-            raise Exception('ForestCV: unknown metric')
 
     def get_params(self) -> Params:
         return Params(
