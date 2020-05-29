@@ -22,7 +22,7 @@ Outputs = container.DataFrame
 
 class Hyperparams(hyperparams.Hyperparams):
     metric = hyperparams.Enumeration[str](
-        values=clustering_metrics.union(classification_metrics).union(regression_metrics),
+        values=classification_metrics + regression_metrics + clustering_metrics,
         default="f1Macro",
         semantic_types=[
             "https://metadata.datadrivendiscovery.org/types/ControlParameter"
