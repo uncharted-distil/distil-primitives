@@ -58,7 +58,7 @@ class TextEncoderPrimitive(base.PrimitiveBase[Inputs, Outputs, Params, Hyperpara
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': '09f252eb-215d-4e0b-9a60-fcd967f5e708',
-            'version': '0.2.1',
+            'version': '0.2.2',
             'name': "Text encoder",
             'python_path': 'd3m.primitives.data_transformation.encoder.DistilTextEncoder',
             'source': {
