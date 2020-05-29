@@ -25,24 +25,24 @@ metrics = {
     #'objectDetectionAP' : lambda act, pred: objectDetectionAP(act, pred)[-1],
 }
 
-classification_metrics = set([
+classification_metrics = [
     'f1Macro',
     'f1Micro',
     'f1',
     'accuracy'
-])
+]
 
-regression_metrics = set([
+regression_metrics = [
     'meanSquaredError',
     'meanAbsoluteError',
     'rootMeanSquaredError',
     'rootMeanSquaredErrorAvg',
     'rSquared',
-])
+]
 
-clustering_metrics = set([
+clustering_metrics = [
     'normalizedMutualInformation',
-])
+]
 
 
 def translate_d3m_metric(metric):
