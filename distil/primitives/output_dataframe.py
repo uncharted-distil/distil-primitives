@@ -5,6 +5,7 @@ from d3m import container, utils
 from d3m.metadata import base as metadata_base, hyperparams
 from d3m.primitive_interfaces import base, transformer
 from distil.utils import CYTHON_DEP
+import version
 
 __all__ = ('OutputDataframePrimitive',)
 
@@ -24,7 +25,7 @@ class OutputDataframePrimitive(transformer.TransformerPrimitiveBase[container.Da
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': '7cacc8b6-85ad-4c8f-9f75-360e0faee2b9',
-            'version': '0.1.1',
+            'version': version.__version__,
             'name': "Output Dataframe",
             'python_path': 'd3m.primitives.data_transformation.data_cleaning.OutputDataframe',
             'source': {

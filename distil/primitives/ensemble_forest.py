@@ -13,6 +13,7 @@ from d3m.primitive_interfaces.supervised_learning import PrimitiveBase
 from distil.modeling.forest import ForestCV
 from distil.modeling.metrics import classification_metrics, regression_metrics
 from distil.utils import CYTHON_DEP
+import version
 
 __all__ = ("EnsembleForest",)
 
@@ -127,7 +128,7 @@ class EnsembleForestPrimitive(
     metadata = metadata_base.PrimitiveMetadata(
         {
             "id": "e0ad06ce-b484-46b0-a478-c567e1ea7e02",
-            "version": "0.3.0",
+            "version": version.__version__,
             "name": "EnsembleForest",
             "python_path": "d3m.primitives.learner.random_forest.DistilEnsembleForest",
             "source": {

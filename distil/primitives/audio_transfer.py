@@ -10,6 +10,7 @@ from d3m.primitive_interfaces.base import CallResult
 from d3m.primitive_interfaces.supervised_learning import PrimitiveBase
 from distil.primitives import utils as primitive_utils
 from distil.utils import CYTHON_DEP
+import version
 
 __all__ = ('AudioTransferPrimitive',)
 
@@ -40,7 +41,7 @@ class AudioTransferPrimitive(transformer.TransformerPrimitiveBase[Inputs, Output
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': 'f2f149c8-a984-4f5b-8a9b-2f13ee0cf16d',
-            'version': '0.1.2',
+            'version': version.__version__,
             'name': "Audio Transfer",
             'python_path': 'd3m.primitives.feature_extraction.audio_transfer.DistilAudioTransfer',
             'source': {

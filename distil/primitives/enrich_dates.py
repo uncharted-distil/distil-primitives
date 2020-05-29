@@ -7,6 +7,7 @@ from d3m.metadata import base as metadata_base, hyperparams
 from d3m.primitive_interfaces import base, transformer
 from distil.primitives import utils as distil_utils
 from distil.utils import CYTHON_DEP
+import version
 
 __all__ = ('EnrichDatesPrimitive',)
 
@@ -32,7 +33,7 @@ class EnrichDatesPrimitive(transformer.TransformerPrimitiveBase[Inputs, Outputs,
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': 'b1367f5b-bab1-4dfc-a1a9-6a56430e516a',
-            'version': '0.1.1',
+            'version': version.__version__,
             'name': "Enrich dates",
             'python_path': 'd3m.primitives.data_transformation.data_cleaning.DistilEnrichDates',
             'source': {

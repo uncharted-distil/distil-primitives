@@ -8,6 +8,7 @@ from d3m.primitive_interfaces import base, transformer
 from distil.primitives import utils as distil_utils
 from distil.primitives.utils import SINGLETON_INDICATOR, CATEGORICALS
 from distil.utils import CYTHON_DEP
+import version
 
 __all__ = ('ReplaceSingletonsPrimitive',)
 
@@ -30,7 +31,7 @@ class ReplaceSingletonsPrimitive(transformer.TransformerPrimitiveBase[container.
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': '7cacc8b6-85ad-4c8f-9f75-360e0faee2b8',
-            'version': '0.1.1',
+            'version': version.__version__,
             'name': "Replace singeltons",
             'python_path': 'd3m.primitives.data_transformation.data_cleaning.DistilReplaceSingletons',
             'source': {

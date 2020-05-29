@@ -9,6 +9,7 @@ from d3m.primitive_interfaces import unsupervised_learning, base
 from distil.primitives import utils as distil_utils
 from distil.utils import CYTHON_DEP
 from sklearn.cluster import KMeans
+import version
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +46,7 @@ class KMeansPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBase[con
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': '3b09024e-a83b-418c-8ff4-cf3d30a9609e',
-            'version': '0.1.1',
+            'version': version.__version__,
             'name': "K means",
             'python_path': 'd3m.primitives.clustering.k_means.DistilKMeans',
             'source': {

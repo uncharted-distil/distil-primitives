@@ -7,6 +7,7 @@ from d3m import container, utils
 from d3m.metadata import base as metadata_base, hyperparams, params
 from d3m.primitive_interfaces import base, unsupervised_learning
 from distil.utils import CYTHON_DEP
+import version
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +38,7 @@ class ListEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBas
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': '67f53b00-f936-4bb4-873e-4698c4aaa37f',
-            'version': '0.2.0',
+            'version': version.__version__,
             'name': "List encoder",
             'python_path': 'd3m.primitives.data_transformation.list_to_dataframe.DistilListEncoder',
             'source': {

@@ -8,6 +8,7 @@ from d3m.base import utils as base_utils
 from d3m.metadata import base as metadata_base, hyperparams
 from d3m.primitive_interfaces import base, transformer
 from distil.utils import CYTHON_DEP
+import version
 
 __all__ = ('DistilSingleGraphLoaderPrimitive',)
 
@@ -37,7 +38,7 @@ class DistilSingleGraphLoaderPrimitive(transformer.TransformerPrimitiveBase[Inpu
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': '79012210-2463-4f94-9da6-11bdc5a7e6c4',
-            'version': '0.1.2',
+            'version': version.__version__,
             'name': "Load single graph and dataframe into a parseable object",
             'python_path': 'd3m.primitives.data_transformation.load_single_graph.DistilSingleGraphLoader',
             'source': {

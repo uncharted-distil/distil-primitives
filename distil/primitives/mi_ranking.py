@@ -8,6 +8,7 @@ from d3m.metadata import base as metadata_base, hyperparams
 from d3m.primitive_interfaces import base, transformer
 from distil.utils import CYTHON_DEP
 from sklearn.feature_selection import mutual_info_regression, mutual_info_classif
+import version
 
 __all__ = ('MIRankingPrimitive',)
 
@@ -66,7 +67,7 @@ class MIRankingPrimitive(transformer.TransformerPrimitiveBase[container.DataFram
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': 'a31b0c26-cca8-4d54-95b9-886e23df8886',
-            'version': '0.2.1',
+            'version': version.__version__,
             'name': 'Mutual Information Feature Ranking',
             'python_path': 'd3m.primitives.feature_selection.mutual_info_classif.DistilMIRanking',
             'keywords': ['vector', 'columns', 'dataframe'],

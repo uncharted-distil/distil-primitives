@@ -11,6 +11,7 @@ from distil.primitives import utils as distil_utils
 from distil.primitives.utils import CATEGORICALS
 from distil.utils import CYTHON_DEP
 from sklearn import preprocessing
+import version
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +45,7 @@ class OneHotEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': 'd3d421cb-9601-43f0-83d9-91a9c4199a06',
-            'version': '0.2.1',
+            'version': version.__version__,
             'name': "One-hot encoder",
             'python_path': 'd3m.primitives.data_transformation.one_hot_encoder.DistilOneHotEncoder',
             'source': {

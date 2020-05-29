@@ -10,6 +10,7 @@ from d3m.primitive_interfaces import base, transformer
 from d3m.primitive_interfaces.base import CallResult
 from distil.utils import CYTHON_DEP
 from distil.utils import Img2Vec
+import version
 
 __all__ = ('ImageTransferPrimitive',)
 
@@ -32,7 +33,7 @@ class ImageTransferPrimitive(transformer.TransformerPrimitiveBase[Inputs, Output
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': '782e261e-8e23-4184-9258-5a412c9b32d4',
-            'version': '0.1.1',
+            'version': version.__version__,
             'name': "Image Transfer",
             'python_path': 'd3m.primitives.feature_extraction.image_transfer.DistilImageTransfer',
             'source': {

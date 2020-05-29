@@ -9,6 +9,7 @@ from d3m.primitive_interfaces.supervised_learning import PrimitiveBase
 from distil.modeling.link_prediction import RescalLinkPrediction
 from distil.modeling.metrics import classification_metrics
 from distil.utils import CYTHON_DEP
+import version
 
 __all__ = ('LinkPrediction',)
 
@@ -34,7 +35,7 @@ class DistilLinkPredictionPrimitive(PrimitiveBase[container.List, container.Data
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': 'fc138210-c317-4528-81ae-5eed3a1a0267',
-            'version': '0.1.1',
+            'version': version.__version__,
             'name': "LinkPrediction",
             'python_path': 'd3m.primitives.link_prediction.link_prediction.DistilLinkPrediction',
             'source': {

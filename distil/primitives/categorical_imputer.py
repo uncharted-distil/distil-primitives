@@ -9,6 +9,7 @@ from distil.primitives import utils as distil_utils
 from distil.primitives.utils import MISSING_VALUE_INDICATOR, CATEGORICALS
 from distil.utils import CYTHON_DEP
 from sklearn_pandas import CategoricalImputer
+import version
 
 __all__ = ('CategoricalImputerPrimitive',)
 
@@ -50,7 +51,7 @@ class CategoricalImputerPrimitive(transformer.TransformerPrimitiveBase[container
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': '0a9936f3-7784-4697-82f0-2a5fcc744c16',
-            'version': '0.1.2',
+            'version': version.__version__,
             'name': "Categorical imputer",
             'python_path': 'd3m.primitives.data_transformation.imputer.DistilCategoricalImputer',
             'source': {

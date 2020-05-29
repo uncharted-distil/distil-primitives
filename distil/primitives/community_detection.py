@@ -8,6 +8,7 @@ from d3m.primitive_interfaces.base import CallResult
 from d3m.primitive_interfaces.supervised_learning import PrimitiveBase
 from distil.modeling.community_detection import CommunityDetection as _CommunityDetection
 from distil.utils import CYTHON_DEP
+import version
 
 __all__ = ('CommunityDetection',)
 
@@ -29,7 +30,7 @@ class DistilCommunityDetectionPrimitive(PrimitiveBase[container.List, container.
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': '064cec55-39dd-45b7-a663-50d3e17e0c42',
-            'version': '0.1.1',
+            'version': version.__version__,
             'name': "CommunityDetection",
             'python_path': 'd3m.primitives.community_detection.community_detection.DistilCommunityDetection',
             'source': {

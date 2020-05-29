@@ -8,6 +8,7 @@ from d3m.contrib.primitives import compute_scores
 from d3m.metadata import base as metadata_base
 from d3m.primitive_interfaces import base
 from distil.utils import CYTHON_DEP
+import version
 
 __all__ = ('PredictionExpansionPrimitive',)
 logger = logging.getLogger(__name__)
@@ -35,7 +36,7 @@ class PredictionExpansionPrimitive(construct_predictions.ConstructPredictionsPri
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': '36bedff2-1c99-47f3-92a8-a581f35b1924',
-            'version': '0.1.0',
+            'version': version.__version__,
             'name': "Expand group predictions",
             'python_path': 'd3m.primitives.data_transformation.prediction_expansion.DistilPredictionExpansion',
             'source': {

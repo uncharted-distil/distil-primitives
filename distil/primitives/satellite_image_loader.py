@@ -12,6 +12,7 @@ from d3m.metadata import base as metadata_base
 from d3m.primitive_interfaces import base as base_prim
 from distil.primitives import utils as distil_utils
 from distil.utils import CYTHON_DEP
+import version
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +43,7 @@ class DataFrameSatelliteImageLoaderPrimitive(primitives.FileReaderPrimitiveBase)
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': '77d20419-aeb6-44f9-8e63-349ea5b654f7',
-            'version': '0.1.0',
+            'version': version.__version__,
             'name': 'Columns satellite image loader',
             'python_path': 'd3m.primitives.data_preprocessing.satellite_image_loader.DistilSatelliteImageLoader',
             'keywords': ['satellite', 'image', 'reader', 'tiff'],

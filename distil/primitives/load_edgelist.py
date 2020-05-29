@@ -10,6 +10,7 @@ from d3m.base import utils as base_utils
 from d3m.metadata import base as metadata_base, hyperparams
 from d3m.primitive_interfaces import base, transformer
 from distil.utils import CYTHON_DEP
+import version
 
 __all__ = ('DistilEdgeListLoaderPrimitive',)
 
@@ -39,7 +40,7 @@ class DistilEdgeListLoaderPrimitive(transformer.TransformerPrimitiveBase[Inputs,
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': '4acc81e5-4b9c-443e-a72a-18dd9a7dcc3b',
-            'version': '0.1.2',
+            'version': version.__version__,
             'name': "Load edgelist into a parseable object",
             'python_path': 'd3m.primitives.data_transformation.load_edgelist.DistilEdgeListLoader',
             'source': {

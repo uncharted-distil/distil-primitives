@@ -24,6 +24,7 @@ from d3m.base import utils as base_utils
 from d3m.metadata import base as metadata_base, hyperparams
 from d3m.primitive_interfaces import base, transformer
 from distil.utils import CYTHON_DEP
+import version
 
 __all__ = ('TimeSeriesFormatterPrimitive',)
 
@@ -80,7 +81,7 @@ class TimeSeriesFormatterPrimitive(transformer.TransformerPrimitiveBase[containe
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': '6a1ce3ee-ee70-428b-b1ff-0490bdb23023',
-            'version': '0.1.1',
+            'version': version.__version__,
             'name': 'Time series formatter',
             'python_path': 'd3m.primitives.data_preprocessing.data_cleaning.DistilTimeSeriesFormatter',
             'keywords': ['series', 'reader', 'csv'],

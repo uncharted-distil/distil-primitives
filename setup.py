@@ -9,9 +9,11 @@ try:
 except Exception as e:
     print(e)
 
+with open('version.py') as f: exec(f.read())
+
 setup(
     name='distil-primitives',
-    version='0.2.0',
+    version=__version__,
     description='Distil primitives as a single library',
     packages=find_packages(),
     keywords=['d3m_primitive'],

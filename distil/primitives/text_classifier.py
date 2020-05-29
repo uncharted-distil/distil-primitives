@@ -10,6 +10,7 @@ from d3m.primitive_interfaces.base import CallResult
 from distil.modeling.metrics import classification_metrics
 from distil.modeling.text_classification import TextClassifierCV
 from distil.utils import CYTHON_DEP
+import version
 
 __all__ = ('TextClassifierPrimitive',)
 
@@ -39,7 +40,7 @@ class TextClassifierPrimitive(base.PrimitiveBase[container.DataFrame, container.
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': '24f51246-7487-454e-8d69-7cdf289994d1',
-            'version': '0.1.1',
+            'version': version.__version__,
             'name': "Text Classifier",
             'python_path': 'd3m.primitives.classification.text_classifier.DistilTextClassifier',
             'source': {

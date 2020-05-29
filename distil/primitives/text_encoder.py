@@ -10,6 +10,7 @@ from distil.preprocessing.transformers import SVMTextEncoder, TfidifEncoder
 from distil.primitives import utils as distil_utils
 from distil.modeling.metrics import classification_metrics, clustering_metrics, regression_metrics
 from distil.utils import CYTHON_DEP
+import version
 
 __all__ = ('TextEncoderPrimitive',)
 
@@ -58,7 +59,7 @@ class TextEncoderPrimitive(base.PrimitiveBase[Inputs, Outputs, Params, Hyperpara
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': '09f252eb-215d-4e0b-9a60-fcd967f5e708',
-            'version': '0.2.2',
+            'version': version.__version__,
             'name': "Text encoder",
             'python_path': 'd3m.primitives.data_transformation.encoder.DistilTextEncoder',
             'source': {

@@ -14,6 +14,7 @@ from d3m.base import utils as base_utils
 from d3m.metadata import base as metadata_base, hyperparams
 from d3m.primitive_interfaces import base, transformer
 from distil.utils import CYTHON_DEP
+import version
 from joblib import Parallel, delayed
 from tqdm import tqdm
 
@@ -101,7 +102,7 @@ class AudioDatasetLoaderPrimitive(transformer.TransformerPrimitiveBase[container
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': 'f2a0cf71-0f61-41a7-a0ad-b907083ae56c',
-            'version': '0.2.0',
+            'version': version.__version__,
             'name': "Load audio collection from dataset into a single dataframe",
             'python_path': 'd3m.primitives.data_preprocessing.audio_reader.DistilAudioDatasetLoader',
             'source': {

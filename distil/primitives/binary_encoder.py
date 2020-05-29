@@ -9,6 +9,7 @@ from distil.preprocessing.transformers import BinaryEncoder
 from distil.primitives import utils as distil_utils
 from distil.primitives.utils import CATEGORICALS
 from distil.utils import CYTHON_DEP
+import version
 
 __all__ = ('BinaryEncoderPrimitive',)
 
@@ -42,7 +43,7 @@ class BinaryEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': 'd38e2e28-9b18-4ce4-b07c-9d809cd8b915',
-            'version': '0.2.1',
+            'version': version.__version__,
             'name': "Binary encoder",
             'python_path': 'd3m.primitives.data_transformation.encoder.DistilBinaryEncoder',
             'source': {

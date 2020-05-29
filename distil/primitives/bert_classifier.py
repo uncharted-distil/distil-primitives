@@ -9,6 +9,7 @@ from d3m.primitive_interfaces import base
 from d3m.primitive_interfaces.supervised_learning import PrimitiveBase
 from distil.modeling.bert_models import BERTPairClassification
 from distil.utils import CYTHON_DEP
+import version
 
 _all__ = ('BertPairClassification',)
 
@@ -61,7 +62,7 @@ class BertPairClassificationPrimitive(PrimitiveBase[container.DataFrame, contain
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': '7c305f3a-442a-41ad-b9db-8c437753b119',
-            'version': '0.1.1',
+            'version': version.__version__,
             'name': "BERT pair classification",
             'python_path': 'd3m.primitives.classification.bert_classifier.DistilBertPairClassification',
             'source': {

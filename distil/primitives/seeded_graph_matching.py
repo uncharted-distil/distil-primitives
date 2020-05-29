@@ -9,6 +9,7 @@ from d3m.primitive_interfaces.supervised_learning import PrimitiveBase
 from distil.modeling.sgm import SGMGraphMatcher
 from distil.modeling.metrics import classification_metrics
 from distil.utils import CYTHON_DEP
+import version
 
 __all__ = ('SeededGraphMatcher',)
 
@@ -34,7 +35,7 @@ class DistilSeededGraphMatchingPrimitive(PrimitiveBase[container.List, container
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': '8baea8e6-9d3a-46d7-acf1-04fd593dcd37',
-            'version': '0.2.0',
+            'version': version.__version__,
             'name': "SeededGraphMatcher",
             'python_path': 'd3m.primitives.graph_matching.seeded_graph_matching.DistilSeededGraphMatcher',
             'source': {

@@ -9,6 +9,7 @@ from d3m.primitive_interfaces.supervised_learning import PrimitiveBase
 from distil.modeling.vertex_nomination import VertexNominationCV
 from distil.utils import CYTHON_DEP
 from distil.modeling.metrics import classification_metrics
+import version
 
 __all__ = ('VertexNomination',)
 
@@ -35,7 +36,7 @@ class DistilVertexNominationPrimitive(PrimitiveBase[container.List, container.Da
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': '0130828c-1ac0-47a9-a167-f05bae5a3146',
-            'version': '0.1.1',
+            'version': version.__version__,
             'name': "VertexNomination",
             'python_path': 'd3m.primitives.vertex_nomination.vertex_nomination.DistilVertexNomination',
             'source': {
