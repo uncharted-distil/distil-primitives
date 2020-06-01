@@ -30,28 +30,6 @@ class Hyperparams(hyperparams.Hyperparams):
         description="The D3M scoring metric to use during the fit phase.  This can be any of the regression, classification or "
         + "clustering metrics.",
     )
-    small_dataset_threshold = hyperparams.Hyperparameter[int](
-        default=2000,
-        semantic_types=[
-            "https://metadata.datadrivendiscovery.org/types/ControlParameter"
-        ],
-        description="Controls the application of the 'small_dataset_fits' and 'large_dataset_fits' parameters - if the input dataset has "
-        + "fewer rows than the threshold value, 'small_dateset_fits' will be used when fitting.  Otherwise, 'num_large_fits' is used.",
-    )
-    small_dataset_fits = hyperparams.Hyperparameter[int](
-        default=5,
-        semantic_types=[
-            "https://metadata.datadrivendiscovery.org/types/ControlParameter"
-        ],
-        description="The number of random forests to fit when using small datasets.",
-    )
-    large_dataset_fits = hyperparams.Hyperparameter[int](
-        default=1,
-        semantic_types=[
-            "https://metadata.datadrivendiscovery.org/types/ControlParameter"
-        ],
-        description="The number of random forests to fit when using large datasets.",
-    )
     shap_approximation = hyperparams.Hyperparameter[bool](
         default=False,
         semantic_types=[
@@ -93,6 +71,7 @@ class Hyperparams(hyperparams.Hyperparams):
             'https://metadata.datadrivendiscovery.org/types/ResourcesUseParameter',
         ],
     )
+
     class_weight = hyperparams.Enumeration[str](
         values=["None", 'balanced', 'balanced_subsample'],
         default="None",
@@ -105,6 +84,39 @@ class Hyperparams(hyperparams.Hyperparams):
         default="ExtraTrees",
         description='todo',
         semantic_types=['https://metadata.datadrivendiscovery.org/types/TuningParameter'],
+    )
+
+    grid_search = hyperparams.Hyperparameter[bool](
+        default=False,
+        semantic_types=[
+            "https://metadata.datadrivendiscovery.org/types/ControlParameter"
+        ],
+        description="Runs an internal grid search to fit the primitive, ignoring caller supplied values for "
+        + "n_estimators, min_samples_leaf, class_weight, estimator"
+    )
+
+    small_dataset_threshold = hyperparams.Hyperparameter[int](
+        default=2000,
+        semantic_types=[
+            "https://metadata.datadrivendiscovery.org/types/ControlParameter"
+        ],
+        description="If grid_search  is true, controls the application of the 'small_dataset_fits' and 'large_dataset_fits' "
+        + "parameters - if the input dataset has fewer rows than the threshold value, 'small_dateset_fits' will be used when fitting.  "
+        + "Otherwise, 'num_large_fits' is used.",
+    )
+    small_dataset_fits = hyperparams.Hyperparameter[int](
+        default=5,
+        semantic_types=[
+            "https://metadata.datadrivendiscovery.org/types/ControlParameter"
+        ],
+        description="If grid_search  is true, the number of random forests to fit when using small datasets.",
+    )
+    large_dataset_fits = hyperparams.Hyperparameter[int](
+        default=1,
+        semantic_types=[
+            "https://metadata.datadrivendiscovery.org/types/ControlParameter"
+        ],
+        description="If grid_search  is true, the number of random forests to fit when using large datasets.",
     )
 
 
@@ -161,18 +173,22 @@ class EnsembleForestPrimitive(
         else:
             class_weight = self.hyperparams['class_weight']
 
-        current_hyperparams = {
-            "estimator"        : self.hyperparams['estimator'],
-            "n_estimators"     : self.hyperparams['n_estimators'], #[32, 64, 128, 256, 512, 1024, 2048],
-            "min_samples_leaf" : self.hyperparams['min_samples_leaf'], # '[1, 2, 4, 8, 16, 32],
-        }
-        if self.hyperparams["metric"] in classification_metrics:
-            current_hyperparams.update({"class_weight" : class_weight})
-        else:  # regression
-            current_hyperparams.update({"bootstrap": True})
+        grid_search = self.hyperparams['grid_search']
+        if grid_search is True:
+            current_hyperparams = None
+        else:
+            current_hyperparams = {
+                "estimator"        : self.hyperparams['estimator'],
+                "n_estimators"     : self.hyperparams['n_estimators'], #[32, 64, 128, 256, 512, 1024, 2048],
+                "min_samples_leaf" : self.hyperparams['min_samples_leaf'], # '[1, 2, 4, 8, 16, 32],
+            }
+            if self.hyperparams["metric"] in classification_metrics:
+                current_hyperparams.update({"class_weight" : class_weight})
+            else:  # regression
+                current_hyperparams.update({"bootstrap": True})
 
-
-        self._model = ForestCV(self.hyperparams["metric"], random_seed=self.random_seed, hyperparams=current_hyperparams)
+        self._model = ForestCV(self.hyperparams["metric"], random_seed=self.random_seed,
+            hyperparams=current_hyperparams, grid_search=grid_search)
         self._needs_fit = True
         self._label_map: Dict[int, str] = {}
         self._target_cols: List[str] = []
@@ -349,12 +365,12 @@ class EnsembleForestPrimitive(
         if self._needs_fit:
             self.fit()
 
-        # don't want to produce SHAP predictions on train set because too computationally intensive
-        if np.array_equal(inputs.values, self._inputs.values):
-            logger.info(
-                "Not producing SHAP interpretations on train set because of computational considerations"
-            )
-            return CallResult(container.DataFrame([]))
+        # # don't want to produce SHAP predictions on train set because too computationally intensive
+        # if np.array_equal(inputs.values, self._inputs.values):
+        #     logger.info(
+        #         "Not producing SHAP interpretations on train set because of computational considerations"
+        #     )
+        #     return CallResult(container.DataFrame([]))
 
         # get the task type from the model instance
         task_type = self._model.mode
