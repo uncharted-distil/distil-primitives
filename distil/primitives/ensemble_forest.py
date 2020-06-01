@@ -4,7 +4,8 @@ from typing import List, Dict, Optional
 
 import numpy as np
 import pandas as pd
-from ShapExplainers import tree
+import shap
+from sklearn.cluster import KMeans
 from d3m import container, utils
 from d3m.metadata import base as metadata_base, hyperparams, params
 from d3m.primitive_interfaces import base
@@ -29,16 +30,6 @@ class Hyperparams(hyperparams.Hyperparams):
         ],
         description="The D3M scoring metric to use during the fit phase.  This can be any of the regression, classification or "
         + "clustering metrics.",
-    )
-    shap_approximation = hyperparams.Hyperparameter[bool](
-        default=False,
-        semantic_types=[
-            "https://metadata.datadrivendiscovery.org/types/ControlParameter"
-        ],
-        description="Whether to calculate SHAP interpretability values using the Saabas approximation. This approximation samples over only one "
-        + "permuation of feature values for each sample - that defined by the path along the decision tree. Thus, this approximation suffers "
-        + "from inconsistency, which means that 'a model can change such that it relies more on a given feature, yet the importance estimate "
-        + "assigned to that feature decreases' (Lundberg et al. 2019). Specifically, it will place too much weight on lower splits in the tree.",
     )
     shap_max_dataset_size = hyperparams.Hyperparameter[int](
         default=1500,
@@ -125,7 +116,7 @@ class Params(params.Params):
     target_cols: List[str]
     label_map: Dict[int, str]
     needs_fit: bool
-
+    input_hash: pd.Series
 
 
 class EnsembleForestPrimitive(
@@ -237,6 +228,7 @@ class EnsembleForestPrimitive(
             logger.warn(f"Removed {col_diff} unencoded columns.")
 
         # remove nans from outputs, apply changes to inputs as well to ensure alignment
+        self._input_hash = pd.util.hash_pandas_object(inputs)
         self._outputs = outputs[
             outputs[col] != ""
         ].dropna()  # not in place because we don't want to modify passed input
@@ -365,74 +357,66 @@ class EnsembleForestPrimitive(
         if self._needs_fit:
             self.fit()
 
-        # # don't want to produce SHAP predictions on train set because too computationally intensive
-        # if np.array_equal(inputs.values, self._inputs.values):
-        #     logger.info(
-        #         "Not producing SHAP interpretations on train set because of computational considerations"
-        #     )
-        #     return CallResult(container.DataFrame([]))
-
-        # get the task type from the model instance
-        task_type = self._model.mode
-
-        # shap needs a pandas type dataframe, not d3 container type dataframe
-        shap_df = pd.DataFrame(inputs)
-
-        # create explanations
-        exp = tree.Tree(
-            self._model._models[0].model,
-            X=shap_df,
-            model_type="Random_Forest",
-            task_type=task_type,
-            max_dataset_size=self.hyperparams["shap_max_dataset_size"],
-        )
-        output_df = container.DataFrame(
-            exp.produce_global(approximate=self.hyperparams["shap_approximation"]),
-            generate_metadata=True,
-        )
-        output_df.reset_index(level=0, inplace=True)
-
-        # metadata for columns
-        component_cols: Dict[str, List[int]] = {}
-        for c in range(0, len(output_df.columns)):
-            col_dict = dict(inputs.metadata.query((metadata_base.ALL_ELEMENTS, c)))
-            col_dict["structural_type"] = type(float)
-            col_dict["name"] = output_df.columns[c]
-            col_dict["semantic_types"] = (
-                "https://metadata.datadrivendiscovery.org/types/Attribute",
+        # don't want to produce SHAP predictions on train set because too computationally intensive
+        check_rows = min(self._input_hash.shape[0], inputs.shape[0])
+        if (pd.util.hash_pandas_object(inputs.head(check_rows)) == self._input_hash.head(check_rows)).all():
+            logger.info(
+                "Not producing SHAP interpretations on train set because of computational considerations"
             )
-            output_df.metadata = output_df.metadata.update(
-                (metadata_base.ALL_ELEMENTS, c), col_dict
+            return CallResult(container.DataFrame([]))
+
+        # drop any non-numeric columns
+        num_cols = inputs.shape[1]
+        inputs = inputs.select_dtypes(include='number')
+        col_diff = num_cols - inputs.shape[1]
+        if col_diff > 0:
+            logger.warn(f"Removed {col_diff} unencoded columns.")
+
+        explainer = shap.TreeExplainer(self._model._models[0].model)
+        max_size = self.hyperparams['shap_max_dataset_size']
+        if inputs.shape[0] > max_size:
+            logger.warning(
+                f"There are more than {max_size} rows in dataset, sub-sampling ~{max_size} approximately representative rows "
+                + "on which to produce interpretations"
             )
-            if "source_column" in col_dict:
-                src = col_dict["source_column"]
-                if src not in component_cols:
-                    component_cols[src] = []
-                component_cols[src].append(c)
+            df = self._shap_sub_sample(inputs)
+            shap_values = explainer.shap_values(df)
+        else:
+            shap_values = explainer.shap_values(pd.DataFrame(inputs))
 
-        # build the source column values and add them to the output
-        for s, cc in component_cols.items():
-            src_col = output_df.iloc[:, cc].apply(lambda x: sum(x), axis=1)
-            src_col_index = len(output_df.columns)
-            output_df.insert(src_col_index, s, src_col)
-            output_df.metadata = output_df.metadata.add_semantic_type(
-                (metadata_base.ALL_ELEMENTS, src_col_index),
-                "https://metadata.datadrivendiscovery.org/types/Attribute",
+        if self._model.mode == "classification":
+            logger.info(
+                f"Returning interpretability values offset from most frequent class in dataset"
             )
+            shap_values = shap_values[np.argmax(explainer.expected_value)]
 
-        df_dict = dict(output_df.metadata.query((metadata_base.ALL_ELEMENTS,)))
-        df_dict_1 = dict(output_df.metadata.query((metadata_base.ALL_ELEMENTS,)))
-        df_dict["dimension"] = df_dict_1
-        df_dict_1["name"] = "columns"
-        df_dict_1["semantic_types"] = (
-            "https://metadata.datadrivendiscovery.org/types/TabularColumn",
-        )
-        df_dict_1["length"] = len(output_df.columns)
-        output_df.metadata = output_df.metadata.update(
-            (metadata_base.ALL_ELEMENTS,), df_dict
-        )
-
+        output_df = container.DataFrame(shap_values, generate_metadata=True)
+        for i, col in enumerate(inputs.columns):
+            output_df.metadata = output_df.metadata.update_column(i, {'name': col})
         return CallResult(output_df)
+                        
+    def _shap_sub_sample(self, inputs: container.DataFrame):
+        
+        df = pd.DataFrame(inputs)
+        df["cluster_assignment"] = KMeans(random_state=self.random_seed).fit_predict(df).astype(int)
+        n_classes = df["cluster_assignment"].unique()
+
+        # deal with cases in which the predictions are all one class
+        if len(n_classes) == 1:
+            return df.sample(self.hyperparams['shap_max_dataset_size']).drop(columns=["cluster_assignment"])
+
+        else:
+            proportion = round(self.hyperparams['shap_max_dataset_size'] / len(n_classes))
+            dfs = []
+            for i in n_classes:
+                # dealing with classes that have less than or equal to their proportional representation
+                if df[df["cluster_assignment"] == i].shape[0] <= proportion:
+                    dfs.append(df[df["cluster_assignment"] == i])
+                else:
+                    dfs.append(df[df["cluster_assignment"] == i].sample(proportion, random_state = self.random_seed))
+
+            sub_sample_df = pd.concat(dfs)
+            return sub_sample_df.drop(columns=["cluster_assignment"])
 
     def get_params(self) -> Params:
         return Params(
@@ -440,6 +424,7 @@ class EnsembleForestPrimitive(
             target_cols = self._target_cols,
             label_map = self._label_map,
             needs_fit = self._needs_fit,
+            input_hash = self._input_hash
         )
 
     def set_params(self, *, params: Params) -> None:
@@ -447,4 +432,5 @@ class EnsembleForestPrimitive(
         self._target_cols = params['target_cols']
         self._label_map = params['label_map']
         self._needs_fit = params['needs_fit']
+        self._input_hash = params['input_hash']
         return
