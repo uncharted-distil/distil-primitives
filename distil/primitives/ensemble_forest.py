@@ -220,13 +220,6 @@ class EnsembleForestPrimitive(
 
         self._target_cols = list(outputs.columns)
 
-        # drop all non-numeric columns
-        num_cols = outputs.shape[1]
-        self._outputs = outputs.select_dtypes(include='number')
-        col_diff = num_cols - self._outputs.shape[1]
-        if col_diff > 0:
-            logger.warn(f"Removed {col_diff} unencoded columns.")
-
         # remove nans from outputs, apply changes to inputs as well to ensure alignment
         self._input_hash = pd.util.hash_pandas_object(inputs)
         self._outputs = outputs[
@@ -241,7 +234,12 @@ class EnsembleForestPrimitive(
 
         # same in other direction
         inputs_rows = self._inputs.shape[0]
+        inputs_cols = self._inputs.shape[1]
         self._inputs = self._inputs.select_dtypes(include='number')
+        col_diff = inputs_cols - self._inputs.shape[1]
+        if col_diff != 0:
+            logger.warn(f"Removed {col_diff} unencoded columns from training data.")
+
         self._inputs = (
             self._inputs.dropna()
         )  # not in place because because selection above doesn't create a copy
@@ -286,7 +284,7 @@ class EnsembleForestPrimitive(
         inputs = inputs.select_dtypes(include='number')
         col_diff = num_cols - inputs.shape[1]
         if col_diff > 0:
-            logger.warn(f"Removed {col_diff} unencoded columns.")
+            logger.warn(f"Removed {col_diff} unencoded columns from produce data.")
 
         # create dataframe to hold the result
         result = self._model.predict(inputs.values)
@@ -394,9 +392,9 @@ class EnsembleForestPrimitive(
         for i, col in enumerate(inputs.columns):
             output_df.metadata = output_df.metadata.update_column(i, {'name': col})
         return CallResult(output_df)
-                        
+
     def _shap_sub_sample(self, inputs: container.DataFrame):
-        
+
         df = pd.DataFrame(inputs)
         df["cluster_assignment"] = KMeans(random_state=self.random_seed).fit_predict(df).astype(int)
         n_classes = df["cluster_assignment"].unique()

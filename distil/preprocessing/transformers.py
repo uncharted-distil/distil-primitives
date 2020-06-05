@@ -58,17 +58,17 @@ class SVMTextEncoder(BaseEstimator, TransformerMixin):
     NUM_FOLDS=3
 
     # !! add tuning
-    def __init__(self, metric):
+    def __init__(self, metric, random_seed):
         super().__init__()
 
         self._vect  = TfidfVectorizer(ngram_range=[1, 2], max_features=30000)
-
+        self._random_seed = random_seed
 
         if metric in classification_metrics:
-            self._model = LinearSVC(class_weight='balanced')
+            self._model = LinearSVC(class_weight='balanced', random_state=random_seed)
             self.mode = 'classification'
         elif metric in regression_metrics:
-            self._model = LinearSVR()
+            self._model = LinearSVR(random_state=random_seed)
             self.mode = 'regression'
         else:
             raise AttributeError('metric not in classification or regression metrics')

@@ -125,7 +125,7 @@ class TextEncoderPrimitive(base.PrimitiveBase[Inputs, Outputs, Params, Hyperpara
 
         for i, c in enumerate(self._cols):
             if self.hyperparams['encoder_type'] == 'svm':
-                self._encoders.append(SVMTextEncoder(self.hyperparams["metric"]))
+                self._encoders.append(SVMTextEncoder(self.hyperparams["metric"], self.random_seed))
             elif self.hyperparams['encoder_type'] == 'tfidf':
                 self._encoders.append(TfidifEncoder())
             else:
