@@ -91,7 +91,7 @@ class DataFrameSatelliteImageLoaderPrimitive(primitives.FileReaderPrimitiveBase)
         band_column_name = 'band'
 
         # group by grouping key to get all the images loaded in one row
-        grouped_images = inputs_clone.groupby([grouping_name]) \
+        grouped_images = inputs_clone.groupby([grouping_name], sort=False) \
             .apply(lambda x: self._load_image_group(x[file_column_name], x[band_column_name], base_uri)) \
             .rename(file_column_name).reset_index(drop=True)
         grouped_df = container.DataFrame({file_column_name: grouped_images}, generate_metadata=False)
