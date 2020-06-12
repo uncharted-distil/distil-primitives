@@ -4,7 +4,7 @@ import pandas as pd
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.svm import LinearSVC, LinearSVR
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.model_selection import cross_val_predict
+from sklearn.model_selection import cross_val_predict, KFold
 from sklearn.cluster import MiniBatchKMeans
 from typing import Dict,  Optional
 
@@ -98,11 +98,13 @@ class SVMTextEncoder(BaseEstimator, TransformerMixin):
         self._model = self._model.fit(Xv, y)
 
         if self.mode == 'classification':
-            # Aim for NUM_FOLDS, but ensure that we don't have more folds than the min label count of a particular class.
+            # Aim for NUM_FOLDS and stratified k-fold.  If that doesn't work, fallback to uniform sampling.
             num_folds = min(self.NUM_FOLDS, y.value_counts().min())
             if num_folds < 2:
-                raise ValueError("label class with count of 1 encountered - cannot perform stratified cross validation")
-            out = cross_val_predict(self._model, Xv, y, method='decision_function', n_jobs=self.NUM_JOBS, cv=num_folds)
+                cv = KFold(n_splits=self.NUM_FOLDS, random_state=self._random_seed)
+                out = cross_val_predict(self._model, Xv, y, method='decision_function', n_jobs=self.NUM_JOBS, cv=cv)
+            else:
+                out = cross_val_predict(self._model, Xv, y, method='decision_function', n_jobs=self.NUM_JOBS, cv=num_folds)
         else:
             out = cross_val_predict(self._model, Xv, y, n_jobs=self.NUM_JOBS, cv=self.NUM_FOLDS)
 
