@@ -14,11 +14,16 @@
    limitations under the License.
 """
 
+import os
+import sys
 import logging
+import typing
 
 import pandas as pd
-from d3m import container, exceptions, utils as d3m_utils
+from pandas.api.types import is_numeric_dtype
+from d3m import container, exceptions, utils
 from d3m.metadata import base as metadata_base, hyperparams, params
+from d3m.primitive_interfaces import base, transformer
 from distil.utils import CYTHON_DEP
 
 
@@ -26,7 +31,7 @@ logger = logging.getLogger(__name__)
 
 __all__ = ('TimeSeriesBinner',)
 
-class Hyperparams(hyperparams.HyperParams):
+class Hyperparams(hyperparams.Hyperparams):
     grouping_key_col = hyperparams.Hyperparameter[typing.Union[int, None]](
         default=None,
         semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
@@ -60,19 +65,25 @@ class Hyperparams(hyperparams.HyperParams):
         semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
         description="If time is numeric, this will be the size to comebine row values.",
     )
+    binning_starting_value = hyperparams.Enumeration[str](
+        default='zero'
+        values=('zero', 'min')
+        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
+        description="Where to start binning intervals from. min starts from min of dataset.",
+    )
 
 class TimeSeriesBinnerPrimitive(transformer.TransformerPrimitiveBase[container.DataFrame, container.DataFrame, Hyperparams]):
 
-    _semantic_types = ('https://metadata.datadrivendiscovery.org/types/GroupingKey',
-                        'https://metadata.datadrivendiscovery.org/types/Timeseries',
-                        'https://metadata.datadrivendiscovery.org/types/TrueTarget')
+    _grouping_key_semantic = ('https://metadata.datadrivendiscovery.org/types/GroupingKey',)
+    _time_semantic = ('https://metadata.datadrivendiscovery.org/types/Time',)
+    _target_semantic = ('https://metadata.datadrivendiscovery.org/types/Target',)
     
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': '',
             'version': '0.1.0',
             'name': 'Time series binner',
-            'python_path': 'd3m.primitive.data_transformation.DistilTimeSeriesBinner',
+            'python_path': 'd3m.primitives.data_transformation.DistilTimeSeriesBinner',
             'source': {
                 'name': 'Distil',
                 'contact': 'mailto:vkorapaty@uncharted.software',
@@ -92,37 +103,78 @@ class TimeSeriesBinnerPrimitive(transformer.TransformerPrimitiveBase[container.D
     )
 
     def produce(self, *,
-                inputs: container.Dataset,
+                inputs: container.DataFrame,
                 timeout: float = None,
-                iterations: int = None) -> base.CallResult[container.Dataset]:
+                iterations: int = None) -> base.CallResult[container.DataFrame]:
 
         if inputs.shape[0] == 0:
-            return base.callResult(inputs)
+            return base.CallResult(inputs)
         # cols = distil_utils.get_operating_columns(inputs, self.hyperparams['binning_columns'], self._semantic_types)
         init_index = inputs.index
-        group_key_index = self.hyperparams['grouping_key_col']
-        time_index = self.hyperparams['time_col']
-        inputs.set_index(inputs.columns(time_index))
-        group_col_name = inputs.columns(group_key_index)
-        time_col_dtype = inputs.dtypes[self.hyperparams['time_col']]
+        d3m_index = inputs.columns.get_loc('d3mIndex')
+        d3m_col = inputs['d3mIndex']
+        group_key_index = self._get_grouping_key_index(inputs.metadata)
+        time_index = self._get_time_index(inputs.metadata)
+        value_indices = self._get_value_indices(inputs.metadata)
+        self.time_col_name = inputs.columns[time_index]
+        self.group_col_name = inputs.columns[group_key_index]
+        # inputs = inputs.set_index(self.group_col_name)
+        self.time_col_dtype = inputs.dtypes[self.time_col_name]
+        self.value_columns = inputs.columns[value_indices]
+        usable_cols = [self.group_col_name, self.time_col_name] + list(self.value_columns)
+        inputs = inputs[usable_cols]
 
-        groups = inputs.groupby(group_col_name).groups
+        groups = inputs.groupby(self.group_col_name)
 
         outputs = pd.DataFrame()
+        binned_groups = [None] * len(groups)
+        group_col_values = []
+        i = 0
         for group_name, group in groups:
-            group_col = group[group_col_name]
-            timeseries_group = group.drop(group_col_name)
+            # group_col = group[self.group_col_name]
+            timeseries_group = group.drop(columns=[self.group_col_name])
 
-            timeseries_group = self.applyBinningOperation(timeseries_group, time_col_dtype)
+            timeseries_group = self._applyBinningOperation(timeseries_group)
 
-            timeseries_group.insert(loc=group_key_index, column=group_col_name, value=group_name)
-            pd.concat([outputs, timeseries_group], ignore_index=True)
-        
-        outputs.set_index(init_index)
-        return base.callResults(outputs)
+            # timeseries_group.insert(loc=group_key_index, column=self.group_col_name, value=group_name)
+            group_col_values += [group_name] * len(timeseries_group)
+            binned_groups[i] = timeseries_group
+            i += 1
+        outputs = pd.concat(binned_groups)
 
+        outputs.set_index(init_index[0:len(outputs)])
+        outputs.insert(loc=d3m_index, column='d3mIndex', value=d3m_col[0:len(outputs)])
+        outputs.insert(loc=group_key_index, column=self.group_col_name, value=group_col_values)
+        return base.CallResult(outputs)
 
-    def granularityToRule(self):
+    def _get_grouping_key_index(self, inputs_metadata):
+        group_key_index = self.hyperparams['grouping_key_col']
+        if group_key_index:
+            return group_key_index
+        grouping_key_indices = inputs_metadata.list_columns_with_semantic_types(self._grouping_key_semantic)
+        if len(grouping_key_indices) > 0:
+            return grouping_key_indices[0]
+        raise exceptions.InvalidArgumentValueError('no column with grouping key')
+
+    def _get_time_index(self, inputs_metadata):
+        time_index = self.hyperparams['time_col']
+        if time_index:
+            return time_index
+        time_indices = inputs_metadata.list_columns_with_semantic_types(self._time_semantic)
+        if len(time_indices) > 0:
+            return time_indices[0]
+        raise exceptions.InvalidArgumentValueError('no column with time')
+
+    def _get_value_indices(self, inputs_metadata):
+        value_indices = self.hyperparams['value_cols']
+        if value_indices and len(value_indices) > 0:
+            return value_indices
+        value_indices = inputs_metadata.list_columns_with_semantic_types(self._target_semantic)
+        if len(value_indices) > 0:
+            return value_indices
+        raise exceptions.InvalidArgumentValueError('no columns with target')
+
+    def _granularityToRule(self):
         granularity = self.hyperparams['granularity']
         if granularity == 'seconds':
             return 'S'
@@ -141,26 +193,43 @@ class TimeSeriesBinnerPrimitive(transformer.TransformerPrimitiveBase[container.D
         raise exceptions.InvalidArgumentValueError('Given granularity argument not supported')
 
 
-    def applyBinningOperation(self, timeseries_group, time_col_dtype):
-        if time_col_dtype == 'float' || time_col_type == 'int':
+    def _applyBinningOperation(self, timeseries_group):
+        if is_numeric_dtype(self.time_col_dtype):
             return self._applyIntegerNumericBinning(timeseries_group)
         df = timeseries_group.resample(self.granularityToRule())
         bin_oper = self.hyperparams['binning_operation']
-        if bin_oper == 'mean':
-            return df.mean()
-        elif bin_oper == 'min':
-            return df.min()
-        elif bin_oper == 'max':
-            return df.max()
-        elif bin_oper == 'sum':
-            return df.sum()
-        raise exceptions.InvalidArgumentValueError('Given binner operation argument not supported')
+        return getattr(df, bin_oper)()
 
     def _applyIntegerNumericBinning(self, timeseries_group):
+        bin_oper =  self.hyperparams['binning_operation']
         binning_size = self.hyperparams['binning_size']
-        n = int(len(timeseries_group) / binning_size)
+        firstTime = timeseries_group['day'][0]
+        lastTime = timeseries_group['day'][len(timeseries_group) - 1]
+        amount_of_binning_numbers = int((lastTime - firstTime) / binning_size) + 1
+        amount_of_binning_intervals = amount_of_binning_numbers + 1
+        binning_intervals = [i * binning_size + firstTime for i in range(amount_of_binning_intervals)]
 
-        binned_df = pd.DataFrame()
-        for i in range(n):
+        timeseries_group['binned'] = pd.cut(x=timeseries_group['day'], bins=binning_intervals, right=False)
+        # print(timeseries_group, file=sys.__stdout__)
+        columnsToOperation = {}
+        columnsToOperation[self.time_col_name] = 'max'
+        for value in self.value_columns:
+            columnsToOperation[value] = bin_oper
+        return timeseries_group.groupby('binned').agg(columnsToOperation).reset_index(drop=True)
+        # groups = groups.reset_index(drop=True)
 
-            timeseries_group.iloc[i * binning_size:(i + 1) * binning_size]
+        # if binning_size is None:
+        #     binning_size = 5
+        # n = int(len(timeseries_group) / binning_size) + 1
+        # bin_oper = self.hyperparams['binning_operation']
+
+        # value_indices = [timeseries_group.columns.get_loc(c) for c in self.value_columns]
+        # binned_rows = [None] * n
+        # for i in range(n):
+        #     binned_row = getattr(timeseries_group.iloc[i * binning_size:(i + 1) * binning_size, value_indices], bin_oper)().to_frame().transpose()
+        #     new_timestamp_ind = min((i + 1) * binning_size, len(timeseries_group) - 1)
+        #     binned_row.insert(loc=timeseries_group.columns.get_loc(self.time_col_name), column=self.time_col_name, value=timeseries_group[self.time_col_name][new_timestamp_ind])
+        #     binned_rows[i] = binned_row
+        # binned_df = pd.concat(binned_rows)
+        # binned_df.set_index(self.time_col_name)
+        # return binned_df
