@@ -66,8 +66,8 @@ class Hyperparams(hyperparams.Hyperparams):
         description="If time is numeric, this will be the size to comebine row values.",
     )
     binning_starting_value = hyperparams.Enumeration[str](
-        default='zero'
-        values=('zero', 'min')
+        default='zero',
+        values=('zero', 'min'),
         semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
         description="Where to start binning intervals from. min starts from min of dataset.",
     )
@@ -124,7 +124,7 @@ class TimeSeriesBinnerPrimitive(transformer.TransformerPrimitiveBase[container.D
         usable_cols = [self.group_col_name, self.time_col_name] + list(self.value_columns)
         inputs = inputs[usable_cols]
 
-        groups = inputs.groupby(self.group_col_name)
+        groups = inputs.groupby(self.group_col_name, sort=False)
 
         outputs = pd.DataFrame()
         binned_groups = [None] * len(groups)
@@ -142,9 +142,19 @@ class TimeSeriesBinnerPrimitive(transformer.TransformerPrimitiveBase[container.D
             i += 1
         outputs = pd.concat(binned_groups)
 
-        outputs.set_index(init_index[0:len(outputs)])
-        outputs.insert(loc=d3m_index, column='d3mIndex', value=d3m_col[0:len(outputs)])
+        is_datetime_index = isinstance(outputs.index, pd.DatetimeIndex)
+        if is_datetime_index:
+            datetime_index = outputs.index
+        if len(outputs) <= len(init_index):
+            outputs = outputs.set_index(init_index[0:len(outputs)]) #if len(outputs) <= len(init_index) else list(range(0, len(outputs), 1))
+            outputs.insert(loc=d3m_index, column='d3mIndex', value=d3m_col[0:len(outputs)])
+        else: # assume index and d3mIndex are int
+            outputs = outputs.set_index(pd.Index(range(0, len(outputs), 1)))
+            d3m_new_col = container.DataFrame({'d3mIndex': range(0, len(outputs), 1)})
+            outputs.insert(loc=d3m_index, column='d3mIndex', value=d3m_new_col)
         outputs.insert(loc=group_key_index, column=self.group_col_name, value=group_col_values)
+        if is_datetime_index:
+            outputs.insert(loc=time_index, column=self.time_col_name, value=datetime_index)
         return base.CallResult(outputs)
 
     def _get_grouping_key_index(self, inputs_metadata):
@@ -196,40 +206,30 @@ class TimeSeriesBinnerPrimitive(transformer.TransformerPrimitiveBase[container.D
     def _applyBinningOperation(self, timeseries_group):
         if is_numeric_dtype(self.time_col_dtype):
             return self._applyIntegerNumericBinning(timeseries_group)
-        df = timeseries_group.resample(self.granularityToRule())
+        timeseries_group = timeseries_group.set_index(pd.DatetimeIndex(timeseries_group[self.time_col_name]))
+        df = timeseries_group.resample(self._granularityToRule())
         bin_oper = self.hyperparams['binning_operation']
         return getattr(df, bin_oper)()
 
     def _applyIntegerNumericBinning(self, timeseries_group):
         bin_oper =  self.hyperparams['binning_operation']
         binning_size = self.hyperparams['binning_size']
-        firstTime = timeseries_group['day'][0]
-        lastTime = timeseries_group['day'][len(timeseries_group) - 1]
+        (firstTime, right,) = self._get_starting_bin_value(timeseries_group)#timeseries_group[self.time_col_name][0]
+        lastTime = timeseries_group[self.time_col_name].iloc[len(timeseries_group) - 1]
         amount_of_binning_numbers = int((lastTime - firstTime) / binning_size) + 1
         amount_of_binning_intervals = amount_of_binning_numbers + 1
         binning_intervals = [i * binning_size + firstTime for i in range(amount_of_binning_intervals)]
-
-        timeseries_group['binned'] = pd.cut(x=timeseries_group['day'], bins=binning_intervals, right=False)
+        binning_intervals[0] = binning_intervals[0] - int(right)
+        timeseries_group['binned'] = pd.cut(x=timeseries_group[self.time_col_name], bins=binning_intervals, right=right)
         # print(timeseries_group, file=sys.__stdout__)
         columnsToOperation = {}
         columnsToOperation[self.time_col_name] = 'max'
         for value in self.value_columns:
             columnsToOperation[value] = bin_oper
         return timeseries_group.groupby('binned').agg(columnsToOperation).reset_index(drop=True)
-        # groups = groups.reset_index(drop=True)
 
-        # if binning_size is None:
-        #     binning_size = 5
-        # n = int(len(timeseries_group) / binning_size) + 1
-        # bin_oper = self.hyperparams['binning_operation']
-
-        # value_indices = [timeseries_group.columns.get_loc(c) for c in self.value_columns]
-        # binned_rows = [None] * n
-        # for i in range(n):
-        #     binned_row = getattr(timeseries_group.iloc[i * binning_size:(i + 1) * binning_size, value_indices], bin_oper)().to_frame().transpose()
-        #     new_timestamp_ind = min((i + 1) * binning_size, len(timeseries_group) - 1)
-        #     binned_row.insert(loc=timeseries_group.columns.get_loc(self.time_col_name), column=self.time_col_name, value=timeseries_group[self.time_col_name][new_timestamp_ind])
-        #     binned_rows[i] = binned_row
-        # binned_df = pd.concat(binned_rows)
-        # binned_df.set_index(self.time_col_name)
-        # return binned_df
+    def _get_starting_bin_value(self, df):
+        if self.hyperparams['binning_starting_value'] == 'zero':
+            return (0, True,)
+        else:
+            return (df[self.time_col_name].iloc[0], False,)
