@@ -1,4 +1,5 @@
 import unittest
+import os
 from os import path
 import sys
 
@@ -24,7 +25,7 @@ class ImageTransferPrimitveTestCase(unittest.TestCase):
 
         image_transfer_hyperparams = ImageTransferPrimitive.metadata.get_hyperparams()
         primitive_volumes = ImageTransferPrimitive.metadata.get_volumes()
-        volumes = {primitive_volumes[0]['key']: '/Users/vkorapaty/data/static_resources/' + primitive_volumes[0]['file_digest']}
+        volumes = {primitive_volumes[0]['key']: os.getenv('D3MSTATICDIR') + '/' + primitive_volumes[0]['file_digest']}
         image_transfer_primitive = ImageTransferPrimitive(hyperparams=image_transfer_hyperparams.defaults().replace({'filename_col': 0}), volumes=volumes)
         result = image_transfer_primitive.produce(inputs=images).value
         self.assertEqual(result.shape[0], 5)
@@ -43,7 +44,7 @@ class ImageTransferPrimitveTestCase(unittest.TestCase):
         
         image_transfer_hyperparams = ImageTransferPrimitive.metadata.get_hyperparams()
         primitive_volumes = ImageTransferPrimitive.metadata.get_volumes()
-        volumes = {primitive_volumes[0]['key']: '/Users/vkorapaty/data/static_resources/' + primitive_volumes[0]['file_digest']}
+        volumes = {primitive_volumes[0]['key']: os.getenv('D3MSTATICDIR') + '/' + primitive_volumes[0]['file_digest']}
         image_transfer_primitive = ImageTransferPrimitive(hyperparams=image_transfer_hyperparams.defaults(), volumes=volumes)
         result = image_transfer_primitive.produce(inputs=images).value
         self.assertEqual(result.shape[0], 5)
