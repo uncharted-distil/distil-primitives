@@ -102,8 +102,8 @@ class AudioTransferPrimitive(transformer.TransformerPrimitiveBase[Inputs, Output
     def _transform_inputs(self, inputs):
         feats = []
         for col_name in self.use_column_names:
-            feats += self._audio_set._featurize(inputs[self.use_column_names[i]])
-        audio_vecs = pd.DataFrame(feats.tolist())
+            feats += self._audio_set._featurize(inputs[self.use_column_names[i]]).tolist()
+        audio_vecs = pd.DataFrame(feats)
         audio_vecs.columns = ['v{}'.format(i) for i in range(0, audio_vecs.shape[1])]
 
         return container.DataFrame(audio_vecs) # TODO: fix index setup
