@@ -173,7 +173,9 @@ class AudioDatasetLoaderPrimitive(transformer.TransformerPrimitiveBase[container
             if i % 100 == 0:
                 logger.debug(f"Loaded {i} / {len(learning_df.index)} files")
             try:
-                file_paths.append((os.path.join(base_path, row['filename']), row.start, row.end))
+                start_end = row['start-end-time-slice-of-recording']
+                start, end = [float(x) for x in start_end.split(',')]
+                file_paths.append((os.path.join(base_path, row['filename']), start, end))
             except AttributeError as e:
                 logger.warning('no start/end ts for {}'.format(row))
                 file_paths.append((os.path.join(base_path, row['filename']), None, None))
