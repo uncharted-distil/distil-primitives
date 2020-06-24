@@ -391,6 +391,38 @@ class EnsembleForestPrimitive(
         output_df = container.DataFrame(shap_values, generate_metadata=True)
         for i, col in enumerate(inputs.columns):
             output_df.metadata = output_df.metadata.update_column(i, {'name': col})
+
+        component_cols: Dict[str, List[int]] = {}
+        for c in range(0, len(output_df.columns)):
+            col_dict = dict(inputs.metadata.query((metadata_base.ALL_ELEMENTS, c)))
+            if "source_column" in col_dict:
+                src = col_dict["source_column"]
+                if src not in component_cols:
+                    component_cols[src] = []
+                component_cols[src].append(c)
+
+        # build the source column values and add them to the output
+        for s, cc in component_cols.items():
+            src_col = output_df.iloc[:, cc].apply(lambda x: sum(x), axis=1)
+            src_col_index = len(output_df.columns)
+            output_df.insert(src_col_index, s, src_col)
+            output_df.metadata = output_df.metadata.add_semantic_type(
+                (metadata_base.ALL_ELEMENTS, src_col_index),
+                "https://metadata.datadrivendiscovery.org/types/Attribute",
+            )
+
+        df_dict = dict(output_df.metadata.query((metadata_base.ALL_ELEMENTS,)))
+        df_dict_1 = dict(output_df.metadata.query((metadata_base.ALL_ELEMENTS,)))
+        df_dict["dimension"] = df_dict_1
+        df_dict_1["name"] = "columns"
+        df_dict_1["semantic_types"] = (
+            "https://metadata.datadrivendiscovery.org/types/TabularColumn",
+        )
+        df_dict_1["length"] = len(output_df.columns)
+        output_df.metadata = output_df.metadata.update(
+            (metadata_base.ALL_ELEMENTS,), df_dict
+        )
+
         return CallResult(output_df)
 
     def _shap_sub_sample(self, inputs: container.DataFrame):
