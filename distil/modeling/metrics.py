@@ -1,11 +1,14 @@
 import sys
 import numpy as np
 from sklearn import metrics as sklearn_metrics
-from d3m.metrics import HitsAtKMetric, MeanReciprocalRankMetric
+from d3m.metrics import HitsAtKMetric, MeanReciprocalRankMetric, RocAucMicroMetric, RocAucMacroMetric, RocAucMetric
 
 # from external import objectDetectionAP
 hits_at_k = HitsAtKMetric(5)  # todo how does this get set?
 mean_recriprocal_rank = MeanReciprocalRankMetric()
+roc_auc_micro = RocAucMicroMetric()
+roc_auc_macro = RocAucMacroMetric()
+roc_auc = RocAucMetric()
 metrics = {
     # classification
     "f1Macro": lambda act, pred: sklearn_metrics.f1_score(act, pred, average="macro"),
@@ -25,7 +28,10 @@ metrics = {
     # clustering
     "normalizedMutualInformation": sklearn_metrics.normalized_mutual_info_score,
     "meanReciprocalRank": lambda act, pred: mean_recriprocal_rank.score(act, pred),
-    "hitsAtK": lambda act, pred: hits_at_k.score(act, pred)
+    "hitsAtK": lambda act, pred: hits_at_k.score(act, pred),
+    "rocAucMacro": lambda act, pred: roc_auc_macro.score(act, pred),
+    "rocAucMicro": lambda act, pred: roc_auc_micro.score(act, pred),
+    "rocAuc": lambda act, pred: roc_auc.score(act, pred),
     # object detection
     #'objectDetectionAP' : lambda act, pred: objectDetectionAP(act, pred)[-1],
 }
@@ -37,6 +43,9 @@ classification_metrics = [
     "accuracy",
     "meanReciprocalRank",
     "hitsAtK",
+    "rocAuc",
+    "rocAucMacro",
+    "rocAucMicro",
 ]
 
 regression_metrics = [
@@ -64,6 +73,12 @@ def translate_d3m_metric(metric):
         "rootMeanSquaredErrorAvg": "root_mean_squared_error_avg",
         "meanAbsoluteError": "mean_absolute_error",
         "normalizedMutualInformation": "normalized_mutual_information",
+        "objectDetectionAP": "object_detection_average_precision",
+        "meanReciprocalRank": "mean_reciprocal_rank",
+        "hitsAtK": "hits_at_k",
+        "rocAucMacro": "roc_auc_macro",
+        "rocAucMicro": "roc_auc_macro",
+        "rocAuc": "roc_auc"
     }
     assert metric in lookup, "%s not in lookup" % metric
     return lookup[metric]
@@ -81,6 +96,12 @@ def translate_proto_metric(proto_metric):
         "R_SQUARED": "rSquared",  # mapped for now,
         "MEAN_ABSOLUTE_ERROR": "meanAbsoluteError",
         "NORMALIZED_MUTUAL_INFORMATION": "normalizedMutualInformation",
+        "OBJECT_DETECTION_AVERAGE_PRECISION": "objectDetectionAP",
+        "MEAN_RECIPROCAL_RANK": "meanReciprocalRank", # todo add this to primitives metrics
+        "HITS_AT_K": "hitsAtK",
+        "ROC_AUC_MACRO": "rocAucMacro",
+        "ROC_AUC_MICRO": "rocAucMicro",
+        "ROC_AUC": "rocAuc"
     }
     assert proto_metric in lookup, "%s not in lookup" % proto_metric
     return lookup[proto_metric]
