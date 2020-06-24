@@ -34,7 +34,7 @@ class ImageTransferPrimitive(transformer.TransformerPrimitiveBase[Inputs, Output
     """
 
     _VOLUME_KEY = 'resnet18-5c106cde'
-    _image_semantic = ('https://schema.org/ImageObject',)
+    _image_semantic = ('http://schema.org/ImageObject',)
 
     metadata = metadata_base.PrimitiveMetadata(
         {
@@ -123,4 +123,3 @@ class ImageTransferPrimitive(transformer.TransformerPrimitiveBase[Inputs, Output
         self.filename_col = inputs.columns[filename_col_index]
 
         return base.CallResult(self._transform_inputs(inputs))
-

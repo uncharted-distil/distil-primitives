@@ -40,8 +40,8 @@ class ImageTransferPrimitveTestCase(unittest.TestCase):
         image_hyperparams_class = dataframe_image_reader.DataFrameImageReaderPrimitive.metadata.get_hyperparams()
         image_primitive = dataframe_image_reader.DataFrameImageReaderPrimitive(hyperparams=image_hyperparams_class.defaults().replace({'return_result': 'replace'}))
         images = image_primitive.produce(inputs=dataframe).value
-        images.metadata = images.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, images.metadata.get_column_index_from_column_name('filename')), 'https://schema.org/ImageObject')
-        
+        images.metadata = images.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, images.metadata.get_column_index_from_column_name('filename')), 'http://schema.org/ImageObject')
+
         image_transfer_hyperparams = ImageTransferPrimitive.metadata.get_hyperparams()
         primitive_volumes = ImageTransferPrimitive.metadata.get_volumes()
         volumes = {primitive_volumes[0]['key']: os.getenv('D3MSTATICDIR') + '/' + primitive_volumes[0]['file_digest']}
