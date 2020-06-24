@@ -37,6 +37,7 @@ class AudioTransferPrimitive(transformer.TransformerPrimitiveBase[Inputs, Output
     """
 
     _VOLUME_KEY = 'vggish_model'
+    _audio_semantic = ('http://schema.org/AudioObject',)
 
     metadata = metadata_base.PrimitiveMetadata(
         {
@@ -99,11 +100,22 @@ class AudioTransferPrimitive(transformer.TransformerPrimitiveBase[Inputs, Output
             raise ValueError('volumes cannot be None')
 
     def _transform_inputs(self, inputs):
-        feats = self._audio_set._featurize(inputs.audio)
+        feats = []
+        for col_name in self.use_column_names:
+            feats += self._audio_set._featurize(inputs[self.use_column_names[i]])
         audio_vecs = pd.DataFrame(feats.tolist())
         audio_vecs.columns = ['v{}'.format(i) for i in range(0, audio_vecs.shape[1])]
 
         return container.DataFrame(audio_vecs) # TODO: fix index setup
+
+    def _get_use_column_indices(self, inputs_metadata):
+        use_columns_indices = self.hyperparams['use_columns']
+        audio_indices = inputs_metadata.list_columns_with_semantic_types(self._audio_semantic)
+        if use_columns_indices is not None and len(use_columns_indices) > 0:
+            return use_columns_indices
+        elif len(audio_indices) > 0:
+            return audio_indices
+        raise exceptions.InvalidArgumentValueError('inputs does not have audio semantic')
 
     def produce(self, *, inputs: Inputs, timeout: float = None, iterations: int = None) -> CallResult[container.DataFrame]:
         logger.debug(f'Producing {__name__}')
@@ -114,6 +126,8 @@ class AudioTransferPrimitive(transformer.TransformerPrimitiveBase[Inputs, Output
             logger.debug(f'Loading pretrained model from {model_path}')
             self._audio_set = _pretrained_audio.AudiosetModel(model_path=model_path)
 
+        use_column_indices = self._get_use_column_indices(inputs.metadata)
+        self.use_column_names = inputs.columns[use_column_indices]
         outputs = self._transform_inputs(inputs)
         logger.debug(f'Audio transfer completed on {len(outputs.columns)} samples')
 
