@@ -91,6 +91,6 @@ class VertexNominationCV(DistilBaseModel):
         feats = pd.DataFrame(np.hstack([df.values, U])).set_index(df.index)
 
 
-        Xf = feats.loc[X.nodeID].values
+        Xf = feats.reindex(X.nodeID).values
         Xf = pd.DataFrame(Xf).fillna(0).values # force nan to zero if mismatch between graph and nodes.
         return self.model.predict(Xf)

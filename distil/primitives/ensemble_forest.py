@@ -313,6 +313,26 @@ class EnsembleForestPrimitive(
                 (metadata_base.ALL_ELEMENTS, i),
                 "https://metadata.datadrivendiscovery.org/types/PredictedTarget",
             )
+        if self.hyperparams["metric"] in classification_metrics:
+            # add confidence scores as some metrics require them.
+            # confidence = self._model.predict_proba(inputs.values)
+            # confidence = pd.Series(confidence.tolist(), name='confidence')
+
+            # this is a hack, but str conversions on lists later on break things
+            confidence = pd.Series([1]*len(result_df), name='confidence')
+            result_df = pd.concat([result_df, confidence], axis=1)
+            result_df.metadata = result_df.metadata.add_semantic_type(
+                (metadata_base.ALL_ELEMENTS, len(result_df.columns)-1),
+                "https://metadata.datadrivendiscovery.org/types/Confidence",
+            )
+            result_df.metadata = result_df.metadata.add_semantic_type(
+                (metadata_base.ALL_ELEMENTS, len(result_df.columns)-1),
+                "https://metadata.datadrivendiscovery.org/types/PredictedTarget",
+            )
+            result_df.metadata = result_df.metadata.add_semantic_type(
+                (metadata_base.ALL_ELEMENTS, len(result_df.columns)-1),
+                "https://metadata.datadrivendiscovery.org/types/FloatVector",
+            )
 
         logger.debug(f"\n{result_df}")
         return base.CallResult(result_df)
