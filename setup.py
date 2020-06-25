@@ -26,7 +26,7 @@ setup(
         'pandas==1.0.3',
         'torch==1.4.0',
         'networkx==2.4',
-        'tensorflow-gpu==2.2.0',
+        'tensorflow-gpu>=2.1.0,<=2.2.0',
         'pillow==7.1.1',
 
         # additional dependencies
