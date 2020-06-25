@@ -14,9 +14,7 @@
       "resPath": "media/",
       "resType": "audio",
       "resFormat": {
-        "audio/mpeg": [
-          "mp3"
-        ]
+        "audio/mpeg": ["mp3"]
       },
       "isCollection": true
     },
@@ -25,9 +23,7 @@
       "resPath": "tables/learningData.csv",
       "resType": "table",
       "resFormat": {
-        "text/csv": [
-          "csv"
-        ]
+        "text/csv": ["csv"]
       },
       "isCollection": false,
       "columns": [
@@ -35,17 +31,13 @@
           "colIndex": 0,
           "colName": "d3mIndex",
           "colType": "integer",
-          "role": [
-            "index"
-          ]
+          "role": ["index"]
         },
         {
           "colIndex": 1,
-          "colName": "audio_file",
+          "colName": "filename",
           "colType": "string",
-          "role": [
-            "attribute"
-          ],
+          "role": ["attribute"],
           "refersTo": {
             "resID": "0",
             "resObject": "item"
@@ -55,25 +47,19 @@
           "colIndex": 2,
           "colName": "start",
           "colType": "real",
-          "role": [
-            "boundaryIndicator"
-          ]
+          "role": ["boundaryIndicator"]
         },
         {
           "colIndex": 3,
           "colName": "end",
           "colType": "real",
-          "role": [
-            "boundaryIndicator"
-          ]
+          "role": ["boundaryIndicator"]
         },
         {
           "colIndex": 4,
           "colName": "class",
           "colType": "categorical",
-          "role": [
-            "suggestedTarget"
-          ]
+          "role": ["suggestedTarget"]
         }
       ]
     }

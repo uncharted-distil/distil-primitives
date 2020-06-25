@@ -3,7 +3,7 @@ import os
 from typing import Dict, Optional
 
 import pandas as pd
-from d3m import container, utils
+from d3m import container, utils, exceptions
 from d3m.metadata import base as metadata_base, hyperparams, params
 from d3m.primitive_interfaces import base, transformer
 from d3m.primitive_interfaces.base import CallResult
@@ -16,7 +16,7 @@ __all__ = ('AudioTransferPrimitive',)
 
 logger = logging.getLogger(__name__)
 
-Inputs = container.List
+Inputs = container.DataFrame
 Outputs = container.DataFrame
 
 # lazy load pretrained audio due to lengthy import time
@@ -37,7 +37,7 @@ class AudioTransferPrimitive(transformer.TransformerPrimitiveBase[Inputs, Output
     """
 
     _VOLUME_KEY = 'vggish_model'
-    _audio_semantic = ('http://schema.org/AudioObject',)
+    _AUDIO_SEMANTIC_TYPE = ('http://schema.org/AudioObject',)
 
     metadata = metadata_base.PrimitiveMetadata(
         {
@@ -102,7 +102,7 @@ class AudioTransferPrimitive(transformer.TransformerPrimitiveBase[Inputs, Output
     def _transform_inputs(self, inputs):
         feats = []
         for col_name in self.use_column_names:
-            feats += self._audio_set._featurize(inputs[self.use_column_names[i]]).tolist()
+            feats += self._audio_set._featurize(inputs[col_name]).tolist()
         audio_vecs = pd.DataFrame(feats)
         audio_vecs.columns = ['v{}'.format(i) for i in range(0, audio_vecs.shape[1])]
 
@@ -110,12 +110,16 @@ class AudioTransferPrimitive(transformer.TransformerPrimitiveBase[Inputs, Output
 
     def _get_use_column_indices(self, inputs_metadata):
         use_columns_indices = self.hyperparams['use_columns']
-        audio_indices = inputs_metadata.list_columns_with_semantic_types(self._audio_semantic)
+        audio_indices = inputs_metadata.list_columns_with_semantic_types(self._AUDIO_SEMANTIC_TYPE)
         if use_columns_indices is not None and len(use_columns_indices) > 0:
             return use_columns_indices
         elif len(audio_indices) > 0:
             return audio_indices
-        raise exceptions.InvalidArgumentValueError('inputs does not have audio semantic')
+        else:
+            # Rather than failing, we'll just take the first column as a last ditch effort.  This lines
+            # up with the legacy approach of using the audio loader's `produce_collection` call, which just
+            # returns a single column dataframe containing the audio data.
+            return [0]
 
     def produce(self, *, inputs: Inputs, timeout: float = None, iterations: int = None) -> CallResult[container.DataFrame]:
         logger.debug(f'Producing {__name__}')
