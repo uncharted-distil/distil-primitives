@@ -131,6 +131,11 @@ class ForestCV(DistilBaseModel):
         elif self.mode == 'regression':
             return np.stack(preds).mean(axis=0)
 
+    def predict_proba(self, X):
+        preds = self._models[0].predict_proba(X)
+        return preds
+
+
     def feature_importances(self):
         return self._models[0].feature_importances()
 
