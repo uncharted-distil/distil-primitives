@@ -212,8 +212,6 @@ class MIRankingPrimitive(transformer.TransformerPrimitiveBase[container.DataFram
 
     def _normalize(self, ranked_features, feature_np, target_np, discrete, discrete_flags):
         normalized_ranked_features = np.empty(ranked_features.shape[0])
-        # ksg_entropies = np.empty(ranked_features.shape[0])
-        # naive_entropies = np.empty(ranked_features.shape[0])
         if discrete:
             target_entropy = self._discrete_entropy(target_np)
             for i in range(ranked_features.shape[0]):
@@ -235,28 +233,8 @@ class MIRankingPrimitive(transformer.TransformerPrimitiveBase[container.DataFram
                             normalized_ranked_features[i] = 1.0
                         else:
                             normalized_ranked_features[i] = naive_mi
-
-            # logic if we want to be consistent with which entropy we use throughout
-            # if discrete_flags.sum() < discrete_flags.shape[0]:
-            #     max_ksg_entropy = np.max(ksg_entropies)
-            #     max_naive_entropy = np.max(naive_entropies)
-            #     if max_ksg_entropy > 1 and max_naive_entropy > 1:
-            #         if ksg_entropies.sum() < naive_entropies.sum():
-            #             ksg_entropies[ksg_entropies > 1] = 1.0
-            #             normalized_ranked_features[~discrete_flags] = ksg_entropies[~discrete_flags]
-            #         else:
-            #             naive_entropies[naive_entropies > 1] = 1.0
-            #             normalized_ranked_features[~discrete_flags] = naive_entropies[~discrete_flags]
-            #     elif max_ksg_entropy > 1 or max_naive_entropy > max_ksg_entropy:
-            #         normalized_ranked_features[~discrete_flags] = naive_entropies[~discrete_flags]
-            #     elif max_naive_entropy > 1 or max_naive_entropy < max_ksg_entropy:
-            #         normalized_ranked_features[~discrete_flags] = ksg_entropies[~discrete_flags]
         else:
             target_ksg_entropy, target_naive_entropy = self._continuous_entropy(target_np)
-            # if target_ksg_entropy > target_naive_entropy:
-            #     discrete_entropy = target_naive_entropy
-            # else:
-            #     discrete_entropy = target_ksg_entropy
             for i in range(ranked_features.shape[0]):
                 if discrete_flags[i]:
                     feature_entropy = self._discrete_entropy(feature_np[:, i])
@@ -324,11 +302,9 @@ class MIRankingPrimitive(transformer.TransformerPrimitiveBase[container.DataFram
         if log_mean == float('-inf'):
             raise exceptions.InvalidArgumentValueError('inputs has too many non-unique values or not enough values possibly')
 
-        # if method == 0:
         # this estimation is https://arxiv.org/pdf/cond-mat/0305641.pdf
         # the KSG estimator
         ksg_entropy = - np.mean(digamma(k_all)) + digamma(x.shape[0]) + log_mean
-        # elif method == 1:
         # a more naive estimator
         # this estimation is from http://papers.neurips.cc/paper/3417-estimation-of-information-theoretic-measures-for-continuous-random-variables.pdf
         naive_entropy = - np.mean(np.log(k_all/(x.shape[0] - 1) * gamma(1.5) / pow(3.14159, 0.5) * 1 / eps_distances)) - np.mean(digamma(k_all))
@@ -371,64 +347,3 @@ class MIRankingPrimitive(transformer.TransformerPrimitiveBase[container.DataFram
                 l -= 1
             j += 1
         return kth_closest
-
-    # def _mi_reg(self, X, y, discrete_features):
-    #     sample_size = X.shape[0]
-    #     feature_size = X.shape[1]
-    #     continuous_mask = ~discrete_features
-
-    #     if np.any(continuous_mask):
-    #         if issparse(X):
-    #             raise ValueError("Sparse matrix `X` can't have continuous features.")
-
-    #         rng = skl_utils.check_random_state(self._random_seed)
-    #         X[:, continuous_mask] = preprocessing.scale(X[:, continuous_mask], with_mean=False, copy=False)
-
-    #         X = X.astype(float, **skl_utils.fixes._astype_copy_false(X))
-    #         means = np.maximum(1, np.mean(np.abs(X[:, continuous_mask]), axis=0))
-    #         X[:, continuous_mask] += 1e-10 * means * rng.randn(sample_size, np.sum(continuous_mask))
-
-    #     y = preprocessing.scale(y, with_mean=False)
-    #     y += 1e-10 * np.maximum(1, np.mean(np.abs(y))) * rng.randn(sample_size)
-
-    #     normalised_mi = np.empty([1, feature_size])
-
-    #     for i in range(feature_size):
-    #         feature = X[:, i]
-    #         is_continuous_feature = continuous_mask[i]
-    #         if not is_continuous_feature:
-    #             feature = feature.reshape((-1, 1))
-
-    #             radii = np.empty(sample_size)
-    #             label_counts = np.empty(sample_size)
-    #             k_all = np.empty(sample_size)
-    #             nn = NearestNeighbors()
-    #             for label in np.unique(y):
-    #                 mask = d == label
-    #                 count = np.sum(mask)
-    #                 if count > 1:
-    #                     k = min(self.hyperparams['k'], count - 1)
-    #                     nn.set_params(n_neighbors=k)
-    #                     nn.fit(c[mask])
-    #                     r = nn.kneighbors()[0]
-    #                     radius[mask] = np.nextafter(r[:, -1], 0)
-    #                     k_all[mask] = k
-    #                 label_counts[mask] = count
-                
-    #             mask = label_counts > 1
-    #             n_samples = np.sum(mask)
-    #             label_counts = label_counts[mask]
-    #             k_all = k_all[mask]
-    #             c = c[mask]
-    #             radius = radius[mask]
-
-    #             nn.set_params(algorithm='kd_tree')
-    #             nn.fit(feature)
-    #             ind = nn.radius_neighbors(radius=radius, return_distance=False)
-    #             m_all = np.array([i.size for i in ind])
-
-    #             I_XY = max(0, (digamma(feature_size) + np.mean(digamma(k_all)) -
-    #                     np.mean(digamma(label_counts)) - np.mean(digamma(m_all + 1))))
-    #             H_X = 0.5
-    #             H_Y = 0.5
-    #             normalised_mi[i] = I_XY / (H_X + H_Y)
