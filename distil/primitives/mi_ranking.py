@@ -216,44 +216,63 @@ class MIRankingPrimitive(transformer.TransformerPrimitiveBase[container.DataFram
             target_entropy = self._discrete_entropy(target_np)
             for i in range(ranked_features.shape[0]):
                 if discrete_flags[i]:
-                    normalized_ranked_features[i] = ranked_features[i] / np.sqrt(self._discrete_entropy(feature_np[:, i]) * target_entropy)
-                    if normalized_ranked_features[i] > 1:
-                        normalized_ranked_features[i] = 1.0
+                    normalized_ranked_features[i] = metrics.normalized_mutual_info_score(target_np, feature_np[:, i], average_method='geometric')
                 else:
-                    ksg_entropy, naive_entropy = self._continuous_entropy(feature_np[:, i])
-                    ksg_mi = ranked_features[i] / np.sqrt(ksg_entropy * target_entropy)
-                    naive_mi = ranked_features[i] / np.sqrt(naive_entropy * target_entropy)
-                    if abs(ksg_mi - 1) < abs(naive_mi - 1):
-                        if ksg_mi > 1:
-                            normalized_ranked_features[i] = 1.0
-                        else:
-                            normalized_ranked_features[i] = ksg_mi
-                    else:
-                        if naive_mi > 1:
-                            normalized_ranked_features[i] = 1.0
-                        else:
-                            normalized_ranked_features[i] = naive_mi
+                    feature_entropy = self._continuous_entropy(feature_np[:, i])
+                    normalized_ranked_features[i] = ranked_features[i] / np.sqrt(feature_entropy * target_entropy)
+                if normalized_ranked_features[i] > 1.0:
+                    normalized_ranked_features[i] = 1.0
+            # target_entropy = self._discrete_entropy(target_np)
+            # for i in range(ranked_features.shape[0]):
+            #     if discrete_flags[i]:
+            #         normalized_ranked_features[i] = ranked_features[i] / np.sqrt(self._discrete_entropy(feature_np[:, i]) * target_entropy)
+            #         if normalized_ranked_features[i] > 1:
+            #             normalized_ranked_features[i] = 1.0
+            #     else:
+            #         ksg_entropy, naive_entropy = self._continuous_entropy(feature_np[:, i])
+            #         ksg_mi = ranked_features[i] / np.sqrt(ksg_entropy * target_entropy)
+            #         naive_mi = ranked_features[i] / np.sqrt(naive_entropy * target_entropy)
+            #         if abs(ksg_mi - 1) < abs(naive_mi - 1):
+            #             if ksg_mi > 1:
+            #                 normalized_ranked_features[i] = 1.0
+            #             else:
+            #                 normalized_ranked_features[i] = ksg_mi
+            #         else:
+            #             if naive_mi > 1:
+            #                 normalized_ranked_features[i] = 1.0
+            #             else:
+            #                 normalized_ranked_features[i] = naive_mi
         else:
-            target_ksg_entropy, target_naive_entropy = self._continuous_entropy(target_np)
+            target_entropy = self._continuous_entropy(target_np)
             for i in range(ranked_features.shape[0]):
                 if discrete_flags[i]:
                     feature_entropy = self._discrete_entropy(feature_np[:, i])
-                    ksg_mi = ranked_features[i] / np.sqrt(feature_entropy * target_ksg_entropy)
-                    naive_mi = ranked_features[i] / np.sqrt(feature_entropy * target_naive_entropy)
+                    normalized_ranked_features[i] = ranked_features[i] / np.sqrt(feature_entropy * target_entropy)
                 else:
-                    ksg_entropy, naive_entropy = self._continuous_entropy(feature_np[:, i])
-                    ksg_mi = ranked_features[i] / np.sqrt(ksg_entropy * target_ksg_entropy)
-                    naive_mi = ranked_features[i] / np.sqrt(naive_entropy * target_naive_entropy)
-                if abs(ksg_mi - 1) < abs(naive_mi - 1):
-                    if ksg_mi > 1:
-                        normalized_ranked_features[i] = 1.0
-                    else:
-                        normalized_ranked_features[i] = ksg_mi
-                else:
-                    if naive_mi > 1:
-                        normalized_ranked_features[i] = 1.0
-                    else:
-                        normalized_ranked_features[i] = naive_mi
+                    feature_entropy = self._continuous_entropy(feature_np[:, i])
+                    normalized_ranked_features[i] = ranked_features[i] / np.sqrt(feature_entropy * target_entropy)
+                if normalized_ranked_features[i] > 1.0:
+                    normalized_ranked_features[i] = 1.0
+            # target_ksg_entropy, target_naive_entropy = self._continuous_entropy(target_np)
+            # for i in range(ranked_features.shape[0]):
+            #     if discrete_flags[i]:
+            #         feature_entropy = self._discrete_entropy(feature_np[:, i])
+            #         ksg_mi = ranked_features[i] / np.sqrt(feature_entropy * target_ksg_entropy)
+            #         naive_mi = ranked_features[i] / np.sqrt(feature_entropy * target_naive_entropy)
+            #     else:
+            #         ksg_entropy, naive_entropy = self._continuous_entropy(feature_np[:, i])
+            #         ksg_mi = ranked_features[i] / np.sqrt(ksg_entropy * target_ksg_entropy)
+            #         naive_mi = ranked_features[i] / np.sqrt(naive_entropy * target_naive_entropy)
+            #     if abs(ksg_mi - 1) < abs(naive_mi - 1):
+            #         if ksg_mi > 1:
+            #             normalized_ranked_features[i] = 1.0
+            #         else:
+            #             normalized_ranked_features[i] = ksg_mi
+            #     else:
+            #         if naive_mi > 1:
+            #             normalized_ranked_features[i] = 1.0
+            #         else:
+            #             normalized_ranked_features[i] = naive_mi
                     
 
         return normalized_ranked_features
@@ -283,6 +302,7 @@ class MIRankingPrimitive(transformer.TransformerPrimitiveBase[container.DataFram
 
     def _continuous_entropy(self, x):
         k = self.hyperparams['k']
+        result = mutual_info_regression(x.reshape(-1, 1), x.reshape(-1, 1), [False], n_neighbors=k, random_state=self._random_seed)[0]
         sorted_x = np.sort(x)
 
         eps_distances = np.empty(x.shape[0])
@@ -308,7 +328,7 @@ class MIRankingPrimitive(transformer.TransformerPrimitiveBase[container.DataFram
         # a more naive estimator
         # this estimation is from http://papers.neurips.cc/paper/3417-estimation-of-information-theoretic-measures-for-continuous-random-variables.pdf
         naive_entropy = - np.mean(np.log(k_all/(x.shape[0] - 1) * gamma(1.5) / pow(3.14159, 0.5) * 1 / eps_distances)) - np.mean(digamma(k_all))
-        return ksg_entropy, naive_entropy
+        return result
 
     def _eps(self, x, i, k):
         return 2 * abs(x[self._k_closest_neighbour(x, i, k)] - x[i])
