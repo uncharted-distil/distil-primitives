@@ -351,7 +351,6 @@ class EnsembleForestPrimitive(
             self.fit()
 
         # extract the feature weights
-        column_names = inputs.columns
         output = container.DataFrame(
             self._model.feature_importances().reshape((1, len(inputs.columns))),
             generate_metadata=True,
@@ -361,6 +360,24 @@ class EnsembleForestPrimitive(
             output.metadata = output.metadata.update_column(
                 i, {"name": output.columns[i]}
             )
+
+        # map component columns back to their source - this would cover things like
+        # a one hot encoding column, that is derived from some original source column
+        source_col_importances: Dict[str, float] = {}
+        for col_idx in range(0, len(output.columns)):
+            col_dict = dict(inputs.metadata.query((metadata_base.ALL_ELEMENTS, col_idx)))
+            # if a column points back to a source column, add that columns importance to the
+            # total for that source column
+            if "source_column" in col_dict:
+                source_col = col_dict["source_column"]
+                if source_col not in source_col_importances:
+                    source_col_importances[source_col] = 0.0
+                source_col_importances[source_col] += output.iloc[:,col_idx]
+
+        for source_col, importance in source_col_importances.items():
+            # add the source columns and their importances to the returned data
+            output.insert(len(output.columns), source_col, importance, True);
+            output.metadata = output.metadata.update_column(len(output.columns), {"name": source_col})
 
         return CallResult(output)
 
