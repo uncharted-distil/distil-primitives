@@ -46,7 +46,7 @@ class MIRankingPrimitiveTestCase(unittest.TestCase):
         # verify the output
         self.assertListEqual(list(result_dataframe['idx']), [2, 5, 3])
         self.assertListEqual(list(result_dataframe['name']), ['bravo', 'echo', 'charlie'])
-        expected_ranks = [1.0, 0.756548, 0.0]
+        expected_ranks = [1.0, 1.0, 0.0]
         for i, r in enumerate(result_dataframe['rank']):
             self.assertAlmostEqual(r, expected_ranks[i], places=6)
 
@@ -66,7 +66,7 @@ class MIRankingPrimitiveTestCase(unittest.TestCase):
         # verify the output
         self.assertListEqual(list(result_dataframe['idx']), [1, 5, 3])
         self.assertListEqual(list(result_dataframe['name']), ['alpha', 'echo', 'charlie'])
-        expected_ranks = [0.965127, 0.461964, 0.0]
+        expected_ranks = [1.0, 0.930536, 0.0]
         for i, r in enumerate(result_dataframe['rank']):
             self.assertAlmostEqual(r, expected_ranks[i], places=6)
 
@@ -91,7 +91,7 @@ class MIRankingPrimitiveTestCase(unittest.TestCase):
         # verify the output
         self.assertListEqual(list(result_dataframe['idx']), [1, 3, 5])
         self.assertListEqual(list(result_dataframe['name']), ['alpha', 'charlie', 'echo'])
-        expected_ranks = [0.344232, 0.227931, 0.0]
+        expected_ranks = [1.0, 0.665361, 0.0]
         for i, r in enumerate(result_dataframe['rank']):
             self.assertAlmostEqual(r, expected_ranks[i], places=6)
 
