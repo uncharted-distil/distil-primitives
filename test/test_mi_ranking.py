@@ -22,7 +22,7 @@ import pandas as pd
 import numpy as np
 
 from d3m import container
-from distil.primitives.mi_ranking import MIRankingPrimitive as MIRanking
+from d3m.primitives.feature_selection.mi_ranking import DistilMIRanking as MIRanking
 from d3m.metadata import base as metadata_base
 
 
@@ -46,7 +46,7 @@ class MIRankingPrimitiveTestCase(unittest.TestCase):
         # verify the output
         self.assertListEqual(list(result_dataframe['idx']), [2, 5, 3])
         self.assertListEqual(list(result_dataframe['name']), ['bravo', 'echo', 'charlie'])
-        expected_ranks = [1.0, 1.0, 0.0]
+        expected_ranks = [1.342857, 0.861607, 0.0]
         for i, r in enumerate(result_dataframe['rank']):
             self.assertAlmostEqual(r, expected_ranks[i], places=6)
 
@@ -66,7 +66,7 @@ class MIRankingPrimitiveTestCase(unittest.TestCase):
         # verify the output
         self.assertListEqual(list(result_dataframe['idx']), [1, 5, 3])
         self.assertListEqual(list(result_dataframe['name']), ['alpha', 'echo', 'charlie'])
-        expected_ranks = [1.0, 0.930536, 0.0]
+        expected_ranks = [0.965127, 0.461964, 0.0]
         for i, r in enumerate(result_dataframe['rank']):
             self.assertAlmostEqual(r, expected_ranks[i], places=6)
 
@@ -91,7 +91,7 @@ class MIRankingPrimitiveTestCase(unittest.TestCase):
         # verify the output
         self.assertListEqual(list(result_dataframe['idx']), [1, 3, 5])
         self.assertListEqual(list(result_dataframe['name']), ['alpha', 'charlie', 'echo'])
-        expected_ranks = [1.0, 0.665361, 0.0]
+        expected_ranks = [0.344232, 0.227931, 0.0]
         for i, r in enumerate(result_dataframe['rank']):
             self.assertAlmostEqual(r, expected_ranks[i], places=6)
 
@@ -131,7 +131,7 @@ class MIRankingPrimitiveTestCase(unittest.TestCase):
         self.assertListEqual(list(result_dataframe['name']), [])
         self.assertListEqual(list(result_dataframe['rank']), [])
 
-    def _load_data(cls, bad_features: typing.Sequence[int]=[], alpha_class=int, charlie_class=int) -> container.DataFrame:
+    def _load_data(cls, bad_features: typing.Sequence[int]=[]) -> container.DataFrame:
         dataset_doc_path = path.join(cls._dataset_path, 'datasetDoc.json')
 
         # load the dataset and convert resource 0 to a dataframe
@@ -143,33 +143,24 @@ class MIRankingPrimitiveTestCase(unittest.TestCase):
         dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 0),
                                                         {'structural_type': int})
         dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 1),
-                                                        {'structural_type': alpha_class})
+                                                        {'structural_type': int})
         dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 2),
                                                         {'structural_type': float})
         dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 3),
-                                                        {'structural_type': charlie_class})
+                                                        {'structural_type': int})
         dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 4),
                                                         {'structural_type': str})
         dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 5),
                                                         {'structural_type': int})
 
         # set the semantic type
-        if alpha_class == int:
-            dataframe.metadata = dataframe.metadata.\
-                add_semantic_type((metadata_base.ALL_ELEMENTS, 1),
-                                'https://metadata.datadrivendiscovery.org/types/CategoricalData')
-        elif alpha_class == float:
-            dataframe.metadata = dataframe.metadata.\
-                add_semantic_type((metadata_base.ALL_ELEMENTS, 1), 'http://schema.org/Float')
-
+        dataframe.metadata = dataframe.metadata.\
+            add_semantic_type((metadata_base.ALL_ELEMENTS, 1),
+                            'https://metadata.datadrivendiscovery.org/types/CategoricalData')
         dataframe.metadata = dataframe.metadata.\
             add_semantic_type((metadata_base.ALL_ELEMENTS, 2), 'http://schema.org/Float')
-        if charlie_class == int:
-            dataframe.metadata = dataframe.metadata.\
-                add_semantic_type((metadata_base.ALL_ELEMENTS, 3), 'http://schema.org/Boolean')
-        elif charlie_class == float:
-            dataframe.metadata = dataframe.metadata.\
-                add_semantic_type((metadata_base.ALL_ELEMENTS, 3), 'http://schema.org/Float')
+        dataframe.metadata = dataframe.metadata.\
+            add_semantic_type((metadata_base.ALL_ELEMENTS, 3), 'http://schema.org/Boolean')
         dataframe.metadata = dataframe.metadata.\
             add_semantic_type((metadata_base.ALL_ELEMENTS, 4), 'http://schema.org/Text')
         dataframe.metadata = dataframe.metadata.\
@@ -193,12 +184,12 @@ class MIRankingPrimitiveTestCase(unittest.TestCase):
         dataframe = dataframe.replace(r'^\s*$', np.nan, regex=True)
 
         # cast the dataframe to raw python types
-        dataframe['d3mIndex'] = dataframe['d3mIndex'].astype(int)
-        dataframe['alpha'] = dataframe['alpha'].astype(alpha_class)
-        dataframe['bravo'] = dataframe['bravo'].astype(float)
-        dataframe['charlie'] = dataframe['charlie'].astype(alpha_class)
-        dataframe['delta'] = dataframe['delta'].astype(str)
-        dataframe['echo'] = dataframe['echo'].astype(float)
+        dataframe['d3mIndex'].astype(int)
+        dataframe['alpha'].astype(int)
+        dataframe['bravo'].astype(float)
+        dataframe['charlie'].astype(int)
+        dataframe['delta'].astype(str)
+        dataframe['echo'].astype(float)
 
         return dataframe
 
