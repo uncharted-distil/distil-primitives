@@ -131,6 +131,28 @@ class MIRankingPrimitiveTestCase(unittest.TestCase):
         self.assertListEqual(list(result_dataframe['name']), [])
         self.assertListEqual(list(result_dataframe['rank']), [])
 
+
+    def test_unique_categorical_removed(self) -> None:
+        dataframe = self._load_data()
+
+        hyperparams_class = \
+            MIRanking.metadata.query()['primitive_code']['class_type_arguments']['Hyperparams']
+        hyperparams = hyperparams_class.defaults().replace(
+            {
+                'target_col_index': 1
+            }
+        )
+        dataframe.insert(len(dataframe.columns), 'removed', [1, 2, 3, 4, 5, 6, 7, 8, 9])
+        dataframe.metadata = dataframe.metadata.\
+                add_semantic_type((metadata_base.ALL_ELEMENTS, 1),
+                                'https://metadata.datadrivendiscovery.org/types/CategoricalData')
+        mi_ranking = MIRanking(hyperparams=hyperparams)
+        result_dataframe = mi_ranking.produce(inputs=dataframe).value
+
+        # verify the output
+        self.assertListEqual(list(result_dataframe['idx']), [2, 5, 3])
+        self.assertListEqual(list(result_dataframe['name']), ['bravo', 'echo', 'charlie'])
+
     def _load_data(cls, bad_features: typing.Sequence[int]=[], alpha_class=int, charlie_class=int) -> container.DataFrame:
         dataset_doc_path = path.join(cls._dataset_path, 'datasetDoc.json')
 
