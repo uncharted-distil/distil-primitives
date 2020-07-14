@@ -101,15 +101,11 @@ class DataFrameSatelliteImageLoaderPrimitive(primitives.FileReaderPrimitiveBase)
         # only keep one row / group from the input
         first_band = list(self._band_order.keys())[0]
         first_groups = inputs_clone.loc[inputs_clone[band_column_name] == first_band].reset_index(drop=True)
-        #joined_df = first_groups.join(grouped_images, on=grouping_name)
 
         outputs = base_utils.combine_columns(first_groups, [column_index], [grouped_df], return_result=self.hyperparams['return_result'], add_index_columns=self.hyperparams['add_index_columns'])
         if self.hyperparams['return_result'] == 'append':
             outputs.metadata = self._reassign_boundaries(outputs.metadata, columns_to_use)
-
-
-        # update the metadata
-        #joined_df.metadata = joined_df.metadata.generate(joined_df)
+        outputs.metadata = outputs.metadata.update((), {'dimension': {'length': outputs.shape[0]}})
 
         return base_prim.CallResult(outputs)
 
