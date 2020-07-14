@@ -156,6 +156,9 @@ class MIRankingPrimitive(transformer.TransformerPrimitiveBase[container.DataFram
         role_indices = set(inputs.metadata.list_columns_with_semantic_types(self._roles))
         feature_indices = feature_indices.intersection(role_indices)
         feature_indices.remove(target_idx)
+        for categ_ind in inputs.metadata.list_columns_with_semantic_types(('https://metadata.datadrivendiscovery.org/types/CategoricalData',)):
+            if np.unique(inputs[inputs.columns[categ_ind]]).shape[0] == inputs.shape[0] and categ_ind in feature_indices:
+                feature_indices.remove(categ_ind)
 
         # return an empty result if all features were incompatible
         if len(feature_indices) is 0:
@@ -303,31 +306,31 @@ class MIRankingPrimitive(transformer.TransformerPrimitiveBase[container.DataFram
     def _continuous_entropy(self, x):
         k = self.hyperparams['k']
         result = mutual_info_regression(x.reshape(-1, 1), x.reshape(-1, 1), [False], n_neighbors=k, random_state=self._random_seed)[0]
-        sorted_x = np.sort(x)
+        # sorted_x = np.sort(x)
 
-        eps_distances = np.empty(x.shape[0])
-        k_all = np.full(x.shape, k - 1)
-        for i in range(x.shape[0]):
-            eps = 0
-            # need to prevent having an epsilon value of 0
-            # as a fall back, increase k to find farther neighbours
-            while eps == 0 and k_all[i] < x.shape[0]:
-                k_all[i] += 1
-                eps = self._eps(sorted_x, i, k_all[i])
-            if eps == 0 and k_all[i] == x.shape[0]:
-                raise exceptions.InvalidArgumentValueError('inputs has too many non-unique values or not enough values possibly')
-            eps_distances[i] = eps
+        # eps_distances = np.empty(x.shape[0])
+        # k_all = np.full(x.shape, k - 1)
+        # for i in range(x.shape[0]):
+        #     eps = 0
+        #     # need to prevent having an epsilon value of 0
+        #     # as a fall back, increase k to find farther neighbours
+        #     while eps == 0 and k_all[i] < x.shape[0]:
+        #         k_all[i] += 1
+        #         eps = self._eps(sorted_x, i, k_all[i])
+        #     if eps == 0 and k_all[i] == x.shape[0]:
+        #         raise exceptions.InvalidArgumentValueError('inputs has too many non-unique values or not enough values possibly')
+        #     eps_distances[i] = eps
 
-        log_mean = np.mean(np.log(eps_distances))
-        if log_mean == float('-inf'):
-            raise exceptions.InvalidArgumentValueError('inputs has too many non-unique values or not enough values possibly')
+        # log_mean = np.mean(np.log(eps_distances))
+        # if log_mean == float('-inf'):
+        #     raise exceptions.InvalidArgumentValueError('inputs has too many non-unique values or not enough values possibly')
 
-        # this estimation is https://arxiv.org/pdf/cond-mat/0305641.pdf
-        # the KSG estimator
-        ksg_entropy = - np.mean(digamma(k_all)) + digamma(x.shape[0]) + log_mean
-        # a more naive estimator
-        # this estimation is from http://papers.neurips.cc/paper/3417-estimation-of-information-theoretic-measures-for-continuous-random-variables.pdf
-        naive_entropy = - np.mean(np.log(k_all/(x.shape[0] - 1) * gamma(1.5) / pow(3.14159, 0.5) * 1 / eps_distances)) - np.mean(digamma(k_all))
+        # # this estimation is https://arxiv.org/pdf/cond-mat/0305641.pdf
+        # # the KSG estimator
+        # ksg_entropy = - np.mean(digamma(k_all)) + digamma(x.shape[0]) + log_mean
+        # # a more naive estimator
+        # # this estimation is from http://papers.neurips.cc/paper/3417-estimation-of-information-theoretic-measures-for-continuous-random-variables.pdf
+        # naive_entropy = - np.mean(np.log(k_all/(x.shape[0] - 1) * gamma(1.5) / pow(3.14159, 0.5) * 1 / eps_distances)) - np.mean(digamma(k_all))
         return result
 
     def _eps(self, x, i, k):
