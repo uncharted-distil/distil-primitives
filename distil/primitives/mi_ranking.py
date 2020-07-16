@@ -1,7 +1,7 @@
 import os
 import typing
 from math import log
-
+from frozendict import FrozenOrderedDict
 import numpy as np
 from scipy.sparse import issparse
 from scipy.special import digamma, gamma
@@ -31,6 +31,11 @@ class Hyperparams(hyperparams.Hyperparams):
         default=3,
         semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
         description='Number of clusters for k-nearest neighbors'
+    )
+    return_as_metadata = hyperparams.Hyperparameter[bool](
+        default=False,
+        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
+        description="If True will return each columns rank in their respective metadata as the key 'rank'"
     )
 
 class MIRankingPrimitive(transformer.TransformerPrimitiveBase[container.DataFrame,
@@ -203,6 +208,14 @@ class MIRankingPrimitive(transformer.TransformerPrimitiveBase[container.DataFram
 
         ranked_features_np = self._normalize(ranked_features_np, feature_np, target_np, discrete, discrete_flags)
 
+        if self.hyperparams['return_as_metadata']:
+            for i, f in enumerate(feature_indices):
+                column_metadata = inputs.metadata.query((metadata_base.ALL_ELEMENTS, f))
+                rank_dict = dict(column_metadata)
+                rank_dict['rank'] = ranked_features_np[i]
+                inputs.metadata = inputs.\
+                    metadata.update((metadata_base.ALL_ELEMENTS, f), FrozenOrderedDict(rank_dict.items()))
+            return base.CallResult(inputs)
         # merge back into a single list of col idx / rank value tuples
         data: typing.List[typing.Tuple[int, str, float]] = []
         data = self._append_rank_info(inputs, data, ranked_features_np, feature_df)
@@ -210,7 +223,6 @@ class MIRankingPrimitive(transformer.TransformerPrimitiveBase[container.DataFram
         # wrap as a D3M container - metadata should be auto generated
         results = container.DataFrame(data=data, columns=cols, generate_metadata=True)
         results = results.sort_values(by=['rank'], ascending=False).reset_index(drop=True)
-
         return base.CallResult(results)
 
     def _normalize(self, ranked_features, feature_np, target_np, discrete, discrete_flags):
