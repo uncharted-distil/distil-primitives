@@ -1,5 +1,6 @@
 import logging
 import os
+from d3m.primitive_interfaces.base import Hyperparams
 
 import frozendict  # type: ignore
 import imageio  # type: ignore
@@ -69,6 +70,10 @@ class DataFrameSatelliteImageLoaderPrimitive(primitives.FileReaderPrimitiveBase)
         }
     )
 
+    def __init__(self, *, hyperparams: Hyperparams) -> None:
+        super().__init__(hyperparams=hyperparams)
+        self._max_dimension = 0
+
     def _read_fileuri(self, metadata: frozendict.FrozenOrderedDict, fileuri: str) -> container.ndarray:
         return None
 
@@ -116,10 +121,12 @@ class DataFrameSatelliteImageLoaderPrimitive(primitives.FileReaderPrimitiveBase)
         images = list(map(lambda image: self._load_image(image[0], image[1], base_uri), zipped))
 
         # reshape images (upsample) to have it all fit within an array
-        max_dimension = max(i[1].shape[0] for i in images)
+        if self._max_dimension == 0:
+            self._max_dimension = max(i[1].shape[0] for i in images)
+
         images_result = [None] * len(self._band_order)
         for band, image in images:
-            images_result[self._band_order[band.lower()]] = self._bilinear_upsample(image, max_dimension)
+            images_result[self._band_order[band.lower()]] = self._bilinear_resample(image, self._max_dimension)
 
         output = np.array(images_result)
         output = container.ndarray(output, {
@@ -138,7 +145,7 @@ class DataFrameSatelliteImageLoaderPrimitive(primitives.FileReaderPrimitiveBase)
 
         return (band, image_array)
 
-    def _bilinear_upsample(self, x, n=120):
+    def _bilinear_resample(self, x, n=120):
         dtype = x.dtype
         assert len(x.shape) == 2
         if (x.shape[0] == n) and (x.shape[1] == n):
