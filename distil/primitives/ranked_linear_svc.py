@@ -4,7 +4,7 @@ from typing import List
 
 import numpy as np
 import pandas as pd
-from sklearn.smv import LinearSVC
+from sklearn.svm import LinearSVC
 from d3m import container, utils
 from d3m.metadata import base as metadata_base, hyperparams, params
 from d3m.primitive_interfaces import base
@@ -34,12 +34,12 @@ class RankedLinearSVCPrimitive(
             "id": "10d21bbe-9c58-4dc1-8f71-2b3834b71a5e",
             "version": version.__version__,
             "name": "DistilRankedLinearSVC",
-            "python_path": "d3m.primitives.classification.ranked_linear_svc.DistilRankedLinearSVC",
+            "python_path": "d3m.primitives.classification.support_vector_machine.DistilRankedLinearSVC",
             "source": {
                 "name": "Distil",
                 "contact": "mailto:cbethune@uncharted.software",
                 "uris": [
-                    "https://github.com/uncharted-distil/distil-primitives/distil/primitives/ensemble_forest.py",
+                    "https://github.com/uncharted-distil/distil-primitives/distil/primitives/ranked_linear_svc.py",
                     "https://github.com/uncharted-distil/distil-primitives",
                 ],
             },
@@ -51,8 +51,8 @@ class RankedLinearSVCPrimitive(
                     ),
                 }
             ],
-            "algorithm_types": [metadata_base.PrimitiveAlgorithmType.RANDOM_FOREST,],
-            "primitive_family": metadata_base.PrimitiveFamily.LEARNER,
+            "algorithm_types": [metadata_base.PrimitiveAlgorithmType.SUPPORT_VECTOR_MACHINE,],
+            "primitive_family": metadata_base.PrimitiveFamily.CLASSIFICATION,
         },
     )
 
