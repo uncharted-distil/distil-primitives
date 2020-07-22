@@ -5,6 +5,7 @@ from typing import List
 import numpy as np
 import pandas as pd
 from sklearn.svm import LinearSVC
+from scipy.stats import rankdata
 from d3m import container, utils
 from d3m.metadata import base as metadata_base, hyperparams, params
 from d3m.primitive_interfaces import base
@@ -68,6 +69,7 @@ class RankedLinearSVCPrimitive(
         self._inputs = inputs
         self._outputs = outputs
         self._needs_fit = True
+        self._target_cols = []
 
     def fit(self, *, timeout: float = None, iterations: int = None) -> CallResult[None]:
         logger.debug(f"Fitting {__name__}")
@@ -90,13 +92,16 @@ class RankedLinearSVCPrimitive(
         # force a fit it hasn't yet been done
         if self._needs_fit:
             self.fit()
+        if not self._target_cols:
+            self._target_cols = [self._outputs.columns[0]]
 
         # create dataframe to hold the result
         result = self._model.predict(inputs.values)
         confidences = self._model.decision_function(inputs.values)
+        confidences_ranked = rankdata(confidences)
 
         result_df = container.DataFrame(
-            {self._outputs[0]: result, 'confidence': confidences}, generate_metadata=True
+        {self._target_cols[0]: result, 'confidence': confidences_ranked}, generate_metadata=True
         )
 
         # mark the semantic types on the dataframe
@@ -111,6 +116,10 @@ class RankedLinearSVCPrimitive(
         # this is a hack, but str conversions on lists later on break things
         result_df.metadata = result_df.metadata.add_semantic_type(
             (metadata_base.ALL_ELEMENTS, 1),
+            "https://metadata.datadrivendiscovery.org/types/PredictedTarget",
+        )
+        result_df.metadata = result_df.metadata.add_semantic_type(
+            (metadata_base.ALL_ELEMENTS, 1),
             "https://metadata.datadrivendiscovery.org/types/Confidence",
         )
         result_df.metadata = result_df.metadata.add_semantic_type(
@@ -118,16 +127,17 @@ class RankedLinearSVCPrimitive(
             "http://schema.org/Float",
         )
 
-        logger.debug(f"\n{result_df}")
         return base.CallResult(result_df)
 
     def get_params(self) -> Params:
         return Params(
             model = self._model,
             needs_fit = self._needs_fit,
+            target_cols = self._target_cols,
         )
 
     def set_params(self, *, params: Params) -> None:
         self._model = params['model']
         self._needs_fit = params['needs_fit']
+        self._target_cols = params['target_cols']
         return
