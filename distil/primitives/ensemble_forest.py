@@ -313,11 +313,13 @@ class EnsembleForestPrimitive(
                 (metadata_base.ALL_ELEMENTS, i),
                 "https://metadata.datadrivendiscovery.org/types/PredictedTarget",
             )
-        if 'auc' in self.hyperparams["metric"].lower():
+        if self.hyperparams["metric"] in classification_metrics:
             # add confidence scores as some metrics require them.
-
             confidence = self._model.predict_proba(inputs.values)
             confidence = pd.Series(confidence.tolist(), name='confidence')
+
+            # this is a hack, but str conversions on lists later on break things
+            #confidence = pd.Series([1]*len(result_df), name='confidence')
             result_df = pd.concat([result_df, confidence], axis=1)
 
             confidences = [item for sublist in result_df['confidence'].values.tolist() for item in sublist]
@@ -334,6 +336,7 @@ class EnsembleForestPrimitive(
             result_df_temp['index_temp'] = index
             result_df_temp = result_df_temp.set_index('index_temp')
             result_df = result_df_temp
+
 
             result_df.metadata = result_df.metadata.add_semantic_type(
                 (metadata_base.ALL_ELEMENTS, len(result_df.columns)-1),
