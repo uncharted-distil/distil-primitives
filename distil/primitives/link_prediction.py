@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 class Hyperparams(hyperparams.Hyperparams):
     metric = hyperparams.Enumeration[str](
-        values=classification_metrics + ['rootMeanSquaredError'],
+        values=classification_metrics,
         default='accuracy',
         semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter']
     )
