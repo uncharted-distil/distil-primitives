@@ -1,0 +1,201 @@
+{
+    "about": {
+        "datasetID": "timeseries_population_spawn",
+        "datasetName": "Time Series Spawn Population Subset Data",
+        "license": "Unknown public",
+        "datasetSchemaVersion": "4.0.0",
+        "redacted": false,
+        "datasetVersion": "1.0"
+    },
+    "dataResources":[
+        {
+            "resID": "singleGroupData",
+            "resPath": "tables/singleGroupData.csv",
+            "resType": "table",
+            "resFormat": {
+                "text/csv": [
+                    "csv"
+                ]
+            },
+            "columns": [
+                {
+                    "colIndex": 0,
+                    "colName": "d3mIndex",
+                    "colType": "integer",
+                    "role": [
+                        "index"
+                    ]
+                },
+                {
+                    "colIndex": 1,
+                    "colName": "species",
+                    "colType": "categorical",
+                    "role": [
+                        "suggestedGroupingKey"
+                    ]
+                },
+                {
+                    "colIndex": 2,
+                    "colName": "day",
+                    "colType": "integer",
+                    "role": [
+                        "timeIndicator"
+                    ]
+                },
+                {
+                    "colIndex": 3,
+                    "colName": "count",
+                    "colType": "integer",
+                    "role": [
+                        "suggestedTarget"
+                    ]
+                }
+            ]
+        }, {
+            "resID": "singleGroupDataTimestamp",
+            "resPath": "tables/singleGroupDataTimestamp.csv",
+            "resType": "table",
+            "resFormat": {
+                "text/csv": [
+                    "csv"
+                ]
+            },
+            "columns": [
+                {
+                    "colIndex": 0,
+                    "colName": "d3mIndex",
+                    "colType": "integer",
+                    "role": [
+                        "index"
+                    ]
+                },
+                {
+                    "colIndex": 1,
+                    "colName": "species",
+                    "colType": "categorical",
+                    "role": [
+                        "suggestedGroupingKey"
+                    ]
+                },
+                {
+                    "colIndex": 2,
+                    "colName": "day",
+                    "colType": "dateTime",
+                    "role": [
+                        "timeIndicator"
+                    ]
+                },
+                {
+                    "colIndex": 3,
+                    "colName": "count",
+                    "colType": "integer",
+                    "role": [
+                        "suggestedTarget"
+                    ]
+                }
+            ]
+        }, {
+            "resID": "multiGroupData",
+            "resPath": "tables/multiGroupData.csv",
+            "resType": "table",
+            "resFormat": {
+                "text/csv": [
+                    "csv"
+                ]
+            },
+            "columns": [
+                {
+                    "colIndex": 0,
+                    "colName": "d3mIndex",
+                    "colType": "integer",
+                    "role": [
+                        "index"
+                    ]
+                },
+                {
+                    "colIndex": 1,
+                    "colName": "species",
+                    "colType": "categorical",
+                    "role": [
+                        "suggestedGroupingKey"
+                    ]
+                },
+                {
+                    "colIndex": 2,
+                    "colName": "day",
+                    "colType": "integer",
+                    "role": [
+                        "timeIndicator"
+                    ]
+                },
+                {
+                    "colIndex": 3,
+                    "colName": "count",
+                    "colType": "integer",
+                    "role": [
+                        "suggestedTarget"
+                    ]
+                },
+                {
+                    "colIndex": 4,
+                    "colName": "offspring",
+                    "colType": "integer",
+                    "role": [
+                        "suggestedTarget"
+                    ]
+                }
+            ]
+        }, {
+            "resID": "multiGroupDataTimestamp",
+            "resPath": "tables/multiGroupDataTimestamp.csv",
+            "resType": "table",
+            "resFormat": {
+                "text/csv": [
+                    "csv"
+                ]
+            },
+            "columns": [
+                {
+                    "colIndex": 0,
+                    "colName": "d3mIndex",
+                    "colType": "integer",
+                    "role": [
+                        "index"
+                    ]
+                },
+                {
+                    "colIndex": 1,
+                    "colName": "species",
+                    "colType": "categorical",
+                    "role": [
+                        "suggestedGroupingKey"
+                    ]
+                },
+                {
+                    "colIndex": 2,
+                    "colName": "day",
+                    "colType": "dateTime",
+                    "role": [
+                        "timeIndicator"
+                    ]
+                },
+                {
+                    "colIndex": 3,
+                    "colName": "count",
+                    "colType": "integer",
+                    "role": [
+                        "suggestedTarget"
+                    ]
+                },
+                {
+                    "colIndex": 4,
+                    "colName": "offspring",
+                    "colType": "integer",
+                    "role": [
+                        "suggestedTarget"
+                    ]
+                }
+            ]
+        }
+    ]
+}

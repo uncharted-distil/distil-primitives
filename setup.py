@@ -26,8 +26,8 @@ setup(
         'pandas==1.0.3',
         'torch==1.4.0',
         'networkx==2.4',
-        'tensorflow-gpu==2.1.0',
-        'pillow==7.1.1',
+        'tensorflow-gpu==2.2.0',
+        'pillow==7.1.2',
 
         # additional dependencies
         'joblib>=0.13.2',
@@ -45,7 +45,7 @@ setup(
         'basenet @ git+https://github.com/bkj/basenet.git@903756540b89809ef458f35257287b937b333417',
         'rescal @ git+https://github.com/cdbethune/rescal.py.git@af2091c1d5521c987edd3be41627b9c563582fe8',
         'pytorch-pretrained-bert @ git+https://github.com/cdbethune/pytorch-pretrained-BERT.git@fb5a42d9de9385b146ba585d6d47ec36d27dcbca#egg=pytorch-pretrained-bert',
-	    'scikit-image<=0.16.1', # need this to ensure compatiblity with pillow 7.1.1
+	    'scikit-image<=0.17.2',
         'shap>=0.29',
         # Can cause errors with pretrained-bert: https://github.com/NVIDIA/apex/issues/156
         #'apex @ git+https://github.com/NVIDIA/apex.git@47e3367fcd6636db6cd549bbb385a6e06a3861d0',
@@ -67,6 +67,7 @@ setup(
             'data_transformation.data_cleaning.DistilEnrichDates = distil.primitives.enrich_dates:EnrichDatesPrimitive',
             'learner.random_forest.DistilEnsembleForest = distil.primitives.ensemble_forest:EnsembleForestPrimitive',
             'classification.bert_classifier.DistilBertPairClassification = distil.primitives.bert_classifier:BertPairClassificationPrimitive',
+            'classification.support_vector_machine.DistilRankedLinearSVC = distil.primitives.ranked_linear_svc:RankedLinearSVCPrimitive',
             'collaborative_filtering.collaborative_filtering_link_prediction.DistilCollaborativeFiltering = distil.primitives.collaborative_filtering_link_prediction:CollaborativeFilteringPrimitive',
             'data_transformation.one_hot_encoder.DistilOneHotEncoder = distil.primitives.one_hot_encoder:OneHotEncoderPrimitive',
             'data_transformation.encoder.DistilBinaryEncoder = distil.primitives.binary_encoder:BinaryEncoderPrimitive',

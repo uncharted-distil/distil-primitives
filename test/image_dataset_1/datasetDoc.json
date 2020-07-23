@@ -1,0 +1,70 @@
+{
+  "about": {
+    "datasetID": "image_dataset_1",
+    "datasetName": "Image dataset to be used for tests",
+    "description": "There are a total of 5 image files, one is a left hand from the handgeometry dataset, two birds from cifar10 dataset and 2 figures from mnist dataset.",
+    "license": "Creative Commons Attribution-NonCommercial 4.0",
+    "approximateSize": "24 KB",
+    "datasetSchemaVersion": "4.0.0",
+    "redacted": false,
+    "datasetVersion": "4.0.0",
+    "digest": "9b5553ce5ad84dfcefd379814dc6b11ef60a049479e3e91aa1251f7a5ef7409e"
+  },
+  "dataResources": [
+    {
+      "resID": "0",
+      "resPath": "media/",
+      "resType": "image",
+      "resFormat": {
+        "image/jpeg": [
+          "jpg"
+        ],
+        "image/png": [
+          "png"
+        ]
+      },
+      "isCollection": true
+    },
+    {
+      "resID": "learningData",
+      "resPath": "tables/learningData.csv",
+      "resType": "table",
+      "resFormat": {
+        "text/csv": [
+          "csv"
+        ]
+      },
+      "isCollection": false,
+      "columns": [
+        {
+          "colIndex": 0,
+          "colName": "d3mIndex",
+          "colType": "integer",
+          "role": [
+            "index"
+          ]
+        },
+        {
+          "colIndex": 1,
+          "colName": "image_file",
+          "colType": "string",
+          "role": [
+            "attribute"
+          ],
+          "refersTo": {
+            "resID": "0",
+            "resObject": "item"
+          }
+        },
+        {
+          "colIndex": 2,
+          "colName": "class",
+          "colType": "categorical",
+          "role": [
+            "suggestedTarget"
+          ]
+        }
+      ]
+    }
+  ]
+}

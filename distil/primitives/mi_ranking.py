@@ -1,13 +1,21 @@
 import os
 import typing
+from math import log
 
 import numpy as np
+from scipy.sparse import issparse
+from scipy.special import digamma, gamma
 import pandas as pd  # type: ignore
 from d3m import container, utils as d3m_utils
+from d3m import exceptions
 from d3m.metadata import base as metadata_base, hyperparams
 from d3m.primitive_interfaces import base, transformer
 from distil.utils import CYTHON_DEP
 from sklearn.feature_selection import mutual_info_regression, mutual_info_classif
+from sklearn import metrics
+from sklearn import preprocessing
+from sklearn import utils as skl_utils
+from sklearn.neighbors import NearestNeighbors
 import version
 
 __all__ = ('MIRankingPrimitive',)
@@ -18,6 +26,11 @@ class Hyperparams(hyperparams.Hyperparams):
         default=None,
         semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
         description='Index of target feature to rank against.'
+    )
+    k = hyperparams.Hyperparameter[typing.Optional[int]](
+        default=3,
+        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
+        description='Number of clusters for k-nearest neighbors'
     )
 
 class MIRankingPrimitive(transformer.TransformerPrimitiveBase[container.DataFrame,
@@ -143,6 +156,9 @@ class MIRankingPrimitive(transformer.TransformerPrimitiveBase[container.DataFram
         role_indices = set(inputs.metadata.list_columns_with_semantic_types(self._roles))
         feature_indices = feature_indices.intersection(role_indices)
         feature_indices.remove(target_idx)
+        for categ_ind in inputs.metadata.list_columns_with_semantic_types(('https://metadata.datadrivendiscovery.org/types/CategoricalData',)):
+            if np.unique(inputs[inputs.columns[categ_ind]]).shape[0] == inputs.shape[0] and categ_ind in feature_indices:
+                feature_indices.remove(categ_ind)
 
         # return an empty result if all features were incompatible
         if len(feature_indices) is 0:
@@ -176,12 +192,16 @@ class MIRankingPrimitive(transformer.TransformerPrimitiveBase[container.DataFram
             ranked_features_np = mutual_info_classif(feature_np,
                                                      target_np,
                                                      discrete_features=discrete_flags,
+                                                     n_neighbors=self.hyperparams['k'],
                                                      random_state=self._random_seed)
         else:
             ranked_features_np = mutual_info_regression(feature_np,
                                                         target_np,
                                                         discrete_features=discrete_flags,
+                                                        n_neighbors=self.hyperparams['k'],
                                                         random_state=self._random_seed)
+
+        ranked_features_np = self._normalize(ranked_features_np, feature_np, target_np, discrete, discrete_flags)
 
         # merge back into a single list of col idx / rank value tuples
         data: typing.List[typing.Tuple[int, str, float]] = []
@@ -192,3 +212,161 @@ class MIRankingPrimitive(transformer.TransformerPrimitiveBase[container.DataFram
         results = results.sort_values(by=['rank'], ascending=False).reset_index(drop=True)
 
         return base.CallResult(results)
+
+    def _normalize(self, ranked_features, feature_np, target_np, discrete, discrete_flags):
+        normalized_ranked_features = np.empty(ranked_features.shape[0])
+        if discrete:
+            target_entropy = self._discrete_entropy(target_np)
+            for i in range(ranked_features.shape[0]):
+                if discrete_flags[i]:
+                    normalized_ranked_features[i] = metrics.normalized_mutual_info_score(target_np, feature_np[:, i], average_method='geometric')
+                else:
+                    feature_entropy = self._continuous_entropy(feature_np[:, i])
+                    normalized_ranked_features[i] = ranked_features[i] / np.sqrt(feature_entropy * target_entropy)
+                if normalized_ranked_features[i] > 1.0:
+                    normalized_ranked_features[i] = 1.0
+            # target_entropy = self._discrete_entropy(target_np)
+            # for i in range(ranked_features.shape[0]):
+            #     if discrete_flags[i]:
+            #         normalized_ranked_features[i] = ranked_features[i] / np.sqrt(self._discrete_entropy(feature_np[:, i]) * target_entropy)
+            #         if normalized_ranked_features[i] > 1:
+            #             normalized_ranked_features[i] = 1.0
+            #     else:
+            #         ksg_entropy, naive_entropy = self._continuous_entropy(feature_np[:, i])
+            #         ksg_mi = ranked_features[i] / np.sqrt(ksg_entropy * target_entropy)
+            #         naive_mi = ranked_features[i] / np.sqrt(naive_entropy * target_entropy)
+            #         if abs(ksg_mi - 1) < abs(naive_mi - 1):
+            #             if ksg_mi > 1:
+            #                 normalized_ranked_features[i] = 1.0
+            #             else:
+            #                 normalized_ranked_features[i] = ksg_mi
+            #         else:
+            #             if naive_mi > 1:
+            #                 normalized_ranked_features[i] = 1.0
+            #             else:
+            #                 normalized_ranked_features[i] = naive_mi
+        else:
+            target_entropy = self._continuous_entropy(target_np)
+            for i in range(ranked_features.shape[0]):
+                if discrete_flags[i]:
+                    feature_entropy = self._discrete_entropy(feature_np[:, i])
+                    normalized_ranked_features[i] = ranked_features[i] / np.sqrt(feature_entropy * target_entropy)
+                else:
+                    feature_entropy = self._continuous_entropy(feature_np[:, i])
+                    normalized_ranked_features[i] = ranked_features[i] / np.sqrt(feature_entropy * target_entropy)
+                if normalized_ranked_features[i] > 1.0:
+                    normalized_ranked_features[i] = 1.0
+            # target_ksg_entropy, target_naive_entropy = self._continuous_entropy(target_np)
+            # for i in range(ranked_features.shape[0]):
+            #     if discrete_flags[i]:
+            #         feature_entropy = self._discrete_entropy(feature_np[:, i])
+            #         ksg_mi = ranked_features[i] / np.sqrt(feature_entropy * target_ksg_entropy)
+            #         naive_mi = ranked_features[i] / np.sqrt(feature_entropy * target_naive_entropy)
+            #     else:
+            #         ksg_entropy, naive_entropy = self._continuous_entropy(feature_np[:, i])
+            #         ksg_mi = ranked_features[i] / np.sqrt(ksg_entropy * target_ksg_entropy)
+            #         naive_mi = ranked_features[i] / np.sqrt(naive_entropy * target_naive_entropy)
+            #     if abs(ksg_mi - 1) < abs(naive_mi - 1):
+            #         if ksg_mi > 1:
+            #             normalized_ranked_features[i] = 1.0
+            #         else:
+            #             normalized_ranked_features[i] = ksg_mi
+            #     else:
+            #         if naive_mi > 1:
+            #             normalized_ranked_features[i] = 1.0
+            #         else:
+            #             normalized_ranked_features[i] = naive_mi
+                    
+
+        return normalized_ranked_features
+
+    def _discrete_entropy(self, labels):
+        """Calculates the entropy for a labeling.
+        Parameters
+        ----------
+        labels : int array, shape = [n_samples]
+            The labels
+        Notes
+        -----
+        The logarithm used is the natural logarithm (base-e).
+        """
+        if len(labels) == 0:
+            return 1.0
+        label_idx = np.unique(labels, return_inverse=True)[1]
+        pi = np.bincount(label_idx).astype(np.float64)
+        pi = pi[pi > 0]
+        pi_sum = np.sum(pi)
+        # log(a / b) should be calculated as log(a) - log(b) for
+        # possible loss of precision
+        entropy = -np.sum((pi / pi_sum) * (np.log(pi) - log(pi_sum)))
+        if entropy <= 0:
+                raise exceptions.InvalidArgumentValueError('inputs has too many non-unique values or not enough values possibly')
+        return entropy
+
+    def _continuous_entropy(self, x):
+        k = self.hyperparams['k']
+        result = mutual_info_regression(x.reshape(-1, 1), x.reshape(-1, 1), [False], n_neighbors=k, random_state=self._random_seed)[0]
+        # sorted_x = np.sort(x)
+
+        # eps_distances = np.empty(x.shape[0])
+        # k_all = np.full(x.shape, k - 1)
+        # for i in range(x.shape[0]):
+        #     eps = 0
+        #     # need to prevent having an epsilon value of 0
+        #     # as a fall back, increase k to find farther neighbours
+        #     while eps == 0 and k_all[i] < x.shape[0]:
+        #         k_all[i] += 1
+        #         eps = self._eps(sorted_x, i, k_all[i])
+        #     if eps == 0 and k_all[i] == x.shape[0]:
+        #         raise exceptions.InvalidArgumentValueError('inputs has too many non-unique values or not enough values possibly')
+        #     eps_distances[i] = eps
+
+        # log_mean = np.mean(np.log(eps_distances))
+        # if log_mean == float('-inf'):
+        #     raise exceptions.InvalidArgumentValueError('inputs has too many non-unique values or not enough values possibly')
+
+        # # this estimation is https://arxiv.org/pdf/cond-mat/0305641.pdf
+        # # the KSG estimator
+        # ksg_entropy = - np.mean(digamma(k_all)) + digamma(x.shape[0]) + log_mean
+        # # a more naive estimator
+        # # this estimation is from http://papers.neurips.cc/paper/3417-estimation-of-information-theoretic-measures-for-continuous-random-variables.pdf
+        # naive_entropy = - np.mean(np.log(k_all/(x.shape[0] - 1) * gamma(1.5) / pow(3.14159, 0.5) * 1 / eps_distances)) - np.mean(digamma(k_all))
+        return result
+
+    def _eps(self, x, i, k):
+        return 2 * abs(x[self._k_closest_neighbour(x, i, k)] - x[i])
+
+    # assumes a is sorted
+    def _k_closest_neighbour(self, a, i, k):
+        length = len(a)
+        j = 0
+        if i == 0:
+            l = -1
+            r = i + 1
+        elif i == length - 1:
+            r = length
+            l = i - 1
+        else:
+            r = i + 1
+            l = i - 1
+        kth_closest = i
+        while j < k:
+            if r == length:
+                if l == -1:
+                    if abs(a[0] - a[i]) > abs(a[length - 1] - a[i]):
+                        return 0
+                    return length - 1
+                elif abs(a[r - 1] - a[i]) <= abs(a[l] - a[i]):
+                    kth_closest = l
+                    l -= 1
+            elif l == -1 and abs(a[r] - a[i]) >= abs(a[0] - a[i]):
+                kth_closest = r
+                r += 1
+            elif r < length and abs(a[r] - a[i]) <= abs(a[l] - a[i]):
+                kth_closest = r
+                r += 1
+            elif l > -1 and abs(a[r] - a[i]) >= abs(a[l] - a[i]):
+                kth_closest = l
+                l -= 1
+            j += 1
+        return kth_closest

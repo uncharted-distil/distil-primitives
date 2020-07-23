@@ -366,7 +366,6 @@ class EnsembleForestPrimitive(
             self.fit()
 
         # extract the feature weights
-        column_names = inputs.columns
         output = container.DataFrame(
             self._model.feature_importances().reshape((1, len(inputs.columns))),
             generate_metadata=True,
@@ -376,6 +375,24 @@ class EnsembleForestPrimitive(
             output.metadata = output.metadata.update_column(
                 i, {"name": output.columns[i]}
             )
+
+        # map component columns back to their source - this would cover things like
+        # a one hot encoding column, that is derived from some original source column
+        source_col_importances: Dict[str, float] = {}
+        for col_idx in range(0, len(output.columns)):
+            col_dict = dict(inputs.metadata.query((metadata_base.ALL_ELEMENTS, col_idx)))
+            # if a column points back to a source column, add that columns importance to the
+            # total for that source column
+            if "source_column" in col_dict:
+                source_col = col_dict["source_column"]
+                if source_col not in source_col_importances:
+                    source_col_importances[source_col] = 0.0
+                source_col_importances[source_col] += output.iloc[:,col_idx]
+
+        for source_col, importance in source_col_importances.items():
+            # add the source columns and their importances to the returned data
+            output.insert(len(output.columns), source_col, importance, True);
+            output.metadata = output.metadata.update_column(len(output.columns), {"name": source_col})
 
         return CallResult(output)
 
@@ -426,6 +443,38 @@ class EnsembleForestPrimitive(
         output_df = container.DataFrame(shap_values, generate_metadata=True)
         for i, col in enumerate(inputs.columns):
             output_df.metadata = output_df.metadata.update_column(i, {'name': col})
+
+        component_cols: Dict[str, List[int]] = {}
+        for c in range(0, len(output_df.columns)):
+            col_dict = dict(inputs.metadata.query((metadata_base.ALL_ELEMENTS, c)))
+            if "source_column" in col_dict:
+                src = col_dict["source_column"]
+                if src not in component_cols:
+                    component_cols[src] = []
+                component_cols[src].append(c)
+
+        # build the source column values and add them to the output
+        for s, cc in component_cols.items():
+            src_col = output_df.iloc[:, cc].apply(lambda x: sum(x), axis=1)
+            src_col_index = len(output_df.columns)
+            output_df.insert(src_col_index, s, src_col)
+            output_df.metadata = output_df.metadata.add_semantic_type(
+                (metadata_base.ALL_ELEMENTS, src_col_index),
+                "https://metadata.datadrivendiscovery.org/types/Attribute",
+            )
+
+        df_dict = dict(output_df.metadata.query((metadata_base.ALL_ELEMENTS,)))
+        df_dict_1 = dict(output_df.metadata.query((metadata_base.ALL_ELEMENTS,)))
+        df_dict["dimension"] = df_dict_1
+        df_dict_1["name"] = "columns"
+        df_dict_1["semantic_types"] = (
+            "https://metadata.datadrivendiscovery.org/types/TabularColumn",
+        )
+        df_dict_1["length"] = len(output_df.columns)
+        output_df.metadata = output_df.metadata.update(
+            (metadata_base.ALL_ELEMENTS,), df_dict
+        )
+
         return CallResult(output_df)
 
     def _shap_sub_sample(self, inputs: container.DataFrame):

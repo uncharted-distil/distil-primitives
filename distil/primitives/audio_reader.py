@@ -140,7 +140,7 @@ class AudioDatasetLoaderPrimitive(transformer.TransformerPrimitiveBase[container
         return base.CallResult(learning_df)
 
 
-    def produce_collection(self, *, inputs: container.Dataset, timeout: float = None, iterations: int = None) -> base.CallResult[container.List]:
+    def produce_collection(self, *, inputs: container.Dataset, timeout: float = None, iterations: int = None) -> base.CallResult[container.DataFrame]:
         logger.debug(f'Running {__name__}')
 
         # get the learning data (the dataset entry point)

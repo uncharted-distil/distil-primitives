@@ -1,5 +1,6 @@
 import logging
 import os
+from d3m.primitive_interfaces.base import Hyperparams
 
 import frozendict  # type: ignore
 import imageio  # type: ignore
@@ -69,6 +70,10 @@ class DataFrameSatelliteImageLoaderPrimitive(primitives.FileReaderPrimitiveBase)
         }
     )
 
+    def __init__(self, *, hyperparams: Hyperparams) -> None:
+        super().__init__(hyperparams=hyperparams)
+        self._max_dimension = 0
+
     def _read_fileuri(self, metadata: frozendict.FrozenOrderedDict, fileuri: str) -> container.ndarray:
         return None
 
@@ -101,15 +106,11 @@ class DataFrameSatelliteImageLoaderPrimitive(primitives.FileReaderPrimitiveBase)
         # only keep one row / group from the input
         first_band = list(self._band_order.keys())[0]
         first_groups = inputs_clone.loc[inputs_clone[band_column_name] == first_band].reset_index(drop=True)
-        #joined_df = first_groups.join(grouped_images, on=grouping_name)
 
         outputs = base_utils.combine_columns(first_groups, [column_index], [grouped_df], return_result=self.hyperparams['return_result'], add_index_columns=self.hyperparams['add_index_columns'])
         if self.hyperparams['return_result'] == 'append':
             outputs.metadata = self._reassign_boundaries(outputs.metadata, columns_to_use)
-
-
-        # update the metadata
-        #joined_df.metadata = joined_df.metadata.generate(joined_df)
+        outputs.metadata = outputs.metadata.update((), {'dimension': {'length': outputs.shape[0]}})
 
         return base_prim.CallResult(outputs)
 
@@ -120,10 +121,12 @@ class DataFrameSatelliteImageLoaderPrimitive(primitives.FileReaderPrimitiveBase)
         images = list(map(lambda image: self._load_image(image[0], image[1], base_uri), zipped))
 
         # reshape images (upsample) to have it all fit within an array
-        max_dimension = max(i[1].shape[0] for i in images)
+        if self._max_dimension == 0:
+            self._max_dimension = max(i[1].shape[0] for i in images)
+
         images_result = [None] * len(self._band_order)
         for band, image in images:
-            images_result[self._band_order[band.lower()]] = self._bilinear_upsample(image, max_dimension)
+            images_result[self._band_order[band.lower()]] = self._bilinear_resample(image, self._max_dimension)
 
         output = np.array(images_result)
         output = container.ndarray(output, {
@@ -142,7 +145,7 @@ class DataFrameSatelliteImageLoaderPrimitive(primitives.FileReaderPrimitiveBase)
 
         return (band, image_array)
 
-    def _bilinear_upsample(self, x, n=120):
+    def _bilinear_resample(self, x, n=120):
         dtype = x.dtype
         assert len(x.shape) == 2
         if (x.shape[0] == n) and (x.shape[1] == n):

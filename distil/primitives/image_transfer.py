@@ -1,10 +1,11 @@
 import logging
 import os
+import typing
 from typing import Dict, Optional
 
 import pandas as pd
 from PIL import Image
-from d3m import container, utils
+from d3m import container, utils, exceptions
 from d3m.metadata import base as metadata_base, hyperparams, params
 from d3m.primitive_interfaces import base, transformer
 from d3m.primitive_interfaces.base import CallResult
@@ -21,7 +22,11 @@ Outputs = container.DataFrame
 
 
 class Hyperparams(hyperparams.Hyperparams):
-    pass
+    filename_col = hyperparams.Hyperparameter[typing.Union[int, None]](
+        default=None,
+        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
+        description='The filname column index for image data.'
+    )
 
 class ImageTransferPrimitive(transformer.TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
     """
@@ -29,6 +34,7 @@ class ImageTransferPrimitive(transformer.TransformerPrimitiveBase[Inputs, Output
     """
 
     _VOLUME_KEY = 'resnet18-5c106cde'
+    _image_semantic = ('http://schema.org/ImageObject',)
 
     metadata = metadata_base.PrimitiveMetadata(
         {
@@ -86,13 +92,25 @@ class ImageTransferPrimitive(transformer.TransformerPrimitiveBase[Inputs, Output
         result = inputs.copy()
 
         result['image_vec'] = (
-            result['filename']
+            result[self.filename_col]
                 .apply(lambda image_file: self._img_to_vec(image_file))) #self.img2vec.get_vec(image_file))
 
         df = pd.DataFrame(result['image_vec'].values.tolist())
         df.columns = ['v{}'.format(i) for i in range(0, df.shape[1])]
 
         return container.DataFrame(df, generate_metadata=True)
+
+    def _get_filename_column_index(self, inputs_metadata):
+        filename_col_index = self.hyperparams['filename_col']
+        image_indices = inputs_metadata.list_columns_with_semantic_types(self._image_semantic)
+        if filename_col_index is not None:
+            # if filename_col_index not in image_indices:
+            #     raise exceptions.InvalidArgumentValueError('column with index ' + str(filename_col_index) + ' does not have image semantic')
+            return filename_col_index
+        elif len(image_indices) > 0:
+            return image_indices[0]
+        raise exceptions.InvalidArgumentValueError('inputs does not have image semantic')
+
 
     def produce(self, *, inputs: container.DataFrame, timeout: float = None, iterations: int = None) -> CallResult[container.DataFrame]:
         logger.debug(f'Producing {__name__}')
@@ -101,6 +119,7 @@ class ImageTransferPrimitive(transformer.TransformerPrimitiveBase[Inputs, Output
             model_path = self.volumes[self._VOLUME_KEY]
             logger.info(f'Loading pre-trained model from {model_path}')
             self._model = Img2Vec(model_path)
+        filename_col_index = self._get_filename_column_index(inputs.metadata)
+        self.filename_col = inputs.columns[filename_col_index]
 
         return base.CallResult(self._transform_inputs(inputs))
-
