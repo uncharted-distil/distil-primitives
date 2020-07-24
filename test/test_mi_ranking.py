@@ -50,6 +50,25 @@ class MIRankingPrimitiveTestCase(unittest.TestCase):
         for i, r in enumerate(result_dataframe['rank']):
             self.assertAlmostEqual(r, expected_ranks[i], places=6)
 
+    def test_discrete_target_rank_in_metadata(self) -> None:
+        dataframe = self._load_data()
+
+        hyperparams_class = \
+            MIRanking.metadata.query()['primitive_code']['class_type_arguments']['Hyperparams']
+        hyperparams = hyperparams_class.defaults().replace(
+            {
+                'target_col_index': 1,
+                'return_as_metadata': True
+            }
+        )
+        mi_ranking = MIRanking(hyperparams=hyperparams)
+        result_dataframe = mi_ranking.produce(inputs=dataframe).value
+
+        expected_ranks = [1.0, 1.0, 0.0]
+        ranked_cols = [2, 5, 3]
+        for i in range(len(ranked_cols)):
+            self.assertAlmostEqual(result_dataframe.metadata.query((metadata_base.ALL_ELEMENTS, ranked_cols[i])).get('rank'), expected_ranks[i], places=6)
+
     def test_continuous_target(self) -> None:
         dataframe = self._load_data()
 
