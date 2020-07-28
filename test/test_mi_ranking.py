@@ -24,6 +24,10 @@ import numpy as np
 from d3m import container
 from distil.primitives.mi_ranking import MIRankingPrimitive as MIRanking
 from d3m.metadata import base as metadata_base
+from common_primitives.dataset_to_dataframe import DatasetToDataFramePrimitive
+from common_primitives.column_parser import ColumnParserPrimitive
+import utils as test_utils
+from sklearn.preprocessing import LabelEncoder
 
 
 class MIRankingPrimitiveTestCase(unittest.TestCase):
@@ -113,23 +117,129 @@ class MIRankingPrimitiveTestCase(unittest.TestCase):
         self.assertListEqual(list(result_dataframe['name']), [])
         self.assertListEqual(list(result_dataframe['rank']), [])
 
-    def test_incompatible_features(self) -> None:
-        dataframe = self._load_data(bad_features=[2, 3, 5])
+    # def test_incompatible_features(self) -> None:
+    #     dataframe = self._load_data(bad_features=[2, 3, 5])
+
+    #     hyperparams_class = \
+    #         MIRanking.metadata.query()['primitive_code']['class_type_arguments']['Hyperparams']
+    #     hyperparams = hyperparams_class.defaults().replace(
+    #         {
+    #             'target_col_index': 1
+    #         }
+    #     )
+    #     mi_ranking = MIRanking(hyperparams=hyperparams)
+    #     result_dataframe = mi_ranking.produce(inputs=dataframe).value
+
+    #     # verify the output
+    #     self.assertListEqual(list(result_dataframe['idx']), [])
+    #     self.assertListEqual(list(result_dataframe['name']), [])
+    #     self.assertListEqual(list(result_dataframe['rank']), [])
+
+    def test_acled(self) -> None:
+        dataset = test_utils.load_dataset('/Users/vkorapaty/data/datasets/seed_datasets_current/LL0_acled_reduced_MIN_METADATA/LL0_acled_reduced_MIN_METADATA')
+
+        hyperparams_class = \
+            DatasetToDataFramePrimitive.metadata.query()['primitive_code']['class_type_arguments']['Hyperparams']
+        dataframe_primitive = DatasetToDataFramePrimitive(hyperparams=hyperparams_class.defaults())
+        dataframe = dataframe_primitive.produce(inputs=dataset).value
+
+
+        dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 2),
+                                                        {'structural_type': int})
+        dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 6),
+                                                        {'structural_type': int})
+        le = LabelEncoder()
+        dataframe['event_type'] = le.fit_transform(dataframe['event_type'])
+        dataframe.metadata = dataframe.metadata.\
+            add_semantic_type((metadata_base.ALL_ELEMENTS, 6),
+                                'https://metadata.datadrivendiscovery.org/types/Target')
+        dataframe.metadata = dataframe.metadata.\
+            add_semantic_type((metadata_base.ALL_ELEMENTS, 6),
+                                'http://schema.org/Text')
+        dataframe.metadata = dataframe.metadata.\
+            add_semantic_type((metadata_base.ALL_ELEMENTS, 6),
+                                'https://metadata.datadrivendiscovery.org/types/CategoricalData')
+        dataframe.metadata = dataframe.metadata.\
+            add_semantic_type((metadata_base.ALL_ELEMENTS, 6),
+                                'http://schema.org/Integer')
+        dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 7),
+                                                        {'structural_type': str})
+        dataframe.metadata = dataframe.metadata.\
+            add_semantic_type((metadata_base.ALL_ELEMENTS, 7),
+                                'https://metadata.datadrivendiscovery.org/types/Attribute')
+        dataframe.metadata = dataframe.metadata.\
+            add_semantic_type((metadata_base.ALL_ELEMENTS, 7),
+                                'http://schema.org/Text')
+        dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 8),
+                                                        {'structural_type': str})
+        # dataframe.metadata = dataframe.metadata.\
+        #     add_semantic_type((metadata_base.ALL_ELEMENTS, 8),
+        #                         'https://metadata.datadrivendiscovery.org/types/Attribute')
+        dataframe.metadata = dataframe.metadata.\
+            add_semantic_type((metadata_base.ALL_ELEMENTS, 8),
+                                'http://schema.org/Text')
+        dataframe['inter1'] = dataframe['inter1'].astype(int)
+        dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 9),
+                                                        {'structural_type': int})
+        dataframe.metadata = dataframe.metadata.\
+            add_semantic_type((metadata_base.ALL_ELEMENTS, 9),
+                                'https://metadata.datadrivendiscovery.org/types/Attribute')
+        dataframe.metadata = dataframe.metadata.\
+            add_semantic_type((metadata_base.ALL_ELEMENTS, 9),
+                                'http://schema.org/Integer')
+        dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 10),
+                                                        {'structural_type': str})
+        # dataframe.metadata = dataframe.metadata.\
+        #     add_semantic_type((metadata_base.ALL_ELEMENTS, 10),
+        #                         'https://metadata.datadrivendiscovery.org/types/Attribute')
+        dataframe.metadata = dataframe.metadata.\
+            add_semantic_type((metadata_base.ALL_ELEMENTS, 10),
+                                'http://schema.org/Text')
+        dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 11),
+                                                        {'structural_type': str})
+        dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 12),
+                                                        {'structural_type': int})
+        dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 13),
+                                                        {'structural_type': int})
+        dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 14),
+                                                        {'structural_type': str})
+        dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 15),
+                                                        {'structural_type': str})
+        dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 16),
+                                                        {'structural_type': str})
+        dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 17),
+                                                        {'structural_type': str})
+        dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 18),
+                                                        {'structural_type': str})
+        dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 19),
+                                                        {'structural_type': str})
+        dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 20),
+                                                        {'structural_type': float})
+        dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 21),
+                                                        {'structural_type': float})
+        dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 23),
+                                                        {'structural_type': str})
+        dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 24),
+                                                        {'structural_type': str})
+        dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 25),
+                                                        {'structural_type': str})
+        dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 26),
+                                                        {'structural_type': int})
+        dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 27),
+                                                        {'structural_type': str})
+        # hyperparams_class = \
+        #     ColumnParserPrimitive.metadata.query()['primitive_code']['class_type_arguments']['Hyperparams']
+        # column_parser = ColumnParserPrimitive(hyperparams=hyperparams_class.defaults().replace({'use_columns': (6, 7)}))
+        # dataframe = column_parser.produce(inputs=dataframe).value
 
         hyperparams_class = \
             MIRanking.metadata.query()['primitive_code']['class_type_arguments']['Hyperparams']
-        hyperparams = hyperparams_class.defaults().replace(
+        mi_ranking = MIRanking(hyperparams=hyperparams_class.defaults().replace(
             {
-                'target_col_index': 1
+                'target_col_index': 6
             }
-        )
-        mi_ranking = MIRanking(hyperparams=hyperparams)
-        result_dataframe = mi_ranking.produce(inputs=dataframe).value
-
-        # verify the output
-        self.assertListEqual(list(result_dataframe['idx']), [])
-        self.assertListEqual(list(result_dataframe['name']), [])
-        self.assertListEqual(list(result_dataframe['rank']), [])
+        ))
+        mi_ranking.produce(inputs=dataframe)
 
 
     def test_unique_categorical_removed(self) -> None:
