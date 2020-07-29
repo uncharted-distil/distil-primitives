@@ -40,6 +40,8 @@ class BinaryEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
     Categorical columns currently include those with the semantic type Categorical, Ordinal or DateTime.
     """
 
+    _attribute_semantic = 'https://metadata.datadrivendiscovery.org/types/Attribute'
+
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': 'd38e2e28-9b18-4ce4-b07c-9d809cd8b915',
@@ -123,6 +125,7 @@ class BinaryEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
 
         for c in range(encoded_cols.shape[1]):
             encoded_cols.metadata = encoded_cols.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, c), 'http://schema.org/Integer')
+            encoded_cols.metadata = encoded_cols.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, c), self._attribute_semantic)
             col_dict = dict(encoded_cols.metadata.query((metadata_base.ALL_ELEMENTS, c)))
             col_dict['source_column'] = outputs.metadata.query((metadata_base.ALL_ELEMENTS, encoded_cols_source[c]))['name']
             encoded_cols.metadata = encoded_cols.metadata.update((metadata_base.ALL_ELEMENTS, c), col_dict)
