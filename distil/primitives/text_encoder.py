@@ -158,7 +158,7 @@ class TextEncoderPrimitive(base.PrimitiveBase[Inputs, Outputs, Params, Hyperpara
         encoded_cols.metadata = encoded_cols.metadata.generate(encoded_cols)
         for c in range(encoded_cols.shape[1]):
             encoded_cols.metadata = encoded_cols.metadata.add_semantic_type(
-                (metadata_base.ALL_ELEMENTS, encoded_idx), 'http://schema.org/Float')
+                (metadata_base.ALL_ELEMENTS, c), 'http://schema.org/Float')
             encoded_cols.metadata = encoded_cols.metadata.add_semantic_type(
                 (metadata_base.ALL_ELEMENTS, c), self._attribute_semantic)
             col_dict = dict(encoded_cols.metadata.query((metadata_base.ALL_ELEMENTS, c)))
