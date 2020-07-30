@@ -151,6 +151,9 @@ class MIRankingPrimitive(transformer.TransformerPrimitiveBase[container.DataFram
 
         # make a copy of the inputs and clean out any missing data
         feature_df = inputs.copy()
+        # makes sure that if an entire column is NA, we remove that column, so as to not remove ALL rows
+        cols_to_drop = feature_df.columns[feature_df.isna().sum() == feature_df.shape[0]]
+        feature_df.drop(columns=cols_to_drop, inplace=True)
         feature_df.dropna(inplace=True)
 
         # split out the target feature
