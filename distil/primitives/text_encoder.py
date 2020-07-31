@@ -132,8 +132,13 @@ class TextEncoderPrimitive(base.PrimitiveBase[Inputs, Outputs, Params, Hyperpara
             else:
                 raise Exception(f"{self.hyperparams['encoder_type']} is not a valid encoder type")
             text_inputs = self._inputs.iloc[:, c]
-            self._encoders[i].fit_transform(text_inputs,
-                                            self._outputs)  # requires fit transform to fit SVM on vectorizer results
+            try:
+                self._encoders[i].fit_transform(text_inputs,
+                                                    self._outputs)  # requires fit transform to fit SVM on vectorizer results
+            except:
+                text_inputs[:] = 'avoiding a bug'
+                self._encoders[i].fit_transform(text_inputs,
+                                                    self._outputs)
 
         return base.CallResult(None)
 
