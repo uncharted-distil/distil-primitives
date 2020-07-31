@@ -42,6 +42,8 @@ class OneHotEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
     encoding columns.  Categorical columns currently include those with the semantic type Categorical, Ordinal or DateTime.
     """
 
+    _attribute_semantic = 'https://metadata.datadrivendiscovery.org/types/Attribute'
+
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': 'd3d421cb-9601-43f0-83d9-91a9c4199a06',
@@ -135,6 +137,8 @@ class OneHotEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveB
 
         for c in range(encoded_cols.shape[1]):
             encoded_cols.metadata = encoded_cols.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, c), 'http://schema.org/Float')
+            encoded_cols.metadata = encoded_cols.metadata.add_semantic_type(
+                (metadata_base.ALL_ELEMENTS, c), self._attribute_semantic)
             col_dict = dict(encoded_cols.metadata.query((metadata_base.ALL_ELEMENTS, c)))
             col_dict['source_column'] = encoded_cols_source[c]
             encoded_cols.metadata = encoded_cols.metadata.update((metadata_base.ALL_ELEMENTS, c), col_dict)

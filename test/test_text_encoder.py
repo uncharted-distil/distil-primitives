@@ -44,6 +44,7 @@ class TextEncoderPrimitiveTestCase(unittest.TestCase):
 
         # don't assert on invidual values - just check basic sanity of result
         self.assertEqual(len(result.index), 9)
+        self.assertEqual(result.metadata.list_columns_with_semantic_types(('https://metadata.datadrivendiscovery.org/types/Attribute',)), [1, 2, 3, 4])
         self.assertSequenceEqual(list(result.columns), ["d3mIndex", "bravo", "__text_0", "__text_1", "__text_2"])
         self.assertSequenceEqual(result.dtypes.tolist(), [object, object, float, float, float])
 
@@ -63,6 +64,7 @@ class TextEncoderPrimitiveTestCase(unittest.TestCase):
 
         # don't assert on invidual values - just check basic sanity of result
         self.assertEqual(len(result.index), 5)
+        self.assertEqual(result.metadata.list_columns_with_semantic_types(('https://metadata.datadrivendiscovery.org/types/Attribute',)), [1, 2])
         self.assertSequenceEqual(list(result.columns), ["d3mIndex", "bravo", "__text_0"])
         self.assertSequenceEqual(result.dtypes.tolist(), [object, object, float])
 

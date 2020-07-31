@@ -43,6 +43,7 @@ class OneHotEncoderPrimitiveTestCase(unittest.TestCase):
         encoder.fit()
         result = encoder.produce(inputs=dataframe).value
         self.assertEqual(len(result.index), 5)
+        self.assertEqual(result.metadata.list_columns_with_semantic_types(('https://metadata.datadrivendiscovery.org/types/Attribute',)), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
         self.assertSequenceEqual(list(result.columns), ["d3mIndex"] + [f'__onehot_{i}' for i in range(10)])
         self.assertSequenceEqual(result.dtypes.tolist(), [object] + [float for i in range(10)])
 
