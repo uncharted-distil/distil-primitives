@@ -22,8 +22,11 @@ import pandas as pd
 import numpy as np
 
 from d3m import container
+from common_primitives.dataset_to_dataframe import DatasetToDataFramePrimitive
+from common_primitives.column_parser import ColumnParserPrimitive
 from distil.primitives.mi_ranking import MIRankingPrimitive as MIRanking
 from d3m.metadata import base as metadata_base
+import utils as test_utils
 
 
 class MIRankingPrimitiveTestCase(unittest.TestCase):
