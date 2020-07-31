@@ -144,8 +144,8 @@ class MIRankingPrimitiveTestCase(unittest.TestCase):
         dataframe = dataframe_primitive.produce(inputs=dataset).value
 
 
-        dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 2),
-                                                        {'structural_type': int})
+        # dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 2),
+        #                                                 {'structural_type': int})
         dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 6),
                                                         {'structural_type': int})
         le = LabelEncoder()
@@ -153,84 +153,85 @@ class MIRankingPrimitiveTestCase(unittest.TestCase):
         dataframe.metadata = dataframe.metadata.\
             add_semantic_type((metadata_base.ALL_ELEMENTS, 6),
                                 'https://metadata.datadrivendiscovery.org/types/Target')
-        dataframe.metadata = dataframe.metadata.\
-            add_semantic_type((metadata_base.ALL_ELEMENTS, 6),
-                                'http://schema.org/Text')
+        # dataframe.metadata = dataframe.metadata.\
+        #     add_semantic_type((metadata_base.ALL_ELEMENTS, 6),
+        #                         'http://schema.org/Text')
         dataframe.metadata = dataframe.metadata.\
             add_semantic_type((metadata_base.ALL_ELEMENTS, 6),
                                 'https://metadata.datadrivendiscovery.org/types/CategoricalData')
-        dataframe.metadata = dataframe.metadata.\
-            add_semantic_type((metadata_base.ALL_ELEMENTS, 6),
-                                'http://schema.org/Integer')
-        dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 7),
-                                                        {'structural_type': str})
-        dataframe.metadata = dataframe.metadata.\
-            add_semantic_type((metadata_base.ALL_ELEMENTS, 7),
-                                'https://metadata.datadrivendiscovery.org/types/Attribute')
-        dataframe.metadata = dataframe.metadata.\
-            add_semantic_type((metadata_base.ALL_ELEMENTS, 7),
-                                'http://schema.org/Text')
-        dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 8),
-                                                        {'structural_type': str})
+        dataframe.metadata = dataframe.metadata.remove_semantic_type((metadata_base.ALL_ELEMENTS, 6), 'https://metadata.datadrivendiscovery.org/types/Attribute')
+        # dataframe.metadata = dataframe.metadata.\
+        #     add_semantic_type((metadata_base.ALL_ELEMENTS, 6),
+        #                         'http://schema.org/Integer')
+        # dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 7),
+        #                                                 {'structural_type': str})
+        # dataframe.metadata = dataframe.metadata.\
+        #     add_semantic_type((metadata_base.ALL_ELEMENTS, 7),
+        #                         'https://metadata.datadrivendiscovery.org/types/Attribute')
+        # dataframe.metadata = dataframe.metadata.\
+        #     add_semantic_type((metadata_base.ALL_ELEMENTS, 7),
+        #                         'http://schema.org/Text')
+        # dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 8),
+        #                                                 {'structural_type': str})
+        # # dataframe.metadata = dataframe.metadata.\
+        # #     add_semantic_type((metadata_base.ALL_ELEMENTS, 8),
+        # #                         'https://metadata.datadrivendiscovery.org/types/Attribute')
         # dataframe.metadata = dataframe.metadata.\
         #     add_semantic_type((metadata_base.ALL_ELEMENTS, 8),
+        #                         'http://schema.org/Text')
+        # dataframe['inter1'] = dataframe['inter1'].astype(int)
+        # dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 9),
+        #                                                 {'structural_type': int})
+        # dataframe.metadata = dataframe.metadata.\
+        #     add_semantic_type((metadata_base.ALL_ELEMENTS, 9),
         #                         'https://metadata.datadrivendiscovery.org/types/Attribute')
-        dataframe.metadata = dataframe.metadata.\
-            add_semantic_type((metadata_base.ALL_ELEMENTS, 8),
-                                'http://schema.org/Text')
-        dataframe['inter1'] = dataframe['inter1'].astype(int)
-        dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 9),
-                                                        {'structural_type': int})
-        dataframe.metadata = dataframe.metadata.\
-            add_semantic_type((metadata_base.ALL_ELEMENTS, 9),
-                                'https://metadata.datadrivendiscovery.org/types/Attribute')
-        dataframe.metadata = dataframe.metadata.\
-            add_semantic_type((metadata_base.ALL_ELEMENTS, 9),
-                                'http://schema.org/Integer')
-        dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 10),
-                                                        {'structural_type': str})
+        # dataframe.metadata = dataframe.metadata.\
+        #     add_semantic_type((metadata_base.ALL_ELEMENTS, 9),
+        #                         'http://schema.org/Integer')
+        # dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 10),
+        #                                                 {'structural_type': str})
+        # # dataframe.metadata = dataframe.metadata.\
+        # #     add_semantic_type((metadata_base.ALL_ELEMENTS, 10),
+        # #                         'https://metadata.datadrivendiscovery.org/types/Attribute')
         # dataframe.metadata = dataframe.metadata.\
         #     add_semantic_type((metadata_base.ALL_ELEMENTS, 10),
-        #                         'https://metadata.datadrivendiscovery.org/types/Attribute')
-        dataframe.metadata = dataframe.metadata.\
-            add_semantic_type((metadata_base.ALL_ELEMENTS, 10),
-                                'http://schema.org/Text')
-        dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 11),
-                                                        {'structural_type': str})
-        dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 12),
-                                                        {'structural_type': int})
-        dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 13),
-                                                        {'structural_type': int})
-        dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 14),
-                                                        {'structural_type': str})
-        dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 15),
-                                                        {'structural_type': str})
-        dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 16),
-                                                        {'structural_type': str})
-        dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 17),
-                                                        {'structural_type': str})
-        dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 18),
-                                                        {'structural_type': str})
-        dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 19),
-                                                        {'structural_type': str})
-        dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 20),
-                                                        {'structural_type': float})
-        dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 21),
-                                                        {'structural_type': float})
-        dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 23),
-                                                        {'structural_type': str})
-        dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 24),
-                                                        {'structural_type': str})
-        dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 25),
-                                                        {'structural_type': str})
-        dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 26),
-                                                        {'structural_type': int})
-        dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 27),
-                                                        {'structural_type': str})
-        # hyperparams_class = \
-        #     ColumnParserPrimitive.metadata.query()['primitive_code']['class_type_arguments']['Hyperparams']
-        # column_parser = ColumnParserPrimitive(hyperparams=hyperparams_class.defaults().replace({'use_columns': (6, 7)}))
-        # dataframe = column_parser.produce(inputs=dataframe).value
+        #                         'http://schema.org/Text')
+        # dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 11),
+        #                                                 {'structural_type': str})
+        # dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 12),
+        #                                                 {'structural_type': int})
+        # dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 13),
+        #                                                 {'structural_type': int})
+        # dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 14),
+        #                                                 {'structural_type': str})
+        # dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 15),
+        #                                                 {'structural_type': str})
+        # dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 16),
+        #                                                 {'structural_type': str})
+        # dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 17),
+        #                                                 {'structural_type': str})
+        # dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 18),
+        #                                                 {'structural_type': str})
+        # dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 19),
+        #                                                 {'structural_type': str})
+        # dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 20),
+        #                                                 {'structural_type': float})
+        # dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 21),
+        #                                                 {'structural_type': float})
+        # dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 23),
+        #                                                 {'structural_type': str})
+        # dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 24),
+        #                                                 {'structural_type': str})
+        # dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 25),
+        #                                                 {'structural_type': str})
+        # dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 26),
+        #                                                 {'structural_type': int})
+        # dataframe.metadata = dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 27),
+        #                                                 {'structural_type': str})
+        hyperparams_class = \
+            ColumnParserPrimitive.metadata.query()['primitive_code']['class_type_arguments']['Hyperparams']
+        column_parser = ColumnParserPrimitive(hyperparams=hyperparams_class.defaults())
+        dataframe = column_parser.produce(inputs=dataframe).value
 
         hyperparams_class = \
             MIRanking.metadata.query()['primitive_code']['class_type_arguments']['Hyperparams']
