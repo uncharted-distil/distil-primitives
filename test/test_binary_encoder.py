@@ -45,6 +45,7 @@ class BinaryEncoderPrimitiveTestCase(unittest.TestCase):
         encoder.fit()
         result = encoder.produce(inputs=dataframe.head(1)).value
         self.assertEqual(len(result.index), 1)
+        self.assertEqual(result.metadata.list_columns_with_semantic_types(('https://metadata.datadrivendiscovery.org/types/Attribute',)), [1, 2, 3, 4, 5, 6, 7])
 
     def test_get_set_params(self) -> None:
         # load test data into a dataframe

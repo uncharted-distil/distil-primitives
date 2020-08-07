@@ -44,8 +44,21 @@ class TextEncoderPrimitiveTestCase(unittest.TestCase):
 
         # don't assert on invidual values - just check basic sanity of result
         self.assertEqual(len(result.index), 9)
+        self.assertEqual(result.metadata.list_columns_with_semantic_types(('https://metadata.datadrivendiscovery.org/types/Attribute',)), [1, 2, 3, 4])
         self.assertSequenceEqual(list(result.columns), ["d3mIndex", "bravo", "__text_0", "__text_1", "__text_2"])
         self.assertSequenceEqual(result.dtypes.tolist(), [object, object, float, float, float])
+
+    # def test_empty_col(self) -> None:
+    #     dataset = test_utils.load_dataset('/Users/vkorapaty/data/datasets/seed_datasets_current/JIDO_SOHR_Tab_Articles_8569/TRAIN/dataset_TRAIN/')
+    #     dataframe = test_utils.get_dataframe(dataset, 'learningData')
+
+    #     hyperparams_class = \
+    #         TextEncoderPrimitive.metadata.query()['primitive_code']['class_type_arguments']['Hyperparams']
+    #     encoder = TextEncoderPrimitive(hyperparams=hyperparams_class.defaults().replace({
+    #         'use_columns': [0, 3, 4, 5, 6, 7, 8]
+    #     }))
+    #     encoder.set_training_data(inputs=dataframe, outputs=dataframe.iloc[:, 1])
+    #     encoder.fit()
 
     def test_classification_binary_label(self) -> None:
         # load test data into a dataframe
@@ -63,6 +76,7 @@ class TextEncoderPrimitiveTestCase(unittest.TestCase):
 
         # don't assert on invidual values - just check basic sanity of result
         self.assertEqual(len(result.index), 5)
+        self.assertEqual(result.metadata.list_columns_with_semantic_types(('https://metadata.datadrivendiscovery.org/types/Attribute',)), [1, 2])
         self.assertSequenceEqual(list(result.columns), ["d3mIndex", "bravo", "__text_0"])
         self.assertSequenceEqual(result.dtypes.tolist(), [object, object, float])
 

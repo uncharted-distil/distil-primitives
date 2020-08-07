@@ -56,6 +56,7 @@ class TextEncoderPrimitive(base.PrimitiveBase[Inputs, Outputs, Params, Hyperpara
     Encodes string fields using TFIDF scoring combined with a linear SVC classifier.  The original string field is removed
     and replaced with encoding columns.
     """
+    _attribute_semantic = 'https://metadata.datadrivendiscovery.org/types/Attribute'
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': '09f252eb-215d-4e0b-9a60-fcd967f5e708',
@@ -131,8 +132,13 @@ class TextEncoderPrimitive(base.PrimitiveBase[Inputs, Outputs, Params, Hyperpara
             else:
                 raise Exception(f"{self.hyperparams['encoder_type']} is not a valid encoder type")
             text_inputs = self._inputs.iloc[:, c]
-            self._encoders[i].fit_transform(text_inputs,
-                                            self._outputs)  # requires fit transform to fit SVM on vectorizer results
+            try:
+                self._encoders[i].fit_transform(text_inputs,
+                                                    self._outputs)  # requires fit transform to fit SVM on vectorizer results
+            except:
+                text_inputs[:] = 'avoiding a bug'
+                self._encoders[i].fit_transform(text_inputs,
+                                                    self._outputs)
 
         return base.CallResult(None)
 
@@ -157,7 +163,9 @@ class TextEncoderPrimitive(base.PrimitiveBase[Inputs, Outputs, Params, Hyperpara
         encoded_cols.metadata = encoded_cols.metadata.generate(encoded_cols)
         for c in range(encoded_cols.shape[1]):
             encoded_cols.metadata = encoded_cols.metadata.add_semantic_type(
-                (metadata_base.ALL_ELEMENTS, encoded_idx), 'http://schema.org/Float')
+                (metadata_base.ALL_ELEMENTS, c), 'http://schema.org/Float')
+            encoded_cols.metadata = encoded_cols.metadata.add_semantic_type(
+                (metadata_base.ALL_ELEMENTS, c), self._attribute_semantic)
             col_dict = dict(encoded_cols.metadata.query((metadata_base.ALL_ELEMENTS, c)))
             col_dict['source_column'] = \
                 outputs.metadata.query((metadata_base.ALL_ELEMENTS, encoded_cols_source[c]))['name']
