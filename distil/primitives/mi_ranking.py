@@ -263,6 +263,14 @@ class MIRankingPrimitive(transformer.TransformerPrimitiveBase[container.DataFram
             return base.CallResult(inputs)
 
 
+        if self.hyperparams['return_as_metadata']:
+            for i, f in enumerate(feature_indices):
+                column_metadata = inputs.metadata.query((metadata_base.ALL_ELEMENTS, f))
+                rank_dict = dict(column_metadata)
+                rank_dict['rank'] = ranked_features_np[i]
+                inputs.metadata = inputs.\
+                    metadata.update((metadata_base.ALL_ELEMENTS, f), FrozenOrderedDict(rank_dict.items()))
+            return base.CallResult(inputs)
         # merge back into a single list of col idx / rank value tuples
         data: typing.List[typing.Tuple[int, str, float]] = []
         data = self._append_rank_info(inputs, data, ranked_features_np, feature_df[feature_columns])
