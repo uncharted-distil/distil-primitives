@@ -20,7 +20,23 @@ logger = logging.getLogger(__name__)
 
 
 class Hyperparams(hyperparams.Hyperparams):
-    pass
+    penalty = hyperparams.Enumeration[str](
+        default='l2',
+        values=('l1', 'l2'),
+        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
+        description="The type of regularization for loss.",
+    )
+    loss = hyperparams.Enumeration[str](
+        default='squared_hinge',
+        values=('squared_hinge', 'hinge'),
+        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
+        description="The type of loss function.",
+    )
+    tolerance =  hyperparams.Hyperparameter[float](
+        default=1e-4,
+        semantic_types=['https://metadata.datadrivendiscovery.org/types/TuningParameter'],
+        description="Tolerance for error. Aims to stop within th is tolerance",
+    )
 
 class Params(params.Params):
     model: LinearSVC
@@ -60,7 +76,7 @@ class RankedLinearSVCPrimitive(
     def __init__(self, *, hyperparams: Hyperparams, random_seed: int = 0) -> None:
 
         super().__init__(hyperparams=hyperparams, random_seed=random_seed)
-        self._model = LinearSVC(random_state=random_seed)
+        self._model = LinearSVC(pentalty=self.hyperparams['penalty'], loss=self.hyperparams['loss'], tol=self.hyperparams['tolerance'], random_state=random_seed)
         self._needs_fit = True
 
     def set_training_data(
