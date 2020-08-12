@@ -376,8 +376,9 @@ class EnsembleForestPrimitive(
 
         for source_col, importance in source_col_importances.items():
             # add the source columns and their importances to the returned data
-            output.insert(len(output.columns), source_col, importance, True);
-            output.metadata = output.metadata.update_column(len(output.columns), {"name": source_col})
+            output_col_length = len(output.columns)
+            output.insert(output_col_length, source_col, importance, True);
+            output.metadata = output.metadata.update_column(output_col_length, {"name": source_col})
 
         return CallResult(output)
 
