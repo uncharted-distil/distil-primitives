@@ -313,7 +313,7 @@ class EnsembleForestPrimitive(
                 (metadata_base.ALL_ELEMENTS, i),
                 "https://metadata.datadrivendiscovery.org/types/PredictedTarget",
             )
-        if self.hyperparams["metric"] in classification_metrics:
+        if 'auc' in self.hyperparams["metric"].lower():
             # add confidence scores as some metrics require them.
             confidence = self._model.predict_proba(inputs.values)
             confidence = pd.Series(confidence.tolist(), name='confidence')
