@@ -16,6 +16,7 @@ from sklearn import metrics
 from sklearn import preprocessing
 from sklearn import utils as skl_utils
 from sklearn.neighbors import NearestNeighbors
+from sklearn.feature_extraction.text import TfidfVectorizer
 import version
 
 __all__ = ('MIRankingPrimitive',)
@@ -63,6 +64,10 @@ class MIRankingPrimitive(transformer.TransformerPrimitiveBase[container.DataFram
 
     _continous_types = (
         'http://schema.org/Float',
+    )
+
+    _text_semantic = (
+        'http://schema.org/Text',
     )
 
     _roles = (
@@ -167,49 +172,96 @@ class MIRankingPrimitive(transformer.TransformerPrimitiveBase[container.DataFram
         for categ_ind in inputs.metadata.list_columns_with_semantic_types(('https://metadata.datadrivendiscovery.org/types/CategoricalData',)):
             if np.unique(inputs[inputs.columns[categ_ind]]).shape[0] == inputs.shape[0] and categ_ind in feature_indices:
                 feature_indices.remove(categ_ind)
+        text_indices = inputs.metadata.list_columns_with_semantic_types(self._text_semantic)
+
+        tfv = TfidfVectorizer(max_features=20)
+        column_to_text_features = {}
+        text_feature_indices = []
+        for text_index in text_indices:
+            if text_index not in feature_indices and text_index in role_indices and text_index != target_idx:
+                word_features = tfv.fit_transform(feature_df[inputs.columns[text_index]])
+                if issparse(word_features):
+                    column_to_text_features[inputs.columns[text_index]] = pd.DataFrame.sparse.from_spmatrix(word_features)
+                else:
+                    column_to_text_features[inputs.columns[text_index]] = word_features
+                text_feature_indices.append(text_index)
+        text_feature_indices = set(text_feature_indices)
 
         # return an empty result if all features were incompatible
-        if len(feature_indices) is 0:
+        numeric_features = len(feature_indices) > 0
+        if not numeric_features and len(column_to_text_features) == 0:
             return base.CallResult(container.DataFrame(data={}, columns=cols))
 
         all_indices = set(range(0, inputs.shape[1]))
-        skipped_indices = all_indices.difference(feature_indices)
+        skipped_indices = all_indices.difference(feature_indices.union(text_feature_indices))
         for i, v in enumerate(skipped_indices):
             feature_df.drop(inputs.columns[v], axis=1, inplace=True)
 
         # figure out the discrete and continuous feature indices and create an array
         # that flags them
+        feature_columns = inputs.columns[list(feature_indices)]
+        numeric_data = feature_df[feature_columns]
         discrete_indices = inputs.metadata.list_columns_with_semantic_types(self._discrete_types)
-        discrete_flags = [False] * feature_df.shape[1]
+        discrete_flags = [False] * numeric_data.shape[1]
         for v in discrete_indices:
             col_name = inputs.columns[v]
-            if col_name in feature_df:
+            if col_name in numeric_data:
                 # only mark columns with a least 1 duplicate value as discrete when predicting
                 # a continuous target - there's a check in the bowels of MI code that will throw
                 # an exception otherwise
-                if feature_df[col_name].duplicated().any() and not discrete:
-                    col_idx = feature_df.columns.get_loc(col_name)
+                if numeric_data[col_name].duplicated().any() and not discrete:
+                    col_idx = numeric_data.columns.get_loc(col_name)
                     discrete_flags[col_idx] = True
 
         target_np = target_df.values
-        feature_np = feature_df.values
 
         # compute mutual information for discrete or continuous target
         ranked_features_np = None
+        text_ranked_features_np = np.empty((len(column_to_text_features),))
         if discrete:
-            ranked_features_np = mutual_info_classif(feature_np,
-                                                     target_np,
-                                                     discrete_features=discrete_flags,
-                                                     n_neighbors=self.hyperparams['k'],
-                                                     random_state=self._random_seed)
-        else:
-            ranked_features_np = mutual_info_regression(feature_np,
+            if numeric_features:
+                ranked_features_np = mutual_info_classif(numeric_data.values,
                                                         target_np,
                                                         discrete_features=discrete_flags,
                                                         n_neighbors=self.hyperparams['k'],
                                                         random_state=self._random_seed)
+            for i, column in enumerate(column_to_text_features):
+                text_rankings = mutual_info_classif(column_to_text_features[column],
+                                                    target_np,
+                                                    discrete_features=[False] * column_to_text_features[column].shape[1],
+                                                    n_neighbors=self.hyperparams['k'],
+                                                    random_state=self._random_seed)
+                sum_text_rank = np.sum(text_rankings)
+                text_ranked_features_np[i] = sum_text_rank
+        else:
+            if numeric_features:
+                ranked_features_np = mutual_info_regression(numeric_data.values,
+                                                            target_np,
+                                                            discrete_features=discrete_flags,
+                                                            n_neighbors=self.hyperparams['k'],
+                                                            random_state=self._random_seed)
+            for i, column in enumerate(column_to_text_features):
+                text_rankings = mutual_info_regression(column_to_text_features[column],
+                                                    target_np,
+                                                    discrete_features=[False] * column_to_text_features[column].shape[1],
+                                                    n_neighbors=self.hyperparams['k'],
+                                                    random_state=self._random_seed)
+                sum_text_rank = np.sum(text_rankings)
+                text_ranked_features_np[i] = sum_text_rank
 
-        ranked_features_np = self._normalize(ranked_features_np, feature_np, target_np, discrete, discrete_flags)
+        ranked_features_np, target_entropy = self._normalize(ranked_features_np, feature_df[feature_columns], target_np, discrete, discrete_flags)
+        text_ranked_features_np = self._normalize_text(text_ranked_features_np, column_to_text_features, target_entropy)
+
+        if self.hyperparams['return_as_metadata']:
+            ranked_features_np = np.append(ranked_features_np, text_ranked_features_np)
+            for i, f in enumerate(feature_indices.union(text_feature_indices)):
+                column_metadata = inputs.metadata.query((metadata_base.ALL_ELEMENTS, f))
+                rank_dict = dict(column_metadata)
+                rank_dict['rank'] = ranked_features_np[i]
+                inputs.metadata = inputs.\
+                    metadata.update((metadata_base.ALL_ELEMENTS, f), FrozenOrderedDict(rank_dict.items()))
+            return base.CallResult(inputs)
+
 
         if self.hyperparams['return_as_metadata']:
             for i, f in enumerate(feature_indices):
@@ -221,22 +273,23 @@ class MIRankingPrimitive(transformer.TransformerPrimitiveBase[container.DataFram
             return base.CallResult(inputs)
         # merge back into a single list of col idx / rank value tuples
         data: typing.List[typing.Tuple[int, str, float]] = []
-        data = self._append_rank_info(inputs, data, ranked_features_np, feature_df)
+        data = self._append_rank_info(inputs, data, ranked_features_np, feature_df[feature_columns])
+        data = self._append_rank_info(inputs, data, text_ranked_features_np, feature_df[inputs.columns[list(text_feature_indices)]])
 
         # wrap as a D3M container - metadata should be auto generated
         results = container.DataFrame(data=data, columns=cols, generate_metadata=True)
         results = results.sort_values(by=['rank'], ascending=False).reset_index(drop=True)
         return base.CallResult(results)
 
-    def _normalize(self, ranked_features, feature_np, target_np, discrete, discrete_flags):
+    def _normalize(self, ranked_features, feature_df, target_np, discrete, discrete_flags):
         normalized_ranked_features = np.empty(ranked_features.shape[0])
         if discrete:
             target_entropy = self._discrete_entropy(target_np)
             for i in range(ranked_features.shape[0]):
                 if discrete_flags[i]:
-                    normalized_ranked_features[i] = metrics.normalized_mutual_info_score(target_np, feature_np[:, i], average_method='geometric')
+                    normalized_ranked_features[i] = metrics.normalized_mutual_info_score(target_np, feature_df.iloc[:, i], average_method='geometric')
                 else:
-                    feature_entropy = self._continuous_entropy(feature_np[:, i])
+                    feature_entropy = self._continuous_entropy(feature_df.iloc[:, i].values)
                     normalized_ranked_features[i] = ranked_features[i] / np.sqrt(feature_entropy * target_entropy)
                 if normalized_ranked_features[i] > 1.0:
                     normalized_ranked_features[i] = 1.0
@@ -264,10 +317,10 @@ class MIRankingPrimitive(transformer.TransformerPrimitiveBase[container.DataFram
             target_entropy = self._continuous_entropy(target_np)
             for i in range(ranked_features.shape[0]):
                 if discrete_flags[i]:
-                    feature_entropy = self._discrete_entropy(feature_np[:, i])
+                    feature_entropy = self._discrete_entropy(feature_df.iloc[:, i])
                     normalized_ranked_features[i] = ranked_features[i] / np.sqrt(feature_entropy * target_entropy)
                 else:
-                    feature_entropy = self._continuous_entropy(feature_np[:, i])
+                    feature_entropy = self._continuous_entropy(feature_df.iloc[:, i].values)
                     normalized_ranked_features[i] = ranked_features[i] / np.sqrt(feature_entropy * target_entropy)
                 if normalized_ranked_features[i] > 1.0:
                     normalized_ranked_features[i] = 1.0
@@ -293,7 +346,13 @@ class MIRankingPrimitive(transformer.TransformerPrimitiveBase[container.DataFram
             #             normalized_ranked_features[i] = naive_mi
                     
 
-        return normalized_ranked_features
+        return normalized_ranked_features, target_entropy
+
+    def _normalize_text(self, text_ranked_features_np, column_to_text_features, target_entropy):
+        for i, column in enumerate(column_to_text_features):
+            text_ranked_features_np[i] = text_ranked_features_np[i] / np.sqrt(np.apply_along_axis(self._continuous_entropy, 0, column_to_text_features[column].values).sum() * target_entropy)
+        text_ranked_features_np[text_ranked_features_np > 1] = 1.0
+        return text_ranked_features_np
 
     def _discrete_entropy(self, labels):
         """Calculates the entropy for a labeling.

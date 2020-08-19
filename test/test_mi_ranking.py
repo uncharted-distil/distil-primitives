@@ -27,6 +27,7 @@ from common_primitives.column_parser import ColumnParserPrimitive
 from distil.primitives.mi_ranking import MIRankingPrimitive as MIRanking
 from d3m.metadata import base as metadata_base
 import utils as test_utils
+from sklearn.preprocessing import LabelEncoder
 
 
 class MIRankingPrimitiveTestCase(unittest.TestCase):
@@ -47,9 +48,9 @@ class MIRankingPrimitiveTestCase(unittest.TestCase):
         result_dataframe = mi_ranking.produce(inputs=dataframe).value
 
         # verify the output
-        self.assertListEqual(list(result_dataframe['idx']), [2, 5, 3])
-        self.assertListEqual(list(result_dataframe['name']), ['bravo', 'echo', 'charlie'])
-        expected_ranks = [1.0, 1.0, 0.0]
+        self.assertListEqual(list(result_dataframe['idx']), [2, 5, 4, 3])
+        self.assertListEqual(list(result_dataframe['name']), ['bravo', 'echo', 'delta', 'charlie'])
+        expected_ranks = [1.0, 1.0, 1.0, 0.0]
         for i, r in enumerate(result_dataframe['rank']):
             self.assertAlmostEqual(r, expected_ranks[i], places=6)
 
@@ -67,8 +68,8 @@ class MIRankingPrimitiveTestCase(unittest.TestCase):
         mi_ranking = MIRanking(hyperparams=hyperparams)
         result_dataframe = mi_ranking.produce(inputs=dataframe).value
 
-        expected_ranks = [1.0, 1.0, 0.0]
-        ranked_cols = [2, 5, 3]
+        expected_ranks = [1.0, 1.0, 1.0, 0.0]
+        ranked_cols = [2, 5, 4, 3]
         for i in range(len(ranked_cols)):
             self.assertAlmostEqual(result_dataframe.metadata.query((metadata_base.ALL_ELEMENTS, ranked_cols[i])).get('rank'), expected_ranks[i], places=6)
 
@@ -86,9 +87,9 @@ class MIRankingPrimitiveTestCase(unittest.TestCase):
         result_dataframe = mi_ranking.produce(inputs=dataframe).value
 
         # verify the output
-        self.assertListEqual(list(result_dataframe['idx']), [1, 5, 3])
-        self.assertListEqual(list(result_dataframe['name']), ['alpha', 'echo', 'charlie'])
-        expected_ranks = [1.0, 0.930536, 0.0]
+        self.assertListEqual(list(result_dataframe['idx']), [1, 5, 4, 3])
+        self.assertListEqual(list(result_dataframe['name']), ['alpha', 'echo', 'delta', 'charlie'])
+        expected_ranks = [1.0, 0.930536,  7.316753e-16, 0.0]
         for i, r in enumerate(result_dataframe['rank']):
             self.assertAlmostEqual(r, expected_ranks[i], places=6)
 
@@ -111,9 +112,9 @@ class MIRankingPrimitiveTestCase(unittest.TestCase):
         result_dataframe = mi_ranking.produce(inputs=dataframe).value
 
         # verify the output
-        self.assertListEqual(list(result_dataframe['idx']), [1, 3, 5])
-        self.assertListEqual(list(result_dataframe['name']), ['alpha', 'charlie', 'echo'])
-        expected_ranks = [1.0, 0.665361, 0.0]
+        self.assertListEqual(list(result_dataframe['idx']), [1, 3, 4, 5])
+        self.assertListEqual(list(result_dataframe['name']), ['alpha', 'charlie', 'delta', 'echo'])
+        expected_ranks = [1.0, 0.665361, 0.0, 0.0]
         for i, r in enumerate(result_dataframe['rank']):
             self.assertAlmostEqual(r, expected_ranks[i], places=6)
 
@@ -135,25 +136,6 @@ class MIRankingPrimitiveTestCase(unittest.TestCase):
         self.assertListEqual(list(result_dataframe['name']), [])
         self.assertListEqual(list(result_dataframe['rank']), [])
 
-    def test_incompatible_features(self) -> None:
-        dataframe = self._load_data(bad_features=[2, 3, 5])
-
-        hyperparams_class = \
-            MIRanking.metadata.query()['primitive_code']['class_type_arguments']['Hyperparams']
-        hyperparams = hyperparams_class.defaults().replace(
-            {
-                'target_col_index': 1
-            }
-        )
-        mi_ranking = MIRanking(hyperparams=hyperparams)
-        result_dataframe = mi_ranking.produce(inputs=dataframe).value
-
-        # verify the output
-        self.assertListEqual(list(result_dataframe['idx']), [])
-        self.assertListEqual(list(result_dataframe['name']), [])
-        self.assertListEqual(list(result_dataframe['rank']), [])
-
-
     def test_unique_categorical_removed(self) -> None:
         dataframe = self._load_data()
 
@@ -172,8 +154,8 @@ class MIRankingPrimitiveTestCase(unittest.TestCase):
         result_dataframe = mi_ranking.produce(inputs=dataframe).value
 
         # verify the output
-        self.assertListEqual(list(result_dataframe['idx']), [2, 5, 3])
-        self.assertListEqual(list(result_dataframe['name']), ['bravo', 'echo', 'charlie'])
+        self.assertListEqual(list(result_dataframe['idx']), [2, 5, 4, 3])
+        self.assertListEqual(list(result_dataframe['name']), ['bravo', 'echo', 'delta', 'charlie'])
 
     def _load_data(cls, bad_features: typing.Sequence[int]=[], alpha_class=int, charlie_class=int) -> container.DataFrame:
         dataset_doc_path = path.join(cls._dataset_path, 'datasetDoc.json')
