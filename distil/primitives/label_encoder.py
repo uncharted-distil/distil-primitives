@@ -52,7 +52,9 @@ class Hyperparams(hyperparams.Hyperparams):
 
 class SKLabelEncoder(UnsupervisedLearnerPrimitiveBase[container.DataFrame, container.DataFrame, Params, Hyperparams]):
     """
-    Primitive wrapping for sklearn LabelEncoder
+    Primitive wrapping for sklearn LabelEncoder.
+    This implementation was taken from the deprecated d3m sklearn-wrap's JPL code.
+    https://gitlab.com/datadrivendiscovery/sklearn-wrap/-/blob/devel/primitives/SKLabelEncoder.py
     """
 
     __author__ = "Venkat Korapaty"
