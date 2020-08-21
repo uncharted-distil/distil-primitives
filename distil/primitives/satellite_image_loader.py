@@ -164,6 +164,10 @@ class DataFrameSatelliteImageLoaderPrimitive(primitives.FileReaderPrimitiveBase)
         cols = distil_utils.get_operating_columns(inputs, self.hyperparams['use_columns'],
             ('https://metadata.datadrivendiscovery.org/types/GroupingKey',))
 
+        if len(cols) == 0:
+            cols = distil_utils.get_operating_columns(inputs, self.hyperparams['use_columns'],
+            ('https://metadata.datadrivendiscovery.org/types/SuggestedGroupingKey',))
+
         if len(cols) == 1:
             return cols[0]
 
