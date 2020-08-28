@@ -14,6 +14,8 @@ from d3m.primitive_interfaces import base as base_prim
 from distil.primitives import utils as distil_utils
 from distil.utils import CYTHON_DEP
 import version
+import lzo
+import struct
 
 logger = logging.getLogger(__name__)
 
@@ -128,8 +130,17 @@ class DataFrameSatelliteImageLoaderPrimitive(primitives.FileReaderPrimitiveBase)
         for band, image in images:
             images_result[self._band_order[band.lower()]] = self._bilinear_resample(image, self._max_dimension)
 
+        # this is not optimized - should probably just be taking the image results above and appending those to a bytearray
+        # as they are loaded - then the `np.array(images_result)` doesn't need to get called
         output = np.array(images_result)
-        output = container.ndarray(output, {
+        # Store a header consisting of the dtype character and the data shape as unsigned integers.
+        # Given c struct alignment, will occupy 16 bytes (1 + 4 + 4 + 4 + 3 padding)
+        output_bytes = bytearray(struct.pack('cIII', bytes(output.dtype.char.encode()), output.shape[0], output.shape[1], output.shape[2]))
+        output_bytes.extend(output.tobytes())
+        output_compressed_bytes = lzo.compress(bytes(output_bytes))
+        output_compressed = np.frombuffer(output_compressed_bytes, dtype='uint8', count=len(output_compressed_bytes))
+
+        output = container.ndarray(output_compressed, {
             'schema': metadata_base.CONTAINER_SCHEMA_VERSION,
             'structural_type': container.ndarray,
         }, generate_metadata=True)
