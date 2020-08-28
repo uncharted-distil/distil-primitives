@@ -1,5 +1,6 @@
 import logging
 import os
+import typing
 from d3m.primitive_interfaces.base import Hyperparams
 
 import frozendict  # type: ignore
@@ -9,8 +10,9 @@ from PIL import Image
 from common_primitives import base
 from d3m import container, utils as utils
 from d3m.base import utils as base_utils, primitives
-from d3m.metadata import base as metadata_base
+from d3m.metadata import base as metadata_base, hyperparams
 from d3m.primitive_interfaces import base as base_prim
+from d3m.primitive_interfaces import transformer
 from distil.primitives import utils as distil_utils
 from distil.utils import CYTHON_DEP
 import version
@@ -19,7 +21,39 @@ import struct
 
 logger = logging.getLogger(__name__)
 
-class DataFrameSatelliteImageLoaderPrimitive(primitives.FileReaderPrimitiveBase):
+class Hyperparams(hyperparams.Hyperparams):
+    use_columns = hyperparams.Set(
+        elements=hyperparams.Hyperparameter[int](-1),
+        default=(),
+        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
+        description="A set of column indices to force primitive to operate on. If any specified column does not contain filenames for supported media types, it is skipped.",
+    )
+    exclude_columns = hyperparams.Set(
+        elements=hyperparams.Hyperparameter[int](-1),
+        default=(),
+        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
+        description="A set of column indices to not operate on. Applicable only if \"use_columns\" is not provided.",
+    )
+    return_result = hyperparams.Enumeration(
+        values=['append', 'replace', 'new'],
+        default='append',
+        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
+        description="Should columns with read files be appended, should they replace original columns, or should only columns with read files be returned?",
+    )
+    add_index_columns = hyperparams.UniformBool(
+        default=True,
+        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
+        description="Also include primary index columns if input data has them. Applicable only if \"return_result\" is set to \"new\".",
+    )
+    compress_data = hyperparams.Hyperparameter[bool](
+        default=False,
+        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
+        description="If True, applies LZO compression algorithm to the data"
+    )
+
+class DataFrameSatelliteImageLoaderPrimitive(transformer.TransformerPrimitiveBase[container.DataFrame,
+                                                              container.DataFrame,
+                                                              Hyperparams]):
     """
     A primitive which reads columns referencing satellite image files, where each file is for a single band.
 
@@ -79,6 +113,36 @@ class DataFrameSatelliteImageLoaderPrimitive(primitives.FileReaderPrimitiveBase)
     def _read_fileuri(self, metadata: frozendict.FrozenOrderedDict, fileuri: str) -> container.ndarray:
         return None
 
+    def _can_use_column(self, inputs_metadata: metadata_base.DataMetadata, column_index: int) -> bool:
+        column_metadata = inputs_metadata.query((metadata_base.ALL_ELEMENTS, column_index))
+
+        if column_metadata['structural_type'] != str:
+            return False
+
+        semantic_types = column_metadata.get('semantic_types', [])
+        media_types = set(column_metadata.get('media_types', []))
+
+        if 'https://metadata.datadrivendiscovery.org/types/FileName' in semantic_types and media_types <= set(self._supported_media_types):
+            return True
+
+        return False
+
+    def _get_columns(self, inputs_metadata: metadata_base.DataMetadata) -> typing.List[int]:
+        def can_use_column(column_index: int) -> bool:
+            return self._can_use_column(inputs_metadata, column_index)
+
+        columns_to_use, columns_not_to_use = base_utils.get_columns_to_use(inputs_metadata, self.hyperparams['use_columns'], self.hyperparams['exclude_columns'], can_use_column)
+
+        # We are OK if no columns ended up being read.
+        # "base_utils.combine_columns" will throw an error if it cannot work with this.
+
+        if self.hyperparams['use_columns'] and columns_not_to_use:
+            self.logger.warning("Not all specified columns contain filenames for supported media types. Skipping columns: %(columns)s", {
+                'columns': columns_not_to_use,
+            })
+
+        return columns_to_use
+
     def produce(self, *, inputs: base.FileReaderInputs, timeout: float = None, iterations: int = None) -> base_prim.CallResult[base.FileReaderOutputs]:
         columns_to_use = self._get_columns(inputs.metadata)
         inputs_clone = inputs.copy()
@@ -116,6 +180,38 @@ class DataFrameSatelliteImageLoaderPrimitive(primitives.FileReaderPrimitiveBase)
 
         return base_prim.CallResult(outputs)
 
+    def _reassign_boundaries(self, inputs_metadata: metadata_base.DataMetadata, columns: typing.List[int]) -> metadata_base.DataMetadata:
+        """
+        Moves metadata about boundaries from the filename column to image object column.
+        """
+
+        outputs_metadata = inputs_metadata
+        columns_length = inputs_metadata.query((metadata_base.ALL_ELEMENTS,))['dimension']['length']
+
+        for column_index in range(columns_length):
+            column_metadata = outputs_metadata.query_column(column_index)
+
+            if 'boundary_for' not in column_metadata:
+                continue
+
+            # TODO: Support also "column_name" boundary metadata.
+            if 'column_index' not in column_metadata['boundary_for']:
+                continue
+
+            try:
+                i = columns.index(column_metadata['boundary_for']['column_index'])
+            except ValueError:
+                continue
+
+            outputs_metadata = outputs_metadata.update_column(column_index, {
+                'boundary_for': {
+                    # We know that "columns" were appended at the end.
+                    'column_index': columns_length - len(columns) + i,
+                }
+            })
+
+        return outputs_metadata
+
     def _load_image_group(self, uris, bands, base_uri: str) -> container.ndarray:
 
         zipped = zip(bands, uris)
@@ -133,14 +229,15 @@ class DataFrameSatelliteImageLoaderPrimitive(primitives.FileReaderPrimitiveBase)
         # this is not optimized - should probably just be taking the image results above and appending those to a bytearray
         # as they are loaded - then the `np.array(images_result)` doesn't need to get called
         output = np.array(images_result)
-        # Store a header consisting of the dtype character and the data shape as unsigned integers.
-        # Given c struct alignment, will occupy 16 bytes (1 + 4 + 4 + 4 + 3 padding)
-        output_bytes = bytearray(struct.pack('cIII', bytes(output.dtype.char.encode()), output.shape[0], output.shape[1], output.shape[2]))
-        output_bytes.extend(output.tobytes())
-        output_compressed_bytes = lzo.compress(bytes(output_bytes))
-        output_compressed = np.frombuffer(output_compressed_bytes, dtype='uint8', count=len(output_compressed_bytes))
+        if self.hyperparams['compress_data']:
+            # Store a header consisting of the dtype character and the data shape as unsigned integers.
+            # Given c struct alignment, will occupy 16 bytes (1 + 4 + 4 + 4 + 3 padding)
+            output_bytes = bytearray(struct.pack('cIII', bytes(output.dtype.char.encode()), output.shape[0], output.shape[1], output.shape[2]))
+            output_bytes.extend(output.tobytes())
+            output_compressed_bytes = lzo.compress(bytes(output_bytes))
+            output = np.frombuffer(output_compressed_bytes, dtype='uint8', count=len(output_compressed_bytes))
 
-        output = container.ndarray(output_compressed, {
+        output = container.ndarray(output, {
             'schema': metadata_base.CONTAINER_SCHEMA_VERSION,
             'structural_type': container.ndarray,
         }, generate_metadata=True)

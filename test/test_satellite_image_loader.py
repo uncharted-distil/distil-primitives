@@ -82,7 +82,7 @@ class DataFrameSatelliteImageLoaderPrimitiveTestCase(unittest.TestCase):
 
         hyperparams_class = \
             DataFrameSatelliteImageLoaderPrimitive.metadata.query()['primitive_code']['class_type_arguments']['Hyperparams']
-        hyperparams = hyperparams_class.defaults()
+        hyperparams = hyperparams_class.defaults().replace({'compress_data': True})
         loader = DataFrameSatelliteImageLoaderPrimitive(hyperparams=hyperparams)
         result_dataframe = loader.produce(inputs=dataframe).value
 
