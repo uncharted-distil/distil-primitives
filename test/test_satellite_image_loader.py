@@ -97,6 +97,16 @@ class DataFrameSatelliteImageLoaderPrimitiveTestCase(unittest.TestCase):
         loaded_image = result_array[1]
         self.assertEqual(original_image.tobytes(), loaded_image.tobytes())
 
+        compressed_bytes = result_dataframe.iloc[1, 7].tobytes()
+        decompressed_bytes = lzo.decompress(compressed_bytes)
+        storage_type, shape_0, shape_1, shape_2 = struct.unpack('cIII', decompressed_bytes[:16])
+        result_array = np.frombuffer(decompressed_bytes[16:], dtype=storage_type).reshape(shape_0, shape_1, shape_2)
+
+        # load a test image
+        # original_image = image_array = imageio.imread("test/satellite_image_dataset/media/S2A_MSIL2A_20170613T101031_0_49_B8A.tif")
+        loaded_image = result_array[1]
+        self.assertEqual(original_image.tobytes(), loaded_image.tobytes())
+
 
 if __name__ == '__main__':
     unittest.main()
