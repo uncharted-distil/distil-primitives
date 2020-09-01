@@ -48,7 +48,9 @@ class Hyperparams(hyperparams.Hyperparams):
     compress_data = hyperparams.Hyperparameter[bool](
         default=False,
         semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
-        description="If True, applies LZO compression algorithm to the data"
+        description="If True, applies LZO compression algorithm to the data.\
+                    Store a header consisting of the dtype character and the data shape as unsigned integers.\
+                    Given c struct alignment, will occupy 16 bytes (1 + 4 + 4 + 4 + 3 ) padding"
     )
 
 class DataFrameSatelliteImageLoaderPrimitive(transformer.TransformerPrimitiveBase[container.DataFrame,
@@ -222,20 +224,19 @@ class DataFrameSatelliteImageLoaderPrimitive(transformer.TransformerPrimitiveBas
         if self._max_dimension == 0:
             self._max_dimension = max(i[1].shape[0] for i in images)
 
-        images_result = [None] * len(self._band_order)
-        for band, image in images:
-            images_result[self._band_order[band.lower()]] = self._bilinear_resample(image, self._max_dimension)
-
-        # this is not optimized - should probably just be taking the image results above and appending those to a bytearray
-        # as they are loaded - then the `np.array(images_result)` doesn't need to get called
-        output = np.array(images_result)
         if self.hyperparams['compress_data']:
             # Store a header consisting of the dtype character and the data shape as unsigned integers.
             # Given c struct alignment, will occupy 16 bytes (1 + 4 + 4 + 4 + 3 padding)
-            output_bytes = bytearray(struct.pack('cIII', bytes(output.dtype.char.encode()), output.shape[0], output.shape[1], output.shape[2]))
-            output_bytes.extend(output.tobytes())
+            output_bytes = bytearray(struct.pack('cIII', bytes(images[0][1].dtype.char.encode()), len(images), self._max_dimension, self._max_dimension))
+            for band, image in images:
+                output_bytes.extend(self._bilinear_resample(image, self._max_dimension).tobytes())
             output_compressed_bytes = lzo.compress(bytes(output_bytes))
             output = np.frombuffer(output_compressed_bytes, dtype='uint8', count=len(output_compressed_bytes))
+        else:
+            images_result = [None] * len(self._band_order)
+            for band, image in images:
+                images_result[self._band_order[band.lower()]] = self._bilinear_resample(image, self._max_dimension)
+            output = np.array(images_result)
 
         output = container.ndarray(output, {
             'schema': metadata_base.CONTAINER_SCHEMA_VERSION,
