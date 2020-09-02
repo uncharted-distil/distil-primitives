@@ -85,7 +85,7 @@ class KMeansPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBase[con
 
         # find candidate columns
         self._cols = distil_utils.get_operating_columns_structural_type(self._inputs, self.hyperparams['use_columns'],
-            (np.float32, np.float64, np.int64, type(float).__name__, type(int).__name__), False)
+            (np.float32, np.float64, np.int64, float.__name__, int.__name__), False)
         logger.debug(f'Found {len(self._cols)} cols to use for clustering')
         return base.CallResult(None)
 
