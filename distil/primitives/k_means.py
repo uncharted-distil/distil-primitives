@@ -81,8 +81,6 @@ class KMeansPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBase[con
     def fit(self, *, timeout: float = None, iterations: int = None) -> base.CallResult[None]:
         logger.debug(f'Fitting {__name__}')
 
-        self._inputs.metadata.pretty_print()
-
         # find candidate columns
         self._cols = distil_utils.get_operating_columns_structural_type(self._inputs, self.hyperparams['use_columns'],
             (np.float32, np.float64, np.int64, float.__name__, int.__name__), False)
