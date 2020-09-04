@@ -11,6 +11,8 @@ from d3m.metadata import base as metadata_base, hyperparams
 from d3m.primitive_interfaces import base, transformer
 from distil.utils import CYTHON_DEP
 
+import version
+
 class Hyperparams(hyperparams.Hyperparams):
     use_columns = hyperparams.Set(
         elements=hyperparams.Hyperparameter[int](-1),
@@ -39,7 +41,7 @@ class ColumnParserPrimitive(transformer.TransformerPrimitiveBase[container.DataF
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': 'e8e78214-9770-4c26-9eae-a45bd0ede91a',
-            'version': '1.0.0',
+            'version': version.__version__,
             'name': 'Column Parser',
             'python_path': 'd3m.primitives.data_transformation.DistilColumnParser',
             'source': {
