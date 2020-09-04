@@ -148,7 +148,7 @@ class TimeSeriesBinnerPrimitiveTestCase(unittest.TestCase):
         if parsing_hyperparams:
             cpp = ColumnParserPrimitive(hyperparams=hyperparams_class.defaults().replace(parsing_hyperparams))
         else:
-            ccp = ColumnParserPrimitive(hyperparams=hyperparams_class.defaults())
+            cpp = ColumnParserPrimitive(hyperparams=hyperparams_class.defaults())
         return cpp.produce(inputs=timeseries_df).value
 
 

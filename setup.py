@@ -84,6 +84,8 @@ setup(
             'feature_selection.mutual_info_classif.DistilMIRanking = distil.primitives.mi_ranking:MIRankingPrimitive',
             'data_transformation.list_to_dataframe.DistilListEncoder = distil.primitives.list_to_dataframe:ListEncoderPrimitive',
             'data_transformation.prediction_expansion.DistilPredictionExpansion = distil.primitives.prediction_expansion:PredictionExpansionPrimitive',
+            'data_transformation.DistilTimeSeriesBinner = distil.primitives.time_series_binner:TimeSeriesBinnerPrimitive',
+            'data_transformation.DistilColumnParser = distil.primitives.column_parser:ColumnParserPrimitive'
         ],
     }
 )
