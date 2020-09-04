@@ -12,6 +12,20 @@ from d3m.primitive_interfaces import base, transformer
 from distil.utils import CYTHON_DEP
 
 class Hyperparams(hyperparams.Hyperparams):
+    parsing_semantics = hyperparams.Set(
+        elements=hyperparams.Enumeration(
+            values=[
+                'http://schema.org/Boolean', 'http://schema.org/Integer', 'http://schema.org/Float',
+            ],
+            default='http://schema.org/Float'
+        ),
+        default=(
+            'http://schema.org/Boolean',
+            'http://schema.org/Integer', 'http://schema.org/Float',
+        ),
+        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
+        description="A set of semantic types to parse. One can provide a subset of supported semantic types to limit what the primitive parses."
+    )
     use_columns = hyperparams.Set(
         elements=hyperparams.Hyperparameter[int](-1),
         default=(),
@@ -67,11 +81,20 @@ class ColumnParserPrimitive(transformer.TransformerPrimitiveBase[container.DataF
         cols = self._get_columns(inputs.metadata)
         outputs = inputs.copy()
 
+        parsing_semantics = self.hyperparams['parsing_semantics']
         for col in cols:
             column_metadata = inputs.metadata.query((metadata_base.ALL_ELEMENTS, col))
             semantic_types = column_metadata.get('semantic_types', [])
-            if 'http://schema.org/Boolean' in semantic_types or 'http://schema.org/Float' in semantic_types or 'http://schema.org/Integer' in semantic_types:
+            desired_semantics = set(semantic_types).intersection(parsing_semantics)
+            if desired_semantics:
+                desired_semantic = desired_semantics.pop()
                 outputs[outputs.columns[col]] = pd.to_numeric(outputs[outputs.columns[col]], errors=self.hyperparams['error_handling'])
+                if 'http://schema.org/Float' == desired_semantic:
+                    outputs.metadata = outputs.metadata.update_column(col, {'structural_type': float})
+                elif 'http://schema.org/Integer' == desired_semantic:
+                    outputs.metadata = outputs.metadata.update_column(col, {'structural_type': int})
+                elif 'http://schema.org/Boolean' == desired_semantic:
+                    outputs.metadata = outputs.metadata.update_column(col, {'structural_type': bool})
 
         return base.CallResult(outputs)
 
