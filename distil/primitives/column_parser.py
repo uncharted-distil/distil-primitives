@@ -91,10 +91,8 @@ class ColumnParserPrimitive(transformer.TransformerPrimitiveBase[container.DataF
                 outputs[outputs.columns[col]] = pd.to_numeric(outputs[outputs.columns[col]], errors=self.hyperparams['error_handling'])
                 if 'http://schema.org/Float' == desired_semantic:
                     outputs.metadata = outputs.metadata.update_column(col, {'structural_type': float})
-                elif 'http://schema.org/Integer' == desired_semantic:
+                else:
                     outputs.metadata = outputs.metadata.update_column(col, {'structural_type': int})
-                elif 'http://schema.org/Boolean' == desired_semantic:
-                    outputs.metadata = outputs.metadata.update_column(col, {'structural_type': bool})
 
         return base.CallResult(outputs)
 
