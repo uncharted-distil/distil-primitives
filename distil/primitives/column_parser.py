@@ -38,7 +38,7 @@ class ColumnParserPrimitive(transformer.TransformerPrimitiveBase[container.DataF
 
     metadata = metadata_base.PrimitiveMetadata(
         {
-            'id': '',
+            'id': 'e8e78214-9770-4c26-9eae-a45bd0ede91a',
             'version': '1.0.0',
             'name': 'Column Parser',
             'python_path': 'd3m.primitives.data_transformation.DistilColumnParser',
