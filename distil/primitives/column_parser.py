@@ -1,6 +1,7 @@
-import hashlib
 import os
 import typing
+import time
+import logging
 
 import numpy as np
 import pandas as pd
@@ -12,6 +13,8 @@ from d3m.primitive_interfaces import base, transformer
 from distil.utils import CYTHON_DEP
 
 import version
+
+logger = logging.getLogger(__name__)
 
 class Hyperparams(hyperparams.Hyperparams):
     parsing_semantics = hyperparams.Set(
@@ -80,6 +83,10 @@ class ColumnParserPrimitive(transformer.TransformerPrimitiveBase[container.DataF
                 inputs: container.DataFrame,
                 timeout: float = None,
                 iterations: int = None) -> base.CallResult[container.DataFrame]:
+
+        start = time.time()
+        logger.debug(f"Producing {__name__}")
+
         cols = self._get_columns(inputs.metadata)
         outputs = inputs.copy()
 
@@ -89,12 +96,15 @@ class ColumnParserPrimitive(transformer.TransformerPrimitiveBase[container.DataF
             semantic_types = column_metadata.get('semantic_types', [])
             desired_semantics = set(semantic_types).intersection(parsing_semantics)
             if desired_semantics:
-                desired_semantic = desired_semantics.pop()
                 outputs[outputs.columns[col]] = pd.to_numeric(outputs[outputs.columns[col]], errors=self.hyperparams['error_handling'])
-                if 'http://schema.org/Float' == desired_semantic:
-                    outputs.metadata = outputs.metadata.update_column(col, {'structural_type': float})
-                else:
-                    outputs.metadata = outputs.metadata.update_column(col, {'structural_type': int})
+                # Update structural type to reflect the results of the to_numeric call.  We can't rely on the semantic type because
+                # error coersion may result in a type becoming a float due to the presence of NaN.
+                if outputs.shape[1] > 0:
+                    updated_type = type(outputs[outputs.columns[col]][0].item())
+                    outputs.metadata = outputs.metadata.update_column(col, {'structural_type': updated_type})
+
+        end = time.time()
+        logger.debug(f"Produce {__name__} completed in {end - start} ms")
 
         return base.CallResult(outputs)
 

@@ -74,7 +74,7 @@ class ColumnParserPrimitiveTestCase(unittest.TestCase):
         df.metadata = df.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, 2), 'http://schema.org/Float')
         df.metadata = df.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, 3), 'http://schema.org/Integer')
         df.metadata = df.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, 4), 'http://schema.org/Boolean')
-        df.metadata = df.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, 5), 'http://schema.org/Float')
+        df.metadata = df.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, 5), 'http://schema.org/Integer')
         hyperparams_class = ColumnParserPrimitive.metadata.get_hyperparams()
         cpp = ColumnParserPrimitive(hyperparams=hyperparams_class.defaults() \
             .replace({'parsing_semantics': ['http://schema.org/Float', 'http://schema.org/Integer']}))
