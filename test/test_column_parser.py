@@ -92,5 +92,16 @@ class ColumnParserPrimitiveTestCase(unittest.TestCase):
         self.assertEqual(result_df.metadata.query((metadata_base.ALL_ELEMENTS, 5))['structural_type'], float)
 
 
+    def test_speed(self) -> None:
+        df = container.DataFrame(np.random.uniform(0,100,size=(1000, 2048)), generate_metadata=True)
+        for i in range(2047):
+            df.metadata = df.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, i + 1), 'http://schema.org/Float')
+        df = df.astype(str)
+        hyperparams_class = ColumnParserPrimitive.metadata.get_hyperparams()
+        cpp = ColumnParserPrimitive(hyperparams=hyperparams_class.defaults() \
+            .replace({'parsing_semantics': ['http://schema.org/Float', 'http://schema.org/Integer']}))
+        result_df = cpp.produce(inputs=df).value
+
+
 if __name__ == '__main__':
     unittest.main()

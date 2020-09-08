@@ -88,21 +88,31 @@ class ColumnParserPrimitive(transformer.TransformerPrimitiveBase[container.DataF
         logger.debug(f"Producing {__name__}")
 
         cols = self._get_columns(inputs.metadata)
-        outputs = inputs.copy()
+        # outputs = container.DataFrame(generate_metadata=False)
+        outputs = [None] * inputs.shape[1]
 
         parsing_semantics = self.hyperparams['parsing_semantics']
-        for col in cols:
+        for i in range(len(cols)):
+            col = cols[i]
             column_metadata = inputs.metadata.query((metadata_base.ALL_ELEMENTS, col))
             semantic_types = column_metadata.get('semantic_types', [])
             desired_semantics = set(semantic_types).intersection(parsing_semantics)
             if desired_semantics:
-                outputs[outputs.columns[col]] = pd.to_numeric(outputs[outputs.columns[col]], errors=self.hyperparams['error_handling'])
+                outputs[i] = pd.to_numeric(inputs.iloc[:, col], errors=self.hyperparams['error_handling'])
+                # outputs[inputs.columns[col]] = pd.to_numeric(inputs.iloc[:, col], errors=self.hyperparams['error_handling'])
                 # Update structural type to reflect the results of the to_numeric call.  We can't rely on the semantic type because
                 # error coersion may result in a type becoming a float due to the presence of NaN.
-                if outputs.shape[1] > 0:
-                    updated_type = type(outputs[outputs.columns[col]][0].item())
-                    outputs.metadata = outputs.metadata.update_column(col, {'structural_type': updated_type})
+                # if outputs.shape[1] > 0:
+                #     updated_type = type(outputs[inputs.columns[col]][0].item())
+                #     outputs.metadata = outputs.metadata.update_column(col, {'structural_type': updated_type})
+                if outputs[i].shape[0] > 0:
+                    updated_type = type(outputs[i][0].item())
+                    inputs.metadata = inputs.metadata.update_column(col, {'structural_type': updated_type})
+            else:
+                outputs[i] = inputs.iloc[:, col]
 
+        outputs = container.DataFrame(pd.concat(outputs, axis=1))
+        outputs.metadata = inputs.metadata
         end = time.time()
         logger.debug(f"Produce {__name__} completed in {end - start} ms")
 
