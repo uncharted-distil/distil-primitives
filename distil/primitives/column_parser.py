@@ -92,24 +92,24 @@ class ColumnParserPrimitive(transformer.TransformerPrimitiveBase[container.DataF
         outputs = [None] * inputs.shape[1]
 
         parsing_semantics = self.hyperparams['parsing_semantics']
-        for i in range(len(cols)):
-            col = cols[i]
-            column_metadata = inputs.metadata.query((metadata_base.ALL_ELEMENTS, col))
-            semantic_types = column_metadata.get('semantic_types', [])
-            desired_semantics = set(semantic_types).intersection(parsing_semantics)
-            if desired_semantics:
-                outputs[i] = pd.to_numeric(inputs.iloc[:, col], errors=self.hyperparams['error_handling'])
-                # outputs[inputs.columns[col]] = pd.to_numeric(inputs.iloc[:, col], errors=self.hyperparams['error_handling'])
-                # Update structural type to reflect the results of the to_numeric call.  We can't rely on the semantic type because
-                # error coersion may result in a type becoming a float due to the presence of NaN.
-                # if outputs.shape[1] > 0:
-                #     updated_type = type(outputs[inputs.columns[col]][0].item())
-                #     outputs.metadata = outputs.metadata.update_column(col, {'structural_type': updated_type})
-                if outputs[i].shape[0] > 0:
-                    updated_type = type(outputs[i][0].item())
-                    inputs.metadata = inputs.metadata.update_column(col, {'structural_type': updated_type})
+        for col_index in range(len(inputs.columns)):
+            if col_index in cols:
+                column_metadata = inputs.metadata.query((metadata_base.ALL_ELEMENTS, col_index))
+                semantic_types = column_metadata.get('semantic_types', [])
+                desired_semantics = set(semantic_types).intersection(parsing_semantics)
+                if desired_semantics:
+                    outputs[col_index] = pd.to_numeric(inputs.iloc[:, col_index], errors=self.hyperparams['error_handling'])
+                    # Update structural type to reflect the results of the to_numeric call.  We can't rely on the semantic type because
+                    # error coersion may result in a type becoming a float due to the presence of NaN.
+                    if outputs[col_index].shape[0] > 0:
+                        updated_type = type(outputs[col_index][0].item())
+                        inputs.metadata = inputs.metadata.update_column(col_index, {'structural_type': updated_type})
+                else:
+                    # columns without specified semantics need to be concatenated
+                    outputs[col_index] = inputs.iloc[:, col_index]
             else:
-                outputs[i] = inputs.iloc[:, col]
+                # columns not specified still need to be concatenated
+                outputs[col_index] = inputs.iloc[:, col_index]
 
         outputs = container.DataFrame(pd.concat(outputs, axis=1))
         outputs.metadata = inputs.metadata
