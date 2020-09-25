@@ -17,6 +17,7 @@ from d3m.base import utils as base_utils, primitives
 from d3m.metadata import base as metadata_base, hyperparams
 from d3m.primitive_interfaces import base as base_prim
 from d3m.primitive_interfaces import transformer
+from pandas.core.groupby.grouper import Grouping
 from distil.primitives import utils as distil_utils
 from distil.utils import CYTHON_DEP
 import version
@@ -188,15 +189,19 @@ class DataFrameSatelliteImageLoaderPrimitive(transformer.TransformerPrimitiveBas
         jobs = [delayed(self._load_image_group)(group[1][file_column_name], group[1][band_column_name], base_uri)\
             for group in tqdm(groups, total=len(groups))]
         groups = Parallel(n_jobs=64, backend='loky', verbose=10)(jobs)
-
-        grouped_images = pd.Series(groups)
         end = time.time()
         logger.debug(f'Loaded images in {end-start}s')
 
         logger.debug('Updating metadata')
         start = time.time()
-        grouped_df = container.DataFrame({file_column_name: grouped_images}, generate_metadata=False)
-        grouped_df.metadata = grouped_df.metadata.generate(grouped_df, compact=True)
+
+        # auto-generate metdata for one row's worth of data - necessary to avoid having the generation step traverse all of the data
+        # which is extremely slow
+        first_df = container.DataFrame({file_column_name: [groups[0]]}, generate_metadata=True).reset_index(drop=True)
+        rest_df = container.DataFrame({file_column_name: groups[1:]})
+        grouped_df = first_df.append(rest_df, ignore_index=True)
+
+        grouped_df.metadata = grouped_df.metadata.update((), {'dimension': {'length': grouped_df.shape[0]}})
         grouped_df.metadata = grouped_df.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, 0), 'http://schema.org/ImageObject')
         end = time.time()
         logger.debug(f'Updated metadata in {end-start}s')
@@ -312,3 +317,6 @@ class DataFrameSatelliteImageLoaderPrimitive(transformer.TransformerPrimitiveBas
 
         # no suitable column found
         return -1
+
+    def _generate_metadata(self, inputs: container.DataFrame) -> container.DataFrame:
+        return None
