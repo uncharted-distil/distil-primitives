@@ -1,11 +1,15 @@
+import time
 import logging
 import os
 import typing
+from typing import Tuple
+from d3m.metadata.hyperparams import List
 from d3m.primitive_interfaces.base import Hyperparams
 
 import frozendict  # type: ignore
 import imageio  # type: ignore
 import numpy as np  # type: ignore
+import pandas as pd
 from PIL import Image
 from common_primitives import base
 from d3m import container, utils as utils
@@ -18,6 +22,9 @@ from distil.utils import CYTHON_DEP
 import version
 import lzo
 import struct
+
+from joblib import Parallel, delayed
+from tqdm import tqdm
 
 logger = logging.getLogger(__name__)
 
@@ -154,6 +161,8 @@ class DataFrameSatelliteImageLoaderPrimitive(transformer.TransformerPrimitiveBas
         return columns_to_use
 
     def produce(self, *, inputs: base.FileReaderInputs, timeout: float = None, iterations: int = None) -> base_prim.CallResult[base.FileReaderOutputs]:
+        logger.debug(f"Producing {__name__}")
+
         columns_to_use = self._get_columns(inputs.metadata)
         inputs_clone = inputs.copy()
         if len(columns_to_use) == 0:
@@ -171,13 +180,26 @@ class DataFrameSatelliteImageLoaderPrimitive(transformer.TransformerPrimitiveBas
         file_column_name = inputs_clone.columns[column_index]
         band_column_name = 'band'
 
-        # group by grouping key to get all the images loaded in one row
-        grouped_images = inputs_clone.groupby([grouping_name], sort=False) \
-            .apply(lambda x: self._load_image_group(x[file_column_name], x[band_column_name], base_uri)) \
-            .rename(file_column_name).reset_index(drop=True)
+        start = time.time()
+        logger.debug('Loading images')
+
+        # group by grouping key to get all the images loaded in one row - parallelize this since it is a CPU bound operation
+        groups = inputs_clone.groupby([grouping_name], sort=False)
+        jobs = [delayed(self._load_image_group)(group[1][file_column_name], group[1][band_column_name], base_uri)\
+            for group in tqdm(groups, total=len(groups))]
+        groups = Parallel(n_jobs=64, backend='loky', verbose=10)(jobs)
+
+        grouped_images = pd.Series(groups)
+        end = time.time()
+        logger.debug(f'Loaded images in {end-start}s')
+
+        logger.debug('Updating metadata')
+        start = time.time()
         grouped_df = container.DataFrame({file_column_name: grouped_images}, generate_metadata=False)
         grouped_df.metadata = grouped_df.metadata.generate(grouped_df, compact=True)
         grouped_df.metadata = grouped_df.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, 0), 'http://schema.org/ImageObject')
+        end = time.time()
+        logger.debug(f'Updated metadata in {end-start}s')
 
         # only keep one row / group from the input
         first_band = list(self._band_order.keys())[0]
@@ -222,7 +244,7 @@ class DataFrameSatelliteImageLoaderPrimitive(transformer.TransformerPrimitiveBas
 
         return outputs_metadata
 
-    def _load_image_group(self, uris, bands, base_uri: str) -> container.ndarray:
+    def _load_image_group(self, uris: List[str], bands: List[str], base_uri: str) -> container.ndarray:
 
         zipped = zip(bands, uris)
 
@@ -253,7 +275,7 @@ class DataFrameSatelliteImageLoaderPrimitive(transformer.TransformerPrimitiveBas
 
         return output
 
-    def _load_image(self, band: str, uri: str, base_uri: str):
+    def _load_image(self, band: str, uri: str, base_uri: str) -> Tuple[str, List[str]]:
         image_array = imageio.imread(base_uri + uri)
         image_reader_metadata = image_array.meta
 
@@ -262,7 +284,7 @@ class DataFrameSatelliteImageLoaderPrimitive(transformer.TransformerPrimitiveBas
 
         return (band, image_array)
 
-    def _bilinear_resample(self, x, n=120):
+    def _bilinear_resample(self, x: np.ndarray, n: int=120) -> np.array:
         dtype = x.dtype
         assert len(x.shape) == 2
         if (x.shape[0] == n) and (x.shape[1] == n):
