@@ -13,11 +13,10 @@ import pandas as pd
 from PIL import Image
 from common_primitives import base
 from d3m import container, utils as utils
-from d3m.base import utils as base_utils, primitives
+from d3m.base import utils as base_utils
 from d3m.metadata import base as metadata_base, hyperparams
 from d3m.primitive_interfaces import base as base_prim
 from d3m.primitive_interfaces import transformer
-from pandas.core.groupby.grouper import Grouping
 from distil.primitives import utils as distil_utils
 from distil.utils import CYTHON_DEP
 import version
@@ -126,7 +125,6 @@ class DataFrameSatelliteImageLoaderPrimitive(transformer.TransformerPrimitiveBas
 
     def __init__(self, *, hyperparams: Hyperparams) -> None:
         super().__init__(hyperparams=hyperparams)
-        self._max_dimension = 0
 
     def _read_fileuri(self, metadata: frozendict.FrozenOrderedDict, fileuri: str) -> container.ndarray:
         return None
@@ -184,9 +182,15 @@ class DataFrameSatelliteImageLoaderPrimitive(transformer.TransformerPrimitiveBas
         start = time.time()
         logger.debug('Loading images')
 
-        # group by grouping key to get all the images loaded in one row - parallelize this since it is a CPU bound operation
+        # group by grouping key to get all the images loaded in one row
         groups = inputs_clone.groupby([grouping_name], sort=False)
-        jobs = [delayed(self._load_image_group)(group[1][file_column_name], group[1][band_column_name], base_uri)\
+
+        # use the max dimension for the first group as the max dimension for all groups
+        group_key = list(groups.groups.keys())[0] # there must be a better way to do this
+        max_dimension = self._get_group_image_size(groups.get_group(group_key), file_column_name, band_column_name, base_uri)
+
+        # load images for each group and store them in a matrix of [band, x, y]
+        jobs = [delayed(self._load_image_group)(group[1][file_column_name], group[1][band_column_name], base_uri, max_dimension)\
             for group in tqdm(groups, total=len(groups))]
         groups = Parallel(n_jobs=64, backend='loky', verbose=10)(jobs)
         end = time.time()
@@ -249,28 +253,24 @@ class DataFrameSatelliteImageLoaderPrimitive(transformer.TransformerPrimitiveBas
 
         return outputs_metadata
 
-    def _load_image_group(self, uris: List[str], bands: List[str], base_uri: str) -> container.ndarray:
+    def _load_image_group(self, uris: List[str], bands: List[str], base_uri: str, max_dimension: int) -> container.ndarray:
 
         zipped = zip(bands, uris)
-
         images = list(map(lambda image: self._load_image(image[0], image[1], base_uri), zipped))
 
         # reshape images (upsample) to have it all fit within an array
-        if self._max_dimension == 0:
-            self._max_dimension = max(i[1].shape[0] for i in images)
-
         if self.hyperparams['compress_data']:
             # Store a header consisting of the dtype character and the data shape as unsigned integers.
             # Given c struct alignment, will occupy 16 bytes (1 + 4 + 4 + 4 + 3 padding)
-            output_bytes = bytearray(struct.pack('cIII', bytes(images[0][1].dtype.char.encode()), len(images), self._max_dimension, self._max_dimension))
+            output_bytes = bytearray(struct.pack('cIII', bytes(images[0][1].dtype.char.encode()), len(images), max_dimension, max_dimension))
             for band, image in images:
-                output_bytes.extend(self._bilinear_resample(image, self._max_dimension).tobytes())
+                output_bytes.extend(self._bilinear_resample(image, max_dimension).tobytes())
             output_compressed_bytes = lzo.compress(bytes(output_bytes))
             output = np.frombuffer(output_compressed_bytes, dtype='uint8', count=len(output_compressed_bytes))
         else:
             images_result = [None] * len(self._band_order)
             for band, image in images:
-                images_result[self._band_order[band.lower()]] = self._bilinear_resample(image, self._max_dimension)
+                images_result[self._band_order[band.lower()]] = self._bilinear_resample(image, max_dimension)
             output = np.array(images_result)
 
         output = container.ndarray(output, {
@@ -282,8 +282,6 @@ class DataFrameSatelliteImageLoaderPrimitive(transformer.TransformerPrimitiveBas
 
     def _load_image(self, band: str, uri: str, base_uri: str) -> Tuple[str, List[str]]:
         image_array = imageio.imread(base_uri + uri)
-        image_reader_metadata = image_array.meta
-
         # make sure the image is of the expected size
         assert image_array.dtype == np.uint16, image_array.dtype
 
@@ -320,3 +318,12 @@ class DataFrameSatelliteImageLoaderPrimitive(transformer.TransformerPrimitiveBas
 
     def _generate_metadata(self, inputs: container.DataFrame) -> container.DataFrame:
         return None
+
+    def _get_group_image_size(self, group: pd.DataFrame, file_column_name: str, band_column_name: str, base_uri: str) -> int:
+        # load group images and find the max dimension in the set
+        max_dimension = 0
+        zipped = zip(group[band_column_name], group[file_column_name])
+        images = list(map(lambda image: self._load_image(image[0], image[1], base_uri), zipped))
+        if max_dimension == 0:
+            max_dimension = max(i[1].shape[0] for i in images)
+        return max_dimension
