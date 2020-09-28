@@ -93,7 +93,7 @@ class DataFrameSatelliteImageLoaderPrimitiveTestCase(unittest.TestCase):
         result_array = np.frombuffer(decompressed_bytes[16:], dtype=storage_type).reshape(shape_0, shape_1, shape_2)
 
         # load a test image
-        original_image = image_array = imageio.imread("test/satellite_image_dataset/media/S2A_MSIL2A_20170613T101031_0_49_B02.tif")
+        original_image = image_array = imageio.imread("satellite_image_dataset/media/S2A_MSIL2A_20170613T101031_0_49_B02.tif")
         loaded_image = result_array[1]
         self.assertEqual(original_image.tobytes(), loaded_image.tobytes())
 
