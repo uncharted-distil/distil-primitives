@@ -186,7 +186,7 @@ class DataFrameSatelliteImageLoaderPrimitive(transformer.TransformerPrimitiveBas
         groups = inputs_clone.groupby([grouping_name], sort=False)
 
         # use the max dimension for the first group as the max dimension for all groups
-        group_key = list(groups.groups.keys())[0] # there must be a better way to do this
+        group_key = groups[grouping_name].first()[0]
         max_dimension = self._get_group_image_size(groups.get_group(group_key), file_column_name, band_column_name, base_uri)
 
         # load images for each group and store them in a matrix of [band, x, y]
