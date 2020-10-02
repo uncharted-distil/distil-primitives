@@ -4,6 +4,7 @@ from typing import List
 
 import numpy as np
 import pandas as pd
+from pandas.core.computation.pytables import ConditionBinOp
 from sklearn.svm import LinearSVC
 from scipy.stats import rankdata
 from d3m import container, utils
@@ -14,7 +15,7 @@ from d3m.primitive_interfaces.supervised_learning import PrimitiveBase
 from distil.utils import CYTHON_DEP
 import version
 
-__all__ = ("EnsembleForest",)
+__all__ = ("RankedLinearSVC",)
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +33,7 @@ class Hyperparams(hyperparams.Hyperparams):
         semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
         description="The type of loss function.",
     )
-    tolerance =  hyperparams.Hyperparameter[float](
+    tolerance = hyperparams.Hyperparameter[float](
         default=1e-4,
         semantic_types=['https://metadata.datadrivendiscovery.org/types/TuningParameter'],
         description="Tolerance for error. Aims to stop within th is tolerance",
@@ -42,6 +43,7 @@ class Params(params.Params):
     model: LinearSVC
     target_cols: List[str]
     needs_fit: bool
+    binary: bool
 
 class RankedLinearSVCPrimitive(
     PrimitiveBase[container.DataFrame, container.DataFrame, Params, Hyperparams]
@@ -88,6 +90,7 @@ class RankedLinearSVCPrimitive(
         super().__init__(hyperparams=hyperparams, random_seed=random_seed)
         self._model = LinearSVC(penalty=self.hyperparams['penalty'], loss=self.hyperparams['loss'], tol=self.hyperparams['tolerance'], random_state=random_seed)
         self._needs_fit = True
+        self._binary = False
 
     def set_training_data(
         self, *, inputs: container.DataFrame, outputs: container.DataFrame
@@ -95,7 +98,8 @@ class RankedLinearSVCPrimitive(
         self._inputs = inputs
         self._outputs = outputs
         self._needs_fit = True
-        self._target_cols = []
+        self._target_cols: List[str] = []
+        self._binary = self._outputs.iloc[:,0].nunique(dropna=True) <= 2
 
     def fit(self, *, timeout: float = None, iterations: int = None) -> CallResult[None]:
         logger.debug(f"Fitting {__name__}")
@@ -121,14 +125,22 @@ class RankedLinearSVCPrimitive(
         if not self._target_cols:
             self._target_cols = [self._outputs.columns[0]]
 
+        confidences_ranked: np.ndarray = None
+        result: pd.DataFrame = None
+
         # create dataframe to hold the result
         result = self._model.predict(inputs.values)
-        confidences = self._model.decision_function(inputs.values)
-        confidences_ranked = rankdata(confidences)
-
-        result_df = container.DataFrame(
-        {self._target_cols[0]: result, 'confidence': confidences_ranked}, generate_metadata=True
-        )
+        result_df: container.DataFrame = None
+        if self._binary:
+            confidences = self._model.decision_function(inputs.values)
+            confidences_ranked = rankdata(confidences)
+            result_df = container.DataFrame(
+                {self._target_cols[0]: result, 'confidence': confidences_ranked}, generate_metadata=True
+            )
+        else:
+            result_df = container.DataFrame(
+                {self._target_cols[0]: result}, generate_metadata=True
+            )
 
         # mark the semantic types on the dataframe
         result_df.metadata = result_df.metadata.add_semantic_type(
@@ -139,19 +151,22 @@ class RankedLinearSVCPrimitive(
             (metadata_base.ALL_ELEMENTS, 0),
             "http://schema.org/Integer",
         )
-        # this is a hack, but str conversions on lists later on break things
-        result_df.metadata = result_df.metadata.add_semantic_type(
-            (metadata_base.ALL_ELEMENTS, 1),
-            "https://metadata.datadrivendiscovery.org/types/PredictedTarget",
-        )
-        result_df.metadata = result_df.metadata.add_semantic_type(
-            (metadata_base.ALL_ELEMENTS, 1),
-            "https://metadata.datadrivendiscovery.org/types/Confidence",
-        )
-        result_df.metadata = result_df.metadata.add_semantic_type(
-            (metadata_base.ALL_ELEMENTS, 1),
-            "http://schema.org/Float",
-        )
+
+        # in the case of a binary classification we include confidences
+        if self._binary:
+            # this is a hack, but str conversions on lists later on break things
+            result_df.metadata = result_df.metadata.add_semantic_type(
+                (metadata_base.ALL_ELEMENTS, 1),
+                "https://metadata.datadrivendiscovery.org/types/PredictedTarget",
+            )
+            result_df.metadata = result_df.metadata.add_semantic_type(
+                (metadata_base.ALL_ELEMENTS, 1),
+                "https://metadata.datadrivendiscovery.org/types/Confidence",
+            )
+            result_df.metadata = result_df.metadata.add_semantic_type(
+                (metadata_base.ALL_ELEMENTS, 1),
+                "http://schema.org/Float",
+            )
 
         return base.CallResult(result_df)
 
@@ -160,10 +175,12 @@ class RankedLinearSVCPrimitive(
             model = self._model,
             needs_fit = self._needs_fit,
             target_cols = self._target_cols,
+            binary = self._binary
         )
 
     def set_params(self, *, params: Params) -> None:
         self._model = params['model']
         self._needs_fit = params['needs_fit']
         self._target_cols = params['target_cols']
+        self._binary = params['binary']
         return
