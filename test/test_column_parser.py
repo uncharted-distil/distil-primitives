@@ -19,7 +19,7 @@ import utils as test_utils
 class ColumnParserPrimitiveTestCase(unittest.TestCase):
 
     _dataset_path = path.abspath(path.join(path.dirname(__file__), 'tabular_dataset_2'))
-    _image_dataset_path = path.abspath(path.join(path.dirname(__file__), 'image_dataset_1'))
+    _image_dataset_path = path.abspath(path.join(path.dirname(__file__), 'satellite_image_dataset'))
 
     def test_basic(self) -> None:
         dataset = test_utils.load_dataset(self._dataset_path)
@@ -78,16 +78,17 @@ class ColumnParserPrimitiveTestCase(unittest.TestCase):
         df.metadata = df.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, 4), 'http://schema.org/Boolean')
         df.metadata = df.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, 5), 'https://metadata.datadrivendiscovery.org/types/FloatVector')
         dataset = test_utils.load_dataset(self._image_dataset_path)
-        dataframe_hyperparams_class = dataset_to_dataframe.DatasetToDataFramePrimitive.metadata.get_hyperparams()
-        dataframe_primitive = dataset_to_dataframe.DatasetToDataFramePrimitive(hyperparams=dataframe_hyperparams_class.defaults().replace({'dataframe_resource': '0'}))
-        dataframe = dataframe_primitive.produce(inputs=dataset).value
-        image_hyperparams_class = dataframe_image_reader.DataFrameImageReaderPrimitive.metadata.get_hyperparams()
-        image_primitive = dataframe_image_reader.DataFrameImageReaderPrimitive(hyperparams=image_hyperparams_class.defaults().replace({'return_result': 'replace'}))
-        images = image_primitive.produce(inputs=dataframe).value
-        images.loc[5] = images.iloc[0, :]
-        images.loc[6] = images.iloc[1, :]
-        images.loc[7] = images.iloc[2, :]
-        df['echo'] = images['filename']
+        # dataframe_hyperparams_class = dataset_to_dataframe.DatasetToDataFramePrimitive.metadata.get_hyperparams()
+        # dataframe_primitive = dataset_to_dataframe.DatasetToDataFramePrimitive(hyperparams=dataframe_hyperparams_class.defaults().replace({'dataframe_resource': '0'}))
+        # dataframe = dataframe_primitive.produce(inputs=dataset).value
+        # image_hyperparams_class = dataframe_image_reader.DataFrameImageReaderPrimitive.metadata.get_hyperparams()
+        # image_primitive = dataframe_image_reader.DataFrameImageReaderPrimitive(hyperparams=image_hyperparams_class.defaults().replace({'return_result': 'replace'}))
+        # images = image_primitive.produce(inputs=dataframe).value
+        # images.loc[5] = images.iloc[0, :]
+        # images.loc[6] = images.iloc[1, :]
+        # images.loc[7] = images.iloc[2, :]
+        images = test_utils.get_dataframe(dataset, 'learningData')
+        df['echo'] = images['coordinates'][0:9]
         # df.metadata = df.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, 6), 'https://metadata.datadrivendiscovery.org/types/FloatVector')
 
         hyperparams_class = ColumnParserPrimitive.metadata.get_hyperparams()
@@ -100,11 +101,13 @@ class ColumnParserPrimitiveTestCase(unittest.TestCase):
         self.assertEqual(result_df['charlie'].dtype, np.dtype('int64'))
         self.assertEqual(result_df['delta'].dtype, np.dtype('object'))
         self.assertEqual(result_df['echo'].dtype, np.dtype('object'))
+        for i in range(9):
+            self.assertTrue((result_df['echo'][i] == np.fromstring(images['coordinates'][i], dtype=float, sep=',')).all())
         self.assertEqual(result_df.metadata.query((metadata_base.ALL_ELEMENTS, 1))['structural_type'], int)
         self.assertEqual(result_df.metadata.query((metadata_base.ALL_ELEMENTS, 2))['structural_type'], float)
         self.assertEqual(result_df.metadata.query((metadata_base.ALL_ELEMENTS, 3))['structural_type'], int)
         self.assertEqual(result_df.metadata.query((metadata_base.ALL_ELEMENTS, 4))['structural_type'], str)
-        self.assertEqual(result_df.metadata.query((metadata_base.ALL_ELEMENTS, 5))['structural_type'], container.numpy.ndarray)
+        self.assertEqual(result_df.metadata.query((metadata_base.ALL_ELEMENTS, 5))['structural_type'], np.ndarray)
 
 
 if __name__ == '__main__':

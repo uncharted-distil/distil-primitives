@@ -93,6 +93,8 @@ class ColumnParserPrimitive(transformer.TransformerPrimitiveBase[container.DataF
         outputs = [None] * inputs.shape[1]
 
         parsing_semantics = self.hyperparams['parsing_semantics']
+        def fromstring(x):
+            return np.fromstring(x, dtype=float, sep=',')
         for col_index in range(len(inputs.columns)):
             if col_index in cols:
                 column_metadata = inputs.metadata.query((metadata_base.ALL_ELEMENTS, col_index))
@@ -100,7 +102,8 @@ class ColumnParserPrimitive(transformer.TransformerPrimitiveBase[container.DataF
                 desired_semantics = set(semantic_types).intersection(parsing_semantics)
                 if desired_semantics:
                     if 'https://metadata.datadrivendiscovery.org/types/FloatVector' in desired_semantics:
-                        outputs[col_index] = pd.DataFrame({inputs.columns[col_index]: inputs.iloc[:, col_index].tolist()})[inputs.columns[col_index]]
+                        outputs[col_index] = inputs[inputs.columns[col_index]].apply(fromstring, convert_dtype=False)
+                        # outputs[col_index] = pd.DataFrame({inputs.columns[col_index]: inputs.iloc[:, col_index].tolist()})[inputs.columns[col_index]]
                         if outputs[col_index].shape[0] > 0:
                             inputs.metadata = inputs.metadata.update_column(col_index, {'structural_type': type(outputs[col_index][0])})
                     else:
