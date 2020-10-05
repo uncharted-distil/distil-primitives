@@ -78,7 +78,6 @@ class ColumnParserPrimitiveTestCase(unittest.TestCase):
         dataset = test_utils.load_dataset(self._image_dataset_path)
         images = test_utils.get_dataframe(dataset, 'learningData')
         df['echo'] = images['coordinates'][0:9]
-        # df.metadata = df.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, 6), 'https://metadata.datadrivendiscovery.org/types/FloatVector')
 
         hyperparams_class = ColumnParserPrimitive.metadata.get_hyperparams()
         cpp = ColumnParserPrimitive(hyperparams=hyperparams_class.defaults() \
