@@ -33,6 +33,11 @@ class Hyperparams(hyperparams.Hyperparams):
         semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
         description="The type of loss function.",
     )
+    rank_confidences = hyperparams.Hyperparameter[bool](
+        default=True,
+        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
+        description='Returns confidences as ranks.'
+    )
     tolerance = hyperparams.Hyperparameter[float](
         default=1e-4,
         semantic_types=['https://metadata.datadrivendiscovery.org/types/TuningParameter'],
@@ -133,13 +138,15 @@ class RankedLinearSVCPrimitive(
         result_df: container.DataFrame = None
         if self._binary:
             confidences = self._model.decision_function(inputs.values)
-            confidences_ranked = rankdata(confidences)
+            if self.hyperparams['rank_confidences']:
+                confidences = rankdata(confidences)
             result_df = container.DataFrame(
-                {self._target_cols[0]: result, 'confidence': confidences_ranked}, generate_metadata=True
+                {self._target_cols[0]: result, 'confidence': confidences}, generate_metadata=True
             )
         else:
+            confidences = self._get_confidence(inputs.values)
             result_df = container.DataFrame(
-                {self._target_cols[0]: result}, generate_metadata=True
+                {self._target_cols[0]: result, 'confidence': confidences.max(axis=1)}, generate_metadata=True
             )
 
         # mark the semantic types on the dataframe
@@ -169,6 +176,12 @@ class RankedLinearSVCPrimitive(
             )
 
         return base.CallResult(result_df)
+
+    def _get_confidence(self, X):
+        decisions = self._model.decision_function(X)
+        exp_decisions = np.exp(decisions)
+        exp_sum = np.sum(exp_decisions, axis=1)
+        return exp_decisions / exp_sum.reshape((exp_sum.shape[0], 1))
 
     def get_params(self) -> Params:
         return Params(
