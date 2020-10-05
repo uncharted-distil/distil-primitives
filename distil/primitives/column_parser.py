@@ -103,7 +103,6 @@ class ColumnParserPrimitive(transformer.TransformerPrimitiveBase[container.DataF
                 if desired_semantics:
                     if 'https://metadata.datadrivendiscovery.org/types/FloatVector' in desired_semantics:
                         outputs[col_index] = inputs[inputs.columns[col_index]].apply(fromstring, convert_dtype=False)
-                        # outputs[col_index] = pd.DataFrame({inputs.columns[col_index]: inputs.iloc[:, col_index].tolist()})[inputs.columns[col_index]]
                         if outputs[col_index].shape[0] > 0:
                             inputs.metadata = inputs.metadata.update_column(col_index, {'structural_type': type(outputs[col_index][0])})
                     else:
