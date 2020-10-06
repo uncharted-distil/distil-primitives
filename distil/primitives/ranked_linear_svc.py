@@ -179,9 +179,9 @@ class RankedLinearSVCPrimitive(
 
     def _get_confidence(self, X):
         decisions = self._model.decision_function(X)
-        exp_decisions = np.exp(decisions)
+        exp_decisions = np.exp(decisions - np.max(decisions, axis=1).reshape(-1, 1))
         exp_sum = np.sum(exp_decisions, axis=1)
-        return exp_decisions / exp_sum.reshape((exp_sum.shape[0], 1))
+        return exp_decisions / exp_sum.reshape((-1, 1))
 
     def get_params(self) -> Params:
         return Params(
