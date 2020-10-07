@@ -55,6 +55,8 @@ class RankedLinearSVCPrimitiveTestCase(unittest.TestCase):
 
         self.assertListEqual(results.metadata.list_columns_with_semantic_types(("https://metadata.datadrivendiscovery.org/types/PredictedTarget",)), [0, 1])
         self.assertListEqual(results.metadata.list_columns_with_semantic_types(("http://schema.org/Integer",)), [0])
+        self.assertListEqual(results.metadata.list_columns_with_semantic_types(('https://metadata.datadrivendiscovery.org/types/Confidence',)), [1])
+        self.assertListEqual(results.metadata.list_columns_with_semantic_types(('https://metadata.datadrivendiscovery.org/types/PredictedTarget',)), [0, 1])
 
     def test_multiclass(self) -> None:
         dataset = test_utils.load_dataset(self._dataset_path)
@@ -73,6 +75,8 @@ class RankedLinearSVCPrimitiveTestCase(unittest.TestCase):
         expected_confidences = [0.42505645, 0.42505645, 0.42505645, 0.50167816, 0.50167816, 0.50167816, 0.84293516, 0.84293516, 0.84293516]
         self.assertListEqual(list(results['charlie']), expected_labels)
         self.assertListEqual(list(results['confidence'].round(8)), expected_confidences)
+        self.assertListEqual(results.metadata.list_columns_with_semantic_types(('https://metadata.datadrivendiscovery.org/types/Confidence',)), [1])
+        self.assertListEqual(results.metadata.list_columns_with_semantic_types(('https://metadata.datadrivendiscovery.org/types/PredictedTarget',)), [0, 1])
 
 
 if __name__ == '__main__':
