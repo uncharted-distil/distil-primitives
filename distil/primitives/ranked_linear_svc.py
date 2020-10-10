@@ -159,21 +159,19 @@ class RankedLinearSVCPrimitive(
             "http://schema.org/Integer",
         )
 
-        # in the case of a binary classification we include confidences
-        if self._binary:
-            # this is a hack, but str conversions on lists later on break things
-            result_df.metadata = result_df.metadata.add_semantic_type(
-                (metadata_base.ALL_ELEMENTS, 1),
-                "https://metadata.datadrivendiscovery.org/types/PredictedTarget",
-            )
-            result_df.metadata = result_df.metadata.add_semantic_type(
-                (metadata_base.ALL_ELEMENTS, 1),
-                "https://metadata.datadrivendiscovery.org/types/Confidence",
-            )
-            result_df.metadata = result_df.metadata.add_semantic_type(
-                (metadata_base.ALL_ELEMENTS, 1),
-                "http://schema.org/Float",
-            )
+        # this is a hack, but str conversions on lists later on break things
+        result_df.metadata = result_df.metadata.add_semantic_type(
+            (metadata_base.ALL_ELEMENTS, 1),
+            "https://metadata.datadrivendiscovery.org/types/PredictedTarget",
+        )
+        result_df.metadata = result_df.metadata.add_semantic_type(
+            (metadata_base.ALL_ELEMENTS, 1),
+            "https://metadata.datadrivendiscovery.org/types/Confidence",
+        )
+        result_df.metadata = result_df.metadata.add_semantic_type(
+            (metadata_base.ALL_ELEMENTS, 1),
+            "http://schema.org/Float",
+        )
 
         return base.CallResult(result_df)
 
