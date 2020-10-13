@@ -9,6 +9,8 @@ import inspect
 PRIMITIVES_DIR = 'distil/primitives'
 OUTPUT_DIR = 'annotations'
 
+ADDITIONAL_ENTRIES = set(["SKLabelEncoder"])
+
 if not os.path.exists(OUTPUT_DIR):
     os.makedirs(OUTPUT_DIR)
 
@@ -21,7 +23,7 @@ for primitive in primitives:
     except:
         continue
     for l in dir(lib):
-        if 'Primitive' in l and l != 'PrimitiveBase' and l != "UnsupervisedLearnerPrimitiveBase":
+        if ('Primitive' in l or l in ADDITIONAL_ENTRIES) and l != 'PrimitiveBase' and l != "UnsupervisedLearnerPrimitiveBase":
             pp = getattr(lib, l)
             print(f'Extracting {l}')
             md = pp.metadata.to_json_structure()
