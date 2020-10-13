@@ -21,7 +21,7 @@ for primitive in primitives:
     except:
         continue
     for l in dir(lib):
-        if 'Primitive' in l and l != 'PrimitiveBase':
+        if 'Primitive' in l and l != 'PrimitiveBase' and l != "UnsupervisedLearnerPrimitiveBase":
             pp = getattr(lib, l)
             print(f'Extracting {l}')
             md = pp.metadata.to_json_structure()
