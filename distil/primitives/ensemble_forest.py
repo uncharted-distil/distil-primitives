@@ -313,43 +313,43 @@ class EnsembleForestPrimitive(
                 (metadata_base.ALL_ELEMENTS, i),
                 "https://metadata.datadrivendiscovery.org/types/PredictedTarget",
             )
+        if self._model.mode == "classification":
+            # add confidence scores as some metrics require them.
+            confidence = self._model.predict_proba(inputs.values)
+            confidence = pd.Series(confidence.tolist(), name='confidence')
 
-        # add confidence scores as some metrics require them.
-        confidence = self._model.predict_proba(inputs.values)
-        confidence = pd.Series(confidence.tolist(), name='confidence')
+            # this is a hack, but str conversions on lists later on break things
+            #confidence = pd.Series([1]*len(result_df), name='confidence')
+            result_df = pd.concat([result_df, confidence], axis=1)
 
-        # this is a hack, but str conversions on lists later on break things
-        #confidence = pd.Series([1]*len(result_df), name='confidence')
-        result_df = pd.concat([result_df, confidence], axis=1)
-
-        confidences = [item for sublist in result_df['confidence'].values.tolist() for item in sublist]
-        if self._label_map:
-            labels = np.array(list(self._label_map.values()) * len(result_df))
-        else:
-            labels = np.array(list(np.arange(len(confidence.iloc[0]))) * len(result_df))
-        index = [item for sublist in [[i] * len(np.unique(labels)) for i in result_df.index] for item in sublist]
-        result_df_temp = container.DataFrame()
-        result_df_temp["Class"] = labels
-        result_df_temp["Class"] = result_df_temp["Class"]
-        result_df_temp["confidence"] = confidences
-        result_df_temp.metadata = result_df.metadata
-        result_df_temp['index_temp'] = index
-        result_df_temp = result_df_temp.set_index('index_temp')
-        result_df = result_df_temp
+            confidences = [item for sublist in result_df['confidence'].values.tolist() for item in sublist]
+            if self._label_map:
+                labels = np.array(list(self._label_map.values()) * len(result_df))
+            else:
+                labels = np.array(list(np.arange(len(confidence.iloc[0]))) * len(result_df))
+            index = [item for sublist in [[i] * len(np.unique(labels)) for i in result_df.index] for item in sublist]
+            result_df_temp = container.DataFrame()
+            result_df_temp["Class"] = labels
+            result_df_temp["Class"] = result_df_temp["Class"]
+            result_df_temp["confidence"] = confidences
+            result_df_temp.metadata = result_df.metadata
+            result_df_temp['index_temp'] = index
+            result_df_temp = result_df_temp.set_index('index_temp')
+            result_df = result_df_temp
 
 
-        result_df.metadata = result_df.metadata.add_semantic_type(
-            (metadata_base.ALL_ELEMENTS, len(result_df.columns)-1),
-            "https://metadata.datadrivendiscovery.org/types/Confidence",
-        )
-        result_df.metadata = result_df.metadata.add_semantic_type(
-            (metadata_base.ALL_ELEMENTS, len(result_df.columns)-1),
-            "https://metadata.datadrivendiscovery.org/types/PredictedTarget",
-        )
-        result_df.metadata = result_df.metadata.add_semantic_type(
-            (metadata_base.ALL_ELEMENTS, len(result_df.columns)-1),
-            "https://metadata.datadrivendiscovery.org/types/FloatVector",
-        )
+            result_df.metadata = result_df.metadata.add_semantic_type(
+                (metadata_base.ALL_ELEMENTS, len(result_df.columns)-1),
+                "https://metadata.datadrivendiscovery.org/types/Confidence",
+            )
+            result_df.metadata = result_df.metadata.add_semantic_type(
+                (metadata_base.ALL_ELEMENTS, len(result_df.columns)-1),
+                "https://metadata.datadrivendiscovery.org/types/PredictedTarget",
+            )
+            result_df.metadata = result_df.metadata.add_semantic_type(
+                (metadata_base.ALL_ELEMENTS, len(result_df.columns)-1),
+                "https://metadata.datadrivendiscovery.org/types/FloatVector",
+            )
 
         logger.debug(f"\n{result_df}")
         return base.CallResult(result_df)
