@@ -26,7 +26,6 @@ setup(
         'pandas==1.0.3',
         'torch==1.4.0',
         'networkx==2.4',
-        'tensorflow-gpu==2.2.0',
         'pillow==7.1.2',
 
         # additional dependencies
@@ -53,6 +52,10 @@ setup(
         'python-lzo==1.12',
 
     ],
+    extras_require={
+        'cpu': ['tensorflow==2.2.0'],
+        'gpu': ['tensorflow-gpu==2.2.0'],
+    },
     entry_points={
         'd3m.primitives': [
             'community_detection.community_detection.DistilCommunityDetection = distil.primitives.community_detection:DistilCommunityDetectionPrimitive',
@@ -80,10 +83,8 @@ setup(
             'feature_extraction.audio_transfer.DistilAudioTransfer = distil.primitives.audio_transfer:AudioTransferPrimitive',
             'data_preprocessing.audio_reader.DistilAudioDatasetLoader = distil.primitives.audio_reader:AudioDatasetLoaderPrimitive',
             'clustering.k_means.DistilKMeans = distil.primitives.k_means:KMeansPrimitive',
-            'data_transformation.data_cleaning.OutputDataframe = distil.primitives.output_dataframe:OutputDataframePrimitive',
             'feature_selection.mutual_info_classif.DistilMIRanking = distil.primitives.mi_ranking:MIRankingPrimitive',
             'data_transformation.list_to_dataframe.DistilListEncoder = distil.primitives.list_to_dataframe:ListEncoderPrimitive',
-            'data_transformation.prediction_expansion.DistilPredictionExpansion = distil.primitives.prediction_expansion:PredictionExpansionPrimitive',
             'data_transformation.DistilTimeSeriesBinner = distil.primitives.time_series_binner:TimeSeriesBinnerPrimitive',
             'data_transformation.DistilColumnParser = distil.primitives.column_parser:ColumnParserPrimitive'
         ],
