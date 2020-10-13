@@ -114,6 +114,10 @@ class DataFrameSatelliteImageLoaderPrimitive(transformer.TransformerPrimitiveBas
                 'type': metadata_base.PrimitiveInstallationType.UBUNTU,
                 'package': 'liblzo2-dev',
                 'version': '2.08-1.2',
+            }, {
+                'type': metadata_base.PrimitiveInstallationType.PIP,
+                'package': 'python-lzo',
+                'version': '1.12',
             }],
             'algorithm_types': [
                 metadata_base.PrimitiveAlgorithmType.FILE_MANIPULATION,
