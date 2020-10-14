@@ -109,6 +109,13 @@ class Hyperparams(hyperparams.Hyperparams):
         ],
         description="If grid_search  is true, the number of random forests to fit when using large datasets.",
     )
+    compute_confidences = hyperparams.Hyperparameter[bool](
+        default=False,
+        semantic_types=[
+            "https://metadata.datadrivendiscovery.org/types/ControlParameter"
+        ],
+        description="Compute confidence values.  Only valid when the task is classification.",
+    )
 
 
 class Params(params.Params):
@@ -313,7 +320,7 @@ class EnsembleForestPrimitive(
                 (metadata_base.ALL_ELEMENTS, i),
                 "https://metadata.datadrivendiscovery.org/types/PredictedTarget",
             )
-        if self._model.mode == "classification":
+        if self._model.mode == "classification" and self.hyperparams['compute_confidences']:
             # add confidence scores as some metrics require them.
             confidence = self._model.predict_proba(inputs.values)
             confidence = pd.Series(confidence.tolist(), name='confidence')
@@ -352,6 +359,7 @@ class EnsembleForestPrimitive(
             )
 
         logger.debug(f"\n{result_df}")
+        print(result_df)
         return base.CallResult(result_df)
 
     def produce_feature_importances(
