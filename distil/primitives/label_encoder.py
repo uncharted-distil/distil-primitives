@@ -1,11 +1,11 @@
-from typing import Any, Callable, List, Dict, Union, Optional, Sequence, Tuple
+from typing import Dict, Optional, Sequence
 from numpy import ndarray
-from collections import OrderedDict, defaultdict
+from collections import defaultdict
 from scipy import sparse
 import os
-import sklearn
 import numpy
 import typing
+import version
 
 # Custom import commands if any
 from sklearn.preprocessing.label import LabelEncoder
@@ -59,8 +59,8 @@ class SKLabelEncoder(UnsupervisedLearnerPrimitiveBase[container.DataFrame, conta
 
     __author__ = "Venkat Korapaty"
     metadata = metadata_base.PrimitiveMetadata({
-        "id": "",
-        "version": "1.0.0",
+        "id": "cb773d92-6b1f-4010-ac6f-6009fce85cef",
+        "version": version.__version__,
         "name": "Label Encoder",
         "python_path": "d3m.primitives.data_transformation.encoder.SKLabelEncoder",
         "source": {
