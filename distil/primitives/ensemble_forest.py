@@ -359,7 +359,6 @@ class EnsembleForestPrimitive(
             )
 
         logger.debug(f"\n{result_df}")
-        print(result_df)
         return base.CallResult(result_df)
 
     def produce_feature_importances(
