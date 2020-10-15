@@ -80,10 +80,10 @@ class TimeSeriesBinnerPrimitive(transformer.TransformerPrimitiveBase[container.D
     
     metadata = metadata_base.PrimitiveMetadata(
         {
-            'id': '',
+            'id': '5fee7a91-b843-4636-a21e-a02bf0fd7f3a',
             'version': '0.1.0',
             'name': 'Time series binner',
-            'python_path': 'd3m.primitives.data_transformation.DistilTimeSeriesBinner',
+            'python_path': 'd3m.primitives.data_transformation.binning.DistilTimeSeriesBinner',
             'source': {
                 'name': 'Distil',
                 'contact': 'mailto:vkorapaty@uncharted.software',
