@@ -84,7 +84,31 @@ class DataFrameSatelliteImageLoaderPrimitive(transformer.TransformerPrimitiveBas
     _file_structural_type = container.ndarray
     _file_semantic_types = ('http://schema.org/ImageObject',)
 
-    _band_order = {'01': 0, '02': 1, '03': 2, '04': 3, '05': 4, '06': 5, '07': 6, '08': 7, '8a': 8, '09': 9, '11': 10, '12': 11}
+    _band_order = {
+        '01': 0,
+        '1': 0,
+        '02': 1,
+        '2': 1,
+        '03': 2,
+        '3': 2,
+        '04': 3,
+        '4': 3,
+        '05': 4,
+        '5': 4,
+        '06': 5,
+        '6': 5,
+        '07': 6,
+        '7': 6,
+        '08': 7,
+        '8': 7,
+        '8a': 8,
+        '09': 9,
+        '9': 9,
+        '11': 10,
+        '12': 11
+    }
+
+    _num_bands = max(_band_order.values()) + 1
 
     metadata = metadata_base.PrimitiveMetadata(
         {
@@ -272,10 +296,9 @@ class DataFrameSatelliteImageLoaderPrimitive(transformer.TransformerPrimitiveBas
             output_compressed_bytes = lzo.compress(bytes(output_bytes))
             output = np.frombuffer(output_compressed_bytes, dtype='uint8', count=len(output_compressed_bytes))
         else:
-            images_result = [None] * len(self._band_order)
+            output = np.ndarray((self._num_bands, max_dimension, max_dimension))
             for band, image in images:
-                images_result[self._band_order[band.lower()]] = self._bilinear_resample(image, max_dimension)
-            output = np.array(images_result)
+                output[self._band_order[band.lower()]] = self._bilinear_resample(image, max_dimension)
 
         output = container.ndarray(output, {
             'schema': metadata_base.CONTAINER_SCHEMA_VERSION,
