@@ -2,6 +2,7 @@ import time
 import logging
 import os
 import typing
+import re
 from typing import Tuple
 from d3m.metadata.hyperparams import List
 from d3m.primitive_interfaces.base import Hyperparams
@@ -84,31 +85,20 @@ class DataFrameSatelliteImageLoaderPrimitive(transformer.TransformerPrimitiveBas
     _file_structural_type = container.ndarray
     _file_semantic_types = ('http://schema.org/ImageObject',)
 
-    _band_order = {
-        '01': 0,
+    _BAND_ORDER = {
         '1': 0,
-        '02': 1,
         '2': 1,
-        '03': 2,
         '3': 2,
-        '04': 3,
         '4': 3,
-        '05': 4,
         '5': 4,
-        '06': 5,
         '6': 5,
-        '07': 6,
         '7': 6,
-        '08': 7,
         '8': 7,
         '8a': 8,
-        '09': 9,
         '9': 9,
         '11': 10,
         '12': 11
     }
-
-    _num_bands = max(_band_order.values()) + 1
 
     metadata = metadata_base.PrimitiveMetadata(
         {
@@ -238,8 +228,8 @@ class DataFrameSatelliteImageLoaderPrimitive(transformer.TransformerPrimitiveBas
         end = time.time()
         logger.debug(f'Updated metadata in {end-start}s')
 
-        # only keep one row / group from the input
-        first_band = list(self._band_order.keys())[0]
+        # only keep one row / group from the input - use the first band value to select against
+        first_band = inputs_clone[band_column_name][0]
         first_groups = inputs_clone.loc[inputs_clone[band_column_name] == first_band].reset_index(drop=True)
 
         outputs = base_utils.combine_columns(first_groups, [column_index], [grouped_df], return_result=self.hyperparams['return_result'], add_index_columns=self.hyperparams['add_index_columns'])
@@ -296,9 +286,10 @@ class DataFrameSatelliteImageLoaderPrimitive(transformer.TransformerPrimitiveBas
             output_compressed_bytes = lzo.compress(bytes(output_bytes))
             output = np.frombuffer(output_compressed_bytes, dtype='uint8', count=len(output_compressed_bytes))
         else:
-            output = np.ndarray((self._num_bands, max_dimension, max_dimension))
+            output = np.ndarray((len(DataFrameSatelliteImageLoaderPrimitive._BAND_ORDER), max_dimension, max_dimension))
             for band, image in images:
-                output[self._band_order[band.lower()]] = self._bilinear_resample(image, max_dimension)
+                band_idx = DataFrameSatelliteImageLoaderPrimitive._BAND_ORDER[self._normalized_band_id(band)]
+                output[band_idx] = self._bilinear_resample(image, max_dimension)
 
         output = container.ndarray(output, {
             'schema': metadata_base.CONTAINER_SCHEMA_VERSION,
@@ -354,3 +345,7 @@ class DataFrameSatelliteImageLoaderPrimitive(transformer.TransformerPrimitiveBas
         if max_dimension == 0:
             max_dimension = max(i[1].shape[0] for i in images)
         return max_dimension
+
+    def _normalized_band_id(self, band_id: str) -> str:
+        # force to lower case and remove any prefixed zeroes
+        return re.sub('^0+','',band_id.lower())
