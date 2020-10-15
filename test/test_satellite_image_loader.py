@@ -51,6 +51,10 @@ class DataFrameSatelliteImageLoaderPrimitiveTestCase(unittest.TestCase):
         # verify the output
         self.assertListEqual(list(result_dataframe.shape), [2, 8])
         self.assertListEqual(list(result_dataframe.iloc[0,7].shape), [12, 120, 120])
+        self.assertEqual(result_dataframe['d3mIndex'][0], '1')
+        self.assertEqual(result_dataframe['group_id'][0], 'S2A_MSIL2A_20170613T101031_0_49')
+        self.assertEqual(result_dataframe['d3mIndex'][1], '2')
+        self.assertEqual(result_dataframe['group_id'][1], '2')
 
     def test_band_mapping_replace(self) -> None:
         dataset = test_utils.load_dataset(self._dataset_path)
@@ -71,6 +75,10 @@ class DataFrameSatelliteImageLoaderPrimitiveTestCase(unittest.TestCase):
         # verify the output
         self.assertListEqual(list(result_dataframe.shape), [2, 7])
         self.assertListEqual(list(result_dataframe['image_file'][0].shape), [12, 120, 120])
+        self.assertEqual(result_dataframe['d3mIndex'][0], '1')
+        self.assertEqual(result_dataframe['group_id'][0], 'S2A_MSIL2A_20170613T101031_0_49')
+        self.assertEqual(result_dataframe['d3mIndex'][1], '2')
+        self.assertEqual(result_dataframe['group_id'][1], '2')
 
     def test_band_mapping_compressed(self) -> None:
         dataset = test_utils.load_dataset(self._dataset_path)
