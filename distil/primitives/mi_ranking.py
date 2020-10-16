@@ -1,5 +1,6 @@
 import os
 import typing
+import logging
 from math import log
 from frozendict import FrozenOrderedDict
 import numpy as np
@@ -21,6 +22,7 @@ import version
 
 __all__ = ('MIRankingPrimitive',)
 
+logger = logging.getLogger(__name__)
 
 class Hyperparams(hyperparams.Hyperparams):
     target_col_index = hyperparams.Hyperparameter[typing.Optional[int]](
@@ -262,15 +264,6 @@ class MIRankingPrimitive(transformer.TransformerPrimitiveBase[container.DataFram
                     metadata.update((metadata_base.ALL_ELEMENTS, f), FrozenOrderedDict(rank_dict.items()))
             return base.CallResult(inputs)
 
-
-        if self.hyperparams['return_as_metadata']:
-            for i, f in enumerate(feature_indices):
-                column_metadata = inputs.metadata.query((metadata_base.ALL_ELEMENTS, f))
-                rank_dict = dict(column_metadata)
-                rank_dict['rank'] = ranked_features_np[i]
-                inputs.metadata = inputs.\
-                    metadata.update((metadata_base.ALL_ELEMENTS, f), FrozenOrderedDict(rank_dict.items()))
-            return base.CallResult(inputs)
         # merge back into a single list of col idx / rank value tuples
         data: typing.List[typing.Tuple[int, str, float]] = []
         data = self._append_rank_info(inputs, data, ranked_features_np, feature_df[feature_columns])
@@ -344,8 +337,6 @@ class MIRankingPrimitive(transformer.TransformerPrimitiveBase[container.DataFram
             #             normalized_ranked_features[i] = 1.0
             #         else:
             #             normalized_ranked_features[i] = naive_mi
-                    
-
         return normalized_ranked_features, target_entropy
 
     def _normalize_text(self, text_ranked_features_np, column_to_text_features, target_entropy):
@@ -374,7 +365,7 @@ class MIRankingPrimitive(transformer.TransformerPrimitiveBase[container.DataFram
         # possible loss of precision
         entropy = -np.sum((pi / pi_sum) * (np.log(pi) - log(pi_sum)))
         if entropy <= 0:
-                raise exceptions.InvalidArgumentValueError('inputs has too many non-unique values or not enough values possibly')
+                logger.warn('inputs has too many non-unique values or not enough values possibly - returning 0 entropy')
         return entropy
 
     def _continuous_entropy(self, x):
