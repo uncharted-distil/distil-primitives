@@ -120,7 +120,7 @@ class TimeSeriesBinnerPrimitive(transformer.TransformerPrimitiveBase[container.D
         self.group_col_name = inputs.columns[group_key_index]
         # inputs = inputs.set_index(self.group_col_name)
         self.time_col_dtype = inputs.dtypes[self.time_col_name]
-        self.value_columns = inputs.columns[value_indices]
+        self.value_columns = inputs.columns[list(value_indices)]
         usable_cols = [self.group_col_name, self.time_col_name] + list(self.value_columns)
         inputs = inputs[usable_cols]
 
@@ -140,14 +140,15 @@ class TimeSeriesBinnerPrimitive(transformer.TransformerPrimitiveBase[container.D
             group_col_values += [group_name] * len(timeseries_group)
             binned_groups[i] = timeseries_group
             i += 1
-        outputs = pd.concat(binned_groups)
+        outputs = container.DataFrame(pd.concat(binned_groups))
 
         is_datetime_index = isinstance(outputs.index, pd.DatetimeIndex)
         if is_datetime_index:
             datetime_index = outputs.index
         if len(outputs) <= len(init_index):
-            outputs = outputs.set_index(init_index[0:len(outputs)]) #if len(outputs) <= len(init_index) else list(range(0, len(outputs), 1))
+            outputs = outputs.set_index(init_index[0:len(outputs)])
             outputs.insert(loc=d3m_index, column='d3mIndex', value=d3m_col[0:len(outputs)])
+            outputs.metadata = outputs.metadata.update_column(metadata=inputs.metadata.query((metadata_base.ALL_ELEMENTS, d3m_index)), column_index=d3m_index)
         else: # assume index and d3mIndex are int
             outputs = outputs.set_index(pd.Index(range(0, len(outputs), 1)))
             d3m_new_col = container.DataFrame({'d3mIndex': range(0, len(outputs), 1)})
@@ -155,6 +156,12 @@ class TimeSeriesBinnerPrimitive(transformer.TransformerPrimitiveBase[container.D
         outputs.insert(loc=group_key_index, column=self.group_col_name, value=group_col_values)
         if is_datetime_index:
             outputs.insert(loc=time_index, column=self.time_col_name, value=datetime_index)
+        outputs.metadata = inputs.metadata
+        outputs.metadata = outputs.metadata.update_column(metadata=inputs.metadata.query((metadata_base.ALL_ELEMENTS, d3m_index)), column_index=d3m_index)
+        outputs.metadata = outputs.metadata.update_column(metadata=inputs.metadata.query((metadata_base.ALL_ELEMENTS, group_key_index)), column_index=group_key_index)
+        outputs.metadata = outputs.metadata.update_column(metadata=inputs.metadata.query((metadata_base.ALL_ELEMENTS, time_index)), column_index=time_index)
+        for i in value_indices:
+            outputs.metadata = outputs.metadata.update_column(metadata=inputs.metadata.query((metadata_base.ALL_ELEMENTS, i)), column_index=i)
         return base.CallResult(outputs)
 
     def _get_grouping_key_index(self, inputs_metadata):
