@@ -218,7 +218,7 @@ class MIRankingPrimitive(transformer.TransformerPrimitiveBase[container.DataFram
         target_np = target_df.values
 
         # compute mutual information for discrete or continuous target
-        ranked_features_np = None
+        ranked_features_np = np.empty([0])
         text_ranked_features_np = np.empty((len(column_to_text_features),))
         if discrete:
             if numeric_features:
