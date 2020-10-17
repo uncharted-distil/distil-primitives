@@ -80,10 +80,10 @@ class TimeSeriesBinnerPrimitive(transformer.TransformerPrimitiveBase[container.D
     
     metadata = metadata_base.PrimitiveMetadata(
         {
-            'id': '',
+            'id': '5fee7a91-b843-4636-a21e-a02bf0fd7f3a',
             'version': '0.1.0',
             'name': 'Time series binner',
-            'python_path': 'd3m.primitives.data_transformation.DistilTimeSeriesBinner',
+            'python_path': 'd3m.primitives.data_transformation.binning.DistilTimeSeriesBinner',
             'source': {
                 'name': 'Distil',
                 'contact': 'mailto:vkorapaty@uncharted.software',
@@ -118,9 +118,9 @@ class TimeSeriesBinnerPrimitive(transformer.TransformerPrimitiveBase[container.D
         value_indices = self._get_value_indices(inputs.metadata)
         self.time_col_name = inputs.columns[time_index]
         self.group_col_name = inputs.columns[group_key_index]
-        # inputs = inputs.set_index(self.group_col_name)
+
         self.time_col_dtype = inputs.dtypes[self.time_col_name]
-        self.value_columns = inputs.columns[value_indices]
+        self.value_columns = inputs.columns[list(value_indices)]
         usable_cols = [self.group_col_name, self.time_col_name] + list(self.value_columns)
         inputs = inputs[usable_cols]
 
@@ -131,23 +131,22 @@ class TimeSeriesBinnerPrimitive(transformer.TransformerPrimitiveBase[container.D
         group_col_values = []
         i = 0
         for group_name, group in groups:
-            # group_col = group[self.group_col_name]
             timeseries_group = group.drop(columns=[self.group_col_name])
 
             timeseries_group = self._applyBinningOperation(timeseries_group)
 
-            # timeseries_group.insert(loc=group_key_index, column=self.group_col_name, value=group_name)
             group_col_values += [group_name] * len(timeseries_group)
             binned_groups[i] = timeseries_group
             i += 1
-        outputs = pd.concat(binned_groups)
+        outputs = container.DataFrame(pd.concat(binned_groups))
 
         is_datetime_index = isinstance(outputs.index, pd.DatetimeIndex)
         if is_datetime_index:
             datetime_index = outputs.index
         if len(outputs) <= len(init_index):
-            outputs = outputs.set_index(init_index[0:len(outputs)]) #if len(outputs) <= len(init_index) else list(range(0, len(outputs), 1))
+            outputs = outputs.set_index(init_index[0:len(outputs)])
             outputs.insert(loc=d3m_index, column='d3mIndex', value=d3m_col[0:len(outputs)])
+            outputs.metadata = outputs.metadata.update_column(metadata=inputs.metadata.query((metadata_base.ALL_ELEMENTS, d3m_index)), column_index=d3m_index)
         else: # assume index and d3mIndex are int
             outputs = outputs.set_index(pd.Index(range(0, len(outputs), 1)))
             d3m_new_col = container.DataFrame({'d3mIndex': range(0, len(outputs), 1)})
@@ -155,6 +154,7 @@ class TimeSeriesBinnerPrimitive(transformer.TransformerPrimitiveBase[container.D
         outputs.insert(loc=group_key_index, column=self.group_col_name, value=group_col_values)
         if is_datetime_index:
             outputs.insert(loc=time_index, column=self.time_col_name, value=datetime_index)
+        outputs.metadata = inputs.metadata.select_columns([d3m_index, group_key_index, time_index] + list(value_indices))
         return base.CallResult(outputs)
 
     def _get_grouping_key_index(self, inputs_metadata):
@@ -221,7 +221,7 @@ class TimeSeriesBinnerPrimitive(transformer.TransformerPrimitiveBase[container.D
         binning_intervals = [i * binning_size + firstTime for i in range(amount_of_binning_intervals)]
         binning_intervals[0] = binning_intervals[0] - int(right)
         timeseries_group['binned'] = pd.cut(x=timeseries_group[self.time_col_name], bins=binning_intervals, right=right)
-        # print(timeseries_group, file=sys.__stdout__)
+
         columnsToOperation = {}
         columnsToOperation[self.time_col_name] = 'max'
         for value in self.value_columns:
