@@ -172,8 +172,11 @@ class MIRankingPrimitive(transformer.TransformerPrimitiveBase[container.DataFram
         feature_indices = feature_indices.intersection(role_indices)
         feature_indices.remove(target_idx)
         for categ_ind in inputs.metadata.list_columns_with_semantic_types(('https://metadata.datadrivendiscovery.org/types/CategoricalData',)):
-            if np.unique(inputs[inputs.columns[categ_ind]]).shape[0] == inputs.shape[0] and categ_ind in feature_indices:
-                feature_indices.remove(categ_ind)
+            if categ_ind in feature_indices:
+                if np.unique(inputs[inputs.columns[categ_ind]]).shape[0] == inputs.shape[0]:
+                    feature_indices.remove(categ_ind)
+                elif inputs.metadata.query((metadata_base.ALL_ELEMENTS, categ_ind))['structural_type'] == str:
+                    feature_df[inputs.columns[categ_ind]] = pd.to_numeric(feature_df[inputs.columns[categ_ind]])
         text_indices = inputs.metadata.list_columns_with_semantic_types(self._text_semantic)
 
         tfv = TfidfVectorizer(max_features=20)
@@ -370,7 +373,7 @@ class MIRankingPrimitive(transformer.TransformerPrimitiveBase[container.DataFram
 
     def _continuous_entropy(self, x):
         k = self.hyperparams['k']
-        result = mutual_info_regression(x.reshape(-1, 1), x.reshape(-1, 1), [False], n_neighbors=k, random_state=self._random_seed)[0]
+        result = mutual_info_regression(x.reshape(-1, 1), x.ravel(), [False], n_neighbors=k, random_state=self._random_seed)[0]
         # sorted_x = np.sort(x)
 
         # eps_distances = np.empty(x.shape[0])
