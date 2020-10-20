@@ -15,7 +15,6 @@
 """
 
 import os
-import sys
 import logging
 import typing
 
@@ -25,7 +24,7 @@ from d3m import container, exceptions, utils
 from d3m.metadata import base as metadata_base, hyperparams, params
 from d3m.primitive_interfaces import base, transformer
 from distil.utils import CYTHON_DEP
-
+import version
 
 logger = logging.getLogger(__name__)
 
@@ -77,11 +76,11 @@ class TimeSeriesBinnerPrimitive(transformer.TransformerPrimitiveBase[container.D
     _grouping_key_semantic = ('https://metadata.datadrivendiscovery.org/types/GroupingKey',)
     _time_semantic = ('https://metadata.datadrivendiscovery.org/types/Time',)
     _target_semantic = ('https://metadata.datadrivendiscovery.org/types/Target',)
-    
+
     metadata = metadata_base.PrimitiveMetadata(
         {
             'id': '5fee7a91-b843-4636-a21e-a02bf0fd7f3a',
-            'version': '0.1.0',
+            'version': version.__version__,
             'name': 'Time series binner',
             'python_path': 'd3m.primitives.data_transformation.binning.DistilTimeSeriesBinner',
             'source': {
