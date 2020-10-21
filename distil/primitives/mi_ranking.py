@@ -170,6 +170,7 @@ class MIRankingPrimitive(transformer.TransformerPrimitiveBase[container.DataFram
         # make a copy of the inputs and clean out any missing data
         feature_df = inputs.copy()
         if self.hyperparams['sub_sample']:
+            sub_sampel_size = self.hyperparams['sub_sample_size'] if self.hyperparams['sub_sample_size'] < inputs.shape[0] else inputs.shape[0]
             rows = random.sample_without_replacement(inputs.shape[0], self.hyperparams['sub_sample_size'])
             feature_df = feature_df.iloc[rows, :]
         # makes sure that if an entire column is NA, we remove that column, so as to not remove ALL rows
