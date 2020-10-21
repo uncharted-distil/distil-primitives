@@ -180,6 +180,65 @@ class MIRankingPrimitiveTestCase(unittest.TestCase):
         self.assertListEqual(list(result_dataframe['idx']), [2, 5, 4, 3])
         self.assertListEqual(list(result_dataframe['name']), ['bravo', 'echo', 'delta', 'charlie'])
 
+    # def test_acled(self) -> None:
+    #     dataset = test_utils.load_dataset('/Users/vkorapaty/data/datasets/seed_datasets_current/LL0_acled_reduced_MIN_METADATA/LL0_acled_reduced_MIN_METADATA')
+
+    #     hyperparams_class = \
+    #         DatasetToDataFramePrimitive.metadata.query()['primitive_code']['class_type_arguments']['Hyperparams']
+    #     dataframe_primitive = DatasetToDataFramePrimitive(hyperparams=hyperparams_class.defaults())
+    #     dataframe = dataframe_primitive.produce(inputs=dataset).value
+
+    #     dataframe.metadata= dataframe.metadata.update((metadata_base.ALL_ELEMENTS, 6),
+    #                                                     {'structural_type': int})
+    #     le = LabelEncoder()
+    #     dataframe['event_type'] = le.fit_transform(dataframe['event_type'])
+    #     dataframe.metadata = dataframe.metadata.\
+    #         add_semantic_type((metadata_base.ALL_ELEMENTS, 6),
+    #                             'httpse://metadata.datadrivendiscovery.org/types/Target')
+    #     dataframe.metadata = dataframe.metadata.\
+    #         add_semantic_type((metadata_base.ALL_ELEMENTS, 6),
+    #                             'https://metadata.datadrivendiscovery.org/types/CategoricalData')
+    #     dataframe.metadata = dataframe.metadata.remove_semantic_type((metadata_base.ALL_ELEMENTS, 6), 'https://metadata.datadrivendiscovery.org/types/Attribute')
+    #     hyperparams_class = \
+    #         ColumnParserPrimitive.metadata.query()['primitive_code']['class_type_arguments']['Hyperparams']
+    #     column_parser = ColumnParserPrimitive(hyperparams=hyperparams_class.defaults())
+    #     dataframe = column_parser.produce(inputs=dataframe).value
+
+    #     hyperparams_class = \
+    #         MIRanking.metadata.query()['primitive_code']['class_type_arguments']['Hyperparams'].defaults().replace(
+    #         {
+    #             'target_col_index': 6,
+    #             'sub_sample': True
+    #         }
+    #     )
+    #     mi_ranking = MIRanking(hyperparams=hyperparams_class)
+    #     hundred_df = mi_ranking.produce(inputs=dataframe).value
+
+    #     hyperparams_class = \
+    #         MIRanking.metadata.query()['primitive_code']['class_type_arguments']['Hyperparams'].defaults().replace(
+    #         {
+    #             'target_col_index': 6,
+    #             'sub_sample': True,
+    #             'sub_sample_size': 500
+    #         }
+    #     )
+    #     mi_ranking = MIRanking(hyperparams=hyperparams_class)
+    #     five_hundred_df = mi_ranking.produce(inputs=dataframe).value
+
+    #     hyperparams_class = \
+    #         MIRanking.metadata.query()['primitive_code']['class_type_arguments']['Hyperparams'].defaults().replace(
+    #         {
+    #             'target_col_index': 6,
+    #             'sub_sample': True,
+    #             'sub_sample_size': 1000
+    #         }
+    #     )
+    #     mi_ranking = MIRanking(hyperparams=hyperparams_class)
+    #     thousand_df = mi_ranking.produce(inputs=dataframe).value
+
+    #     hundred_df = thousand_df
+
+
     def _load_data(cls, bad_features: typing.Sequence[int]=[], alpha_class=int, charlie_class=int) -> container.DataFrame:
         dataset_doc_path = path.join(cls._dataset_path, 'datasetDoc.json')
 

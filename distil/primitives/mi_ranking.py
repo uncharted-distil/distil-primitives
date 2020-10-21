@@ -18,6 +18,7 @@ from sklearn import preprocessing
 from sklearn import utils as skl_utils
 from sklearn.neighbors import NearestNeighbors
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.utils import random
 import version
 
 __all__ = ('MIRankingPrimitive',)
@@ -39,6 +40,16 @@ class Hyperparams(hyperparams.Hyperparams):
         default=False,
         semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
         description="If True will return each columns rank in their respective metadata as the key 'rank'"
+    )
+    sub_sample = hyperparams.Hyperparameter[bool](
+        default=False,
+        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
+        description="Whether or not to run MI ranking on a subset of the dataset"
+    )
+    sub_sample_size = hyperparams.Hyperparameter[typing.Optional[int]](
+        default=100,
+        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
+        description='If sub-sampling, the size of the subsample'
     )
 
 class MIRankingPrimitive(transformer.TransformerPrimitiveBase[container.DataFrame,
@@ -158,6 +169,9 @@ class MIRankingPrimitive(transformer.TransformerPrimitiveBase[container.DataFram
 
         # make a copy of the inputs and clean out any missing data
         feature_df = inputs.copy()
+        if self.hyperparams['sub_sample']:
+            rows = random.sample_without_replacement(inputs.shape[0], self.hyperparams['sub_sample_size'])
+            feature_df = feature_df.iloc[rows, :]
         # makes sure that if an entire column is NA, we remove that column, so as to not remove ALL rows
         cols_to_drop = feature_df.columns[feature_df.isna().sum() == feature_df.shape[0]]
         feature_df.drop(columns=cols_to_drop, inplace=True)
