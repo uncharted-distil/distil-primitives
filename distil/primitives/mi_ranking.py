@@ -12,6 +12,7 @@ from d3m import exceptions
 from d3m.metadata import base as metadata_base, hyperparams
 from d3m.primitive_interfaces import base, transformer
 from distil.utils import CYTHON_DEP
+from distil.primitives.enrich_dates import EnrichDatesPrimitive
 from sklearn.feature_selection import mutual_info_regression, mutual_info_classif
 from sklearn import metrics
 from sklearn import preprocessing
@@ -167,8 +168,14 @@ class MIRankingPrimitive(transformer.TransformerPrimitiveBase[container.DataFram
         semantic_types = inputs.metadata.query_column(target_idx)['semantic_types']
         discrete = len(set(semantic_types).intersection(self._discrete_types)) > 0
 
-        # make a copy of the inputs and clean out any missing data
-        feature_df = inputs.copy()
+        if len(inputs.metadata.list_columns_with_semantic_types(('http://schema.org/DateTime',))) > 0:
+            hyperparams_class = \
+                EnrichDatesPrimitive.metadata.query()['primitive_code']['class_type_arguments']['Hyperparams'].defaults().replace({'replace': True })
+            date_enricher = EnrichDatesPrimitive(hyperparams=hyperparams_class)
+            feature_df = date_enricher.produce(inputs=inputs.copy()).value
+        else:
+            # make a copy of the inputs and clean out any missing data
+            feature_df = inputs.copy()
         if self.hyperparams['sub_sample']:
             sub_sampel_size = self.hyperparams['sub_sample_size'] if self.hyperparams['sub_sample_size'] < inputs.shape[0] else inputs.shape[0]
             rows = random.sample_without_replacement(inputs.shape[0], self.hyperparams['sub_sample_size'])

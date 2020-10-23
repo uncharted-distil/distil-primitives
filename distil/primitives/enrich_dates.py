@@ -23,6 +23,11 @@ class Hyperparams(hyperparams.Hyperparams):
         semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
         description="A set of column indices to force primitive to operate on. If any specified column cannot be parsed, it is skipped.",
     )
+    replace = hyperparams.Hyperparameter[bool](
+        default=False,
+        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
+        description="Whether or not to replace enriched DateTime columns or append them"
+    )
 
 class EnrichDatesPrimitive(transformer.TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
     """
@@ -83,10 +88,16 @@ class EnrichDatesPrimitive(transformer.TransformerPrimitiveBase[Inputs, Outputs,
                 if sec_std != 0.0:
                     sec_val = (inputs_seconds - sec_mean) / sec_std
 
-                # append the results and update semantic types
-                result = container.DataFrame({f'__date_{date_num}': sec_val}, generate_metadata=True)
-                result.metadata = result.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, 0), 'http://schema.org/Float')
-                inputs = inputs.append_columns(result)
+                if self.hyperparams['replace']:
+                    inputs.metadata = inputs.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, c), 'http://schema.org/Float')
+                    inputs.metadata = inputs.metadata.remove_semantic_type((metadata_base.ALL_ELEMENTS, c), 'http://schema.org/DateTime')
+                    inputs.metadata = inputs.metadata.update((metadata_base.ALL_ELEMENTS, c), {'structural_type': float})
+                    inputs[inputs.columns[c]] = sec_val
+                else:
+                    # append the results and update semantic types
+                    result = container.DataFrame({f'__date_{date_num}': sec_val}, generate_metadata=True)
+                    result.metadata = result.metadata.add_semantic_type((metadata_base.ALL_ELEMENTS, 0), 'http://schema.org/Float')
+                    inputs = inputs.append_columns(result)
 
                 date_num += 1
             except:
