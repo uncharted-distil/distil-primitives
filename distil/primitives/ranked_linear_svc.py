@@ -55,6 +55,7 @@ class Params(params.Params):
     target_cols: List[str]
     needs_fit: bool
     binary: bool
+    standard_scaler: StandardScaler
 
 class RankedLinearSVCPrimitive(
     PrimitiveBase[container.DataFrame, container.DataFrame, Params, Hyperparams]
