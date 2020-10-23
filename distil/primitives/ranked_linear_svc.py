@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 from pandas.core.computation.pytables import ConditionBinOp
 from sklearn.svm import LinearSVC
+from sklearn.preprocessing import StandardScaler
 from scipy.stats import rankdata
 from d3m import container, utils
 from d3m.metadata import base as metadata_base, hyperparams, params
@@ -42,6 +43,11 @@ class Hyperparams(hyperparams.Hyperparams):
         default=1e-4,
         semantic_types=['https://metadata.datadrivendiscovery.org/types/TuningParameter'],
         description="Tolerance for error. Aims to stop within th is tolerance",
+    )
+    normalize = hyperparams.Hyperparameter[bool](
+        default=False,
+        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
+        description="Whether or not to normalize the data before running SVC"
     )
 
 class Params(params.Params):
@@ -96,11 +102,16 @@ class RankedLinearSVCPrimitive(
         self._model = LinearSVC(penalty=self.hyperparams['penalty'], loss=self.hyperparams['loss'], tol=self.hyperparams['tolerance'], random_state=random_seed)
         self._needs_fit = True
         self._binary = False
+        self._standard_scaler = None
 
     def set_training_data(
         self, *, inputs: container.DataFrame, outputs: container.DataFrame
     ) -> None:
-        self._inputs = inputs
+        if self.hyperparams['normalize']:
+            self._standard_scaler = StandardScaler()
+            self._inputs = self._standard_scaler.fit_transform(inputs.values)
+        else:
+            self._inputs = inputs.values
         self._outputs = outputs
         self._needs_fit = True
         self._target_cols: List[str] = []
@@ -110,7 +121,7 @@ class RankedLinearSVCPrimitive(
         logger.debug(f"Fitting {__name__}")
 
         if self._needs_fit:
-            self._model.fit(self._inputs.values, self._outputs.values)
+            self._model.fit(self._inputs, self._outputs.values.ravel())
             self._needs_fit = False
         return CallResult(None)
 
@@ -132,19 +143,21 @@ class RankedLinearSVCPrimitive(
 
         confidences_ranked: np.ndarray = None
         result: pd.DataFrame = None
-
+        inputs = inputs.values
         # create dataframe to hold the result
-        result = self._model.predict(inputs.values)
+        if self.hyperparams['normalize']:
+            inputs = self._standard_scaler.transform(inputs)
+        result = self._model.predict(inputs)
         result_df: container.DataFrame = None
         if self._binary:
-            confidences = self._model.decision_function(inputs.values)
+            confidences = self._model.decision_function(inputs)
             if self.hyperparams['rank_confidences']:
                 confidences = rankdata(confidences)
             result_df = container.DataFrame(
                 {self._target_cols[0]: result, 'confidence': confidences}, generate_metadata=True
             )
         else:
-            confidences = self._get_confidence(inputs.values)
+            confidences = self._get_confidence(inputs)
             result_df = container.DataFrame(
                 {self._target_cols[0]: result, 'confidence': confidences.max(axis=1)}, generate_metadata=True
             )
@@ -186,7 +199,8 @@ class RankedLinearSVCPrimitive(
             model = self._model,
             needs_fit = self._needs_fit,
             target_cols = self._target_cols,
-            binary = self._binary
+            binary = self._binary,
+            standard_scaler = self._standard_scaler
         )
 
     def set_params(self, *, params: Params) -> None:
@@ -194,4 +208,5 @@ class RankedLinearSVCPrimitive(
         self._needs_fit = params['needs_fit']
         self._target_cols = params['target_cols']
         self._binary = params['binary']
+        self._standard_scaler = params['standard_scaler']
         return
