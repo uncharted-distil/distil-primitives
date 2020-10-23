@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import List
+from typing import List, Optional
 
 import numpy as np
 import pandas as pd
@@ -55,6 +55,7 @@ class Params(params.Params):
     target_cols: List[str]
     needs_fit: bool
     binary: bool
+    standard_scaler: Optional[StandardScaler]
 
 class RankedLinearSVCPrimitive(
     PrimitiveBase[container.DataFrame, container.DataFrame, Params, Hyperparams]
