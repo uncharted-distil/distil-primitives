@@ -3,6 +3,7 @@ import os
 from typing import List
 
 import pandas as pd
+import numpy as np
 from d3m import container, utils
 from d3m.metadata import base as metadata_base, hyperparams, params
 from d3m.primitive_interfaces import base, unsupervised_learning
@@ -81,8 +82,7 @@ class ListEncoderPrimitive(unsupervised_learning.UnsupervisedLearnerPrimitiveBas
             cols = list(set(cols) & set(self.hyperparams['use_columns']))
         filtered_cols: List[int] = []
         for c in cols:
-            is_list = type(self._inputs.iloc[0, c]) == container.numpy.ndarray
-            if is_list:
+            if isinstance(self._inputs.iloc[0, c], np.ndarray):
                 filtered_cols.append(c)
 
         logger.debug(f'Found {len(filtered_cols)} columns to encode')
