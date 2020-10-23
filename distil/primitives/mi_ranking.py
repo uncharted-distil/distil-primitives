@@ -12,12 +12,14 @@ from d3m import exceptions
 from d3m.metadata import base as metadata_base, hyperparams
 from d3m.primitive_interfaces import base, transformer
 from distil.utils import CYTHON_DEP
+from distil.primitives.enrich_dates import EnrichDatesPrimitive
 from sklearn.feature_selection import mutual_info_regression, mutual_info_classif
 from sklearn import metrics
 from sklearn import preprocessing
 from sklearn import utils as skl_utils
 from sklearn.neighbors import NearestNeighbors
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.utils import random
 import version
 
 __all__ = ('MIRankingPrimitive',)
@@ -39,6 +41,16 @@ class Hyperparams(hyperparams.Hyperparams):
         default=False,
         semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
         description="If True will return each columns rank in their respective metadata as the key 'rank'"
+    )
+    sub_sample = hyperparams.Hyperparameter[bool](
+        default=False,
+        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
+        description="Whether or not to run MI ranking on a subset of the dataset"
+    )
+    sub_sample_size = hyperparams.Hyperparameter[typing.Optional[int]](
+        default=1000,
+        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
+        description='If sub-sampling, the size of the subsample'
     )
 
 class MIRankingPrimitive(transformer.TransformerPrimitiveBase[container.DataFrame,
@@ -156,8 +168,18 @@ class MIRankingPrimitive(transformer.TransformerPrimitiveBase[container.DataFram
         semantic_types = inputs.metadata.query_column(target_idx)['semantic_types']
         discrete = len(set(semantic_types).intersection(self._discrete_types)) > 0
 
-        # make a copy of the inputs and clean out any missing data
-        feature_df = inputs.copy()
+        if len(inputs.metadata.list_columns_with_semantic_types(('http://schema.org/DateTime',))) > 0:
+            hyperparams_class = \
+                EnrichDatesPrimitive.metadata.query()['primitive_code']['class_type_arguments']['Hyperparams'].defaults().replace({'replace': True })
+            date_enricher = EnrichDatesPrimitive(hyperparams=hyperparams_class)
+            feature_df = date_enricher.produce(inputs=inputs.copy()).value
+        else:
+            # make a copy of the inputs and clean out any missing data
+            feature_df = inputs.copy()
+        if self.hyperparams['sub_sample']:
+            sub_sampel_size = self.hyperparams['sub_sample_size'] if self.hyperparams['sub_sample_size'] < inputs.shape[0] else inputs.shape[0]
+            rows = random.sample_without_replacement(inputs.shape[0], self.hyperparams['sub_sample_size'])
+            feature_df = feature_df.iloc[rows, :]
         # makes sure that if an entire column is NA, we remove that column, so as to not remove ALL rows
         cols_to_drop = feature_df.columns[feature_df.isna().sum() == feature_df.shape[0]]
         feature_df.drop(columns=cols_to_drop, inplace=True)
@@ -172,8 +194,11 @@ class MIRankingPrimitive(transformer.TransformerPrimitiveBase[container.DataFram
         feature_indices = feature_indices.intersection(role_indices)
         feature_indices.remove(target_idx)
         for categ_ind in inputs.metadata.list_columns_with_semantic_types(('https://metadata.datadrivendiscovery.org/types/CategoricalData',)):
-            if np.unique(inputs[inputs.columns[categ_ind]]).shape[0] == inputs.shape[0] and categ_ind in feature_indices:
-                feature_indices.remove(categ_ind)
+            if categ_ind in feature_indices:
+                if np.unique(inputs[inputs.columns[categ_ind]]).shape[0] == inputs.shape[0]:
+                    feature_indices.remove(categ_ind)
+                elif inputs.metadata.query((metadata_base.ALL_ELEMENTS, categ_ind))['structural_type'] == str:
+                    feature_df[inputs.columns[categ_ind]] = pd.to_numeric(feature_df[inputs.columns[categ_ind]])
         text_indices = inputs.metadata.list_columns_with_semantic_types(self._text_semantic)
 
         tfv = TfidfVectorizer(max_features=20)
@@ -370,7 +395,7 @@ class MIRankingPrimitive(transformer.TransformerPrimitiveBase[container.DataFram
 
     def _continuous_entropy(self, x):
         k = self.hyperparams['k']
-        result = mutual_info_regression(x.reshape(-1, 1), x.reshape(-1, 1), [False], n_neighbors=k, random_state=self._random_seed)[0]
+        result = mutual_info_regression(x.reshape(-1, 1), x.ravel(), [False], n_neighbors=k, random_state=self._random_seed)[0]
         # sorted_x = np.sort(x)
 
         # eps_distances = np.empty(x.shape[0])
