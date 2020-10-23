@@ -48,7 +48,7 @@ class Hyperparams(hyperparams.Hyperparams):
         description="Whether or not to run MI ranking on a subset of the dataset"
     )
     sub_sample_size = hyperparams.Hyperparameter[typing.Optional[int]](
-        default=100,
+        default=1000,
         semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
         description='If sub-sampling, the size of the subsample'
     )
