@@ -33,6 +33,11 @@ class Hyperparams(hyperparams.Hyperparams):
         semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
         description=".",
     )
+    n_jobs = hyperparams.Hyperparameter[int](
+        default=64,
+        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
+        description='The value of the n_jobs parameter for the joblib library'
+    )
 
 class WavInput:
     def __init__(self, data, sample_rate):
@@ -210,5 +215,5 @@ class AudioDatasetLoaderPrimitive(transformer.TransformerPrimitiveBase[container
     @classmethod
     def _audio_load(cls, files_in: Sequence[Tuple]) -> List:
         jobs = [delayed(convert_load_file)(f[0], float(f[1]), float(f[2])) for f in tqdm(files_in, total=len(files_in))]
-        files_out = Parallel(n_jobs=64, backend='loky', verbose=10)(jobs)
+        files_out = Parallel(n_jobs=self.hyperparams['n_jobs'], backend='loky', verbose=10)(jobs)
         return files_out

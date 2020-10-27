@@ -80,7 +80,7 @@ class ForestCV(DistilBaseModel):
 
     def __init__(self, target_metric, subset=100000, final_subset=1500000,
         verbose=10, num_fits=1, inner_jobs=1, grid_search=False, param_grid=None, random_seed=None,
-        hyperparams=None):
+        hyperparams=None, n_jobs=64):
 
         self.target_metric = target_metric
 
@@ -96,7 +96,7 @@ class ForestCV(DistilBaseModel):
         self.verbose      = verbose
         self.num_fits     = num_fits
         self.inner_jobs   = inner_jobs
-        self.outer_jobs   = 64
+        self.outer_jobs   = n_jobs
 
         self.params = hyperparams
         self.random_seed = random_seed
