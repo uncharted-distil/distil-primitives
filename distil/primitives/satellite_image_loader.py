@@ -60,6 +60,11 @@ class Hyperparams(hyperparams.Hyperparams):
                     Store a header consisting of the dtype character and the data shape as unsigned integers.\
                     Given c struct alignment, will occupy 16 bytes (1 + 4 + 4 + 4 + 3 ) padding"
     )
+    n_jobs = hyperparams.Hyperparameter[int](
+        default=64,
+        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
+        description='The value of the n_jobs parameter for the joblib library'
+    )
 
 class DataFrameSatelliteImageLoaderPrimitive(transformer.TransformerPrimitiveBase[container.DataFrame,
                                                               container.DataFrame,
@@ -210,7 +215,7 @@ class DataFrameSatelliteImageLoaderPrimitive(transformer.TransformerPrimitiveBas
         # load images for each group and store them in a matrix of [band, x, y]
         jobs = [delayed(self._load_image_group)(group[1][file_column_name], group[1][band_column_name], base_uri, max_dimension)\
             for group in tqdm(groups, total=len(groups))]
-        groups = Parallel(n_jobs=64, backend='loky', verbose=10)(jobs)
+        groups = Parallel(n_jobs=self.hyperparams['n_jobs'], backend='loky', verbose=10)(jobs)
         end = time.time()
         logger.debug(f'Loaded images in {end-start}s')
 
