@@ -116,6 +116,11 @@ class Hyperparams(hyperparams.Hyperparams):
         ],
         description="Compute confidence values.  Only valid when the task is classification.",
     )
+    n_jobs = hyperparams.Hyperparameter[int](
+        default=64,
+        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
+        description='The value of the n_jobs parameter for the joblib library'
+    )
 
 
 class Params(params.Params):
@@ -186,7 +191,7 @@ class EnsembleForestPrimitive(
                 current_hyperparams.update({"bootstrap": True})
 
         self._model = ForestCV(self.hyperparams["metric"], random_seed=self.random_seed,
-            hyperparams=current_hyperparams, grid_search=grid_search)
+            hyperparams=current_hyperparams, grid_search=grid_search, n_jobs=self.hyperparams['n_jobs'])
         self._needs_fit = True
         self._label_map: Dict[int, str] = {}
         self._target_cols: List[str] = []
