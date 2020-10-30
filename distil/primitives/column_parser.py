@@ -16,74 +16,97 @@ import version
 
 logger = logging.getLogger(__name__)
 
+
 class Hyperparams(hyperparams.Hyperparams):
     parsing_semantics = hyperparams.Set(
         elements=hyperparams.Enumeration(
             values=[
-                'http://schema.org/Boolean', 'http://schema.org/Integer', 'http://schema.org/Float',
-                'https://metadata.datadrivendiscovery.org/types/FloatVector'
+                "http://schema.org/Boolean",
+                "http://schema.org/Integer",
+                "http://schema.org/Float",
+                "https://metadata.datadrivendiscovery.org/types/FloatVector",
             ],
-            default='http://schema.org/Float'
+            default="http://schema.org/Float",
         ),
         default=(
-            'http://schema.org/Boolean',
-            'http://schema.org/Integer', 'http://schema.org/Float',
+            "http://schema.org/Boolean",
+            "http://schema.org/Integer",
+            "http://schema.org/Float",
         ),
-        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
-        description="A set of semantic types to parse. One can provide a subset of supported semantic types to limit what the primitive parses."
+        semantic_types=[
+            "https://metadata.datadrivendiscovery.org/types/ControlParameter"
+        ],
+        description="A set of semantic types to parse. One can provide a subset of supported semantic types to limit what the primitive parses.",
     )
     use_columns = hyperparams.Set(
         elements=hyperparams.Hyperparameter[int](-1),
         default=(),
-        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
+        semantic_types=[
+            "https://metadata.datadrivendiscovery.org/types/ControlParameter"
+        ],
         description="A set of column indices to force primitive to operate on. If any specified column cannot be parsed, it is skipped.",
     )
     exclude_columns = hyperparams.Set(
         elements=hyperparams.Hyperparameter[int](-1),
         default=(),
-        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
-        description="A set of column indices to not operate on. Applicable only if \"use_columns\" is not provided.",
+        semantic_types=[
+            "https://metadata.datadrivendiscovery.org/types/ControlParameter"
+        ],
+        description='A set of column indices to not operate on. Applicable only if "use_columns" is not provided.',
     )
     error_handling = hyperparams.Enumeration[str](
-        default='coerce',
-        values=('ignore', 'raise', 'coerce'),
-        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
+        default="coerce",
+        values=("ignore", "raise", "coerce"),
+        semantic_types=[
+            "https://metadata.datadrivendiscovery.org/types/ControlParameter"
+        ],
         description="Setting to deal with error when converting a column to numeric value.",
     )
 
-class ColumnParserPrimitive(transformer.TransformerPrimitiveBase[container.DataFrame, container.DataFrame, Hyperparams]):
+
+class ColumnParserPrimitive(
+    transformer.TransformerPrimitiveBase[
+        container.DataFrame, container.DataFrame, Hyperparams
+    ]
+):
     """
     A primitive which parses columns and sets the appropriate dtypes according to it's respective metadata.
     """
 
     metadata = metadata_base.PrimitiveMetadata(
         {
-            'id': 'e8e78214-9770-4c26-9eae-a45bd0ede91a',
-            'version': version.__version__,
-            'name': 'Column Parser',
-            'python_path': 'd3m.primitives.data_transformation.DistilColumnParser',
-            'source': {
-                'name': 'Distil',
-                'contact': 'mailto:vkorapaty@uncharted.software',
-                'uris': ['https://gitlab.com/uncharted-distil/distil-primitives']
+            "id": "e8e78214-9770-4c26-9eae-a45bd0ede91a",
+            "version": version.__version__,
+            "name": "Column Parser",
+            "python_path": "d3m.primitives.data_transformation.DistilColumnParser",
+            "source": {
+                "name": "Distil",
+                "contact": "mailto:vkorapaty@uncharted.software",
+                "uris": ["https://gitlab.com/uncharted-distil/distil-primitives"],
             },
-            'installation': [CYTHON_DEP, {
-                'type': metadata_base.PrimitiveInstallationType.PIP,
-                'package_uri': 'git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=distil-primitives'.format(
-                    git_commit=d3m_utils.current_git_commit(os.path.dirname(__file__)),
-                ),
-            }],
-            'algorithm_types': [
-                metadata_base.PrimitiveAlgorithmType.DATA_CONVERSION
+            "installation": [
+                CYTHON_DEP,
+                {
+                    "type": metadata_base.PrimitiveInstallationType.PIP,
+                    "package_uri": "git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=distil-primitives".format(
+                        git_commit=d3m_utils.current_git_commit(
+                            os.path.dirname(__file__)
+                        ),
+                    ),
+                },
             ],
-            'primitive_family': metadata_base.PrimitiveFamily.DATA_TRANSFORMATION
+            "algorithm_types": [metadata_base.PrimitiveAlgorithmType.DATA_CONVERSION],
+            "primitive_family": metadata_base.PrimitiveFamily.DATA_TRANSFORMATION,
         }
     )
 
-    def produce(self, *,
-                inputs: container.DataFrame,
-                timeout: float = None,
-                iterations: int = None) -> base.CallResult[container.DataFrame]:
+    def produce(
+        self,
+        *,
+        inputs: container.DataFrame,
+        timeout: float = None,
+        iterations: int = None,
+    ) -> base.CallResult[container.DataFrame]:
 
         start = time.time()
         logger.debug(f"Producing {__name__}")
@@ -92,26 +115,43 @@ class ColumnParserPrimitive(transformer.TransformerPrimitiveBase[container.DataF
         # outputs = container.DataFrame(generate_metadata=False)
         outputs = [None] * inputs.shape[1]
 
-        parsing_semantics = self.hyperparams['parsing_semantics']
+        parsing_semantics = self.hyperparams["parsing_semantics"]
+
         def fromstring(x):
-            return np.fromstring(x, dtype=float, sep=',')
+            return np.fromstring(x, dtype=float, sep=",")
+
         for col_index in range(len(inputs.columns)):
             if col_index in cols:
-                column_metadata = inputs.metadata.query((metadata_base.ALL_ELEMENTS, col_index))
-                semantic_types = column_metadata.get('semantic_types', [])
+                column_metadata = inputs.metadata.query(
+                    (metadata_base.ALL_ELEMENTS, col_index)
+                )
+                semantic_types = column_metadata.get("semantic_types", [])
                 desired_semantics = set(semantic_types).intersection(parsing_semantics)
                 if desired_semantics:
-                    if 'https://metadata.datadrivendiscovery.org/types/FloatVector' in desired_semantics:
-                        outputs[col_index] = inputs[inputs.columns[col_index]].apply(fromstring, convert_dtype=False)
+                    if (
+                        "https://metadata.datadrivendiscovery.org/types/FloatVector"
+                        in desired_semantics
+                    ):
+                        outputs[col_index] = inputs[inputs.columns[col_index]].apply(
+                            fromstring, convert_dtype=False
+                        )
                         if outputs[col_index].shape[0] > 0:
-                            inputs.metadata = inputs.metadata.update_column(col_index, {'structural_type': type(outputs[col_index][0])})
+                            inputs.metadata = inputs.metadata.update_column(
+                                col_index,
+                                {"structural_type": type(outputs[col_index][0])},
+                            )
                     else:
-                        outputs[col_index] = pd.to_numeric(inputs.iloc[:, col_index], errors=self.hyperparams['error_handling'])
+                        outputs[col_index] = pd.to_numeric(
+                            inputs.iloc[:, col_index],
+                            errors=self.hyperparams["error_handling"],
+                        )
                         # Update structural type to reflect the results of the to_numeric call.  We can't rely on the semantic type because
                         # error coersion may result in a type becoming a float due to the presence of NaN.
                         if outputs[col_index].shape[0] > 0:
                             updated_type = type(outputs[col_index][0].item())
-                            inputs.metadata = inputs.metadata.update_column(col_index, {'structural_type': updated_type})
+                            inputs.metadata = inputs.metadata.update_column(
+                                col_index, {"structural_type": updated_type}
+                            )
                 else:
                     # columns without specified semantics need to be concatenated
                     outputs[col_index] = inputs.iloc[:, col_index]
@@ -126,15 +166,25 @@ class ColumnParserPrimitive(transformer.TransformerPrimitiveBase[container.DataF
 
         return base.CallResult(outputs)
 
-    def _get_columns(self, inputs_metadata: metadata_base.DataMetadata) -> typing.List[int]:
+    def _get_columns(
+        self, inputs_metadata: metadata_base.DataMetadata
+    ) -> typing.List[int]:
         def can_use_column(column_index: int) -> bool:
             return True
 
-        columns_to_use, columns_not_to_use = base_utils.get_columns_to_use(inputs_metadata, self.hyperparams['use_columns'], self.hyperparams['exclude_columns'], can_use_column)
+        columns_to_use, columns_not_to_use = base_utils.get_columns_to_use(
+            inputs_metadata,
+            self.hyperparams["use_columns"],
+            self.hyperparams["exclude_columns"],
+            can_use_column,
+        )
 
-        if self.hyperparams['use_columns'] and columns_not_to_use:
-            self.logger.warning("Not all specified columns can parsed. Skipping columns: %(columns)s", {
-                'columns': columns_not_to_use,
-            })
+        if self.hyperparams["use_columns"] and columns_not_to_use:
+            self.logger.warning(
+                "Not all specified columns can parsed. Skipping columns: %(columns)s",
+                {
+                    "columns": columns_not_to_use,
+                },
+            )
 
         return columns_to_use

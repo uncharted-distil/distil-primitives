@@ -7,18 +7,21 @@ from .metrics import metrics
 # ---------------------------------------------------------
 # F1 macro adjusters
 
+
 def _adjusted_f1_macro(probs, y, bias):
-    return metrics['f1Macro'](y, (probs + bias).argmax(axis=-1))
+    return metrics["f1Macro"](y, (probs + bias).argmax(axis=-1))
+
 
 def _adjust_f1_inner(probs_oob, y_train, alpha):
     def _make_adj(bias):
         score = _adjusted_f1_macro(probs_oob, y_train, bias)
-        norm  = alpha * np.abs(bias).mean()
-        return (- score) + norm
+        norm = alpha * np.abs(bias).mean()
+        return (-score) + norm
 
     bias = np.zeros((1, probs_oob.shape[1]))
-    bias = minimize(_make_adj, bias, method='Powell').x
+    bias = minimize(_make_adj, bias, method="Powell").x
     return bias
+
 
 def adjust_f1_macro(model, Xf_test, y_train, y_test, alpha=0.01, subset=-1):
     # !! y_train and y_test must be sequential numeric
@@ -33,15 +36,17 @@ def adjust_f1_macro(model, Xf_test, y_train, y_test, alpha=0.01, subset=-1):
 
     probs_test = model.predict_proba(Xf_test)
 
-    print('_make_adj:train_null', _adjusted_f1_macro(probs_oob, y_train, 0))
-    print('_make_adj:train_bias', _adjusted_f1_macro(probs_oob, y_train, bias))
-    print('_make_adj:test_null', _adjusted_f1_macro(probs_test, y_test, 0))
-    print('_make_adj:test_bias', _adjusted_f1_macro(probs_test, y_test, bias))
-    print('--')
+    print("_make_adj:train_null", _adjusted_f1_macro(probs_oob, y_train, 0))
+    print("_make_adj:train_bias", _adjusted_f1_macro(probs_oob, y_train, bias))
+    print("_make_adj:test_null", _adjusted_f1_macro(probs_test, y_test, 0))
+    print("_make_adj:test_bias", _adjusted_f1_macro(probs_test, y_test, bias))
+    print("--")
     return _adjusted_f1_macro(probs_test, y_test, bias)
+
 
 # --
 # Ensembling
+
 
 def _vote(p, tiebreaker):
     cnts = pd.value_counts(p)
@@ -57,10 +62,12 @@ def _vote(p, tiebreaker):
             if t in tie:
                 return t
 
+
 def tiebreaking_vote(preds, y_train):
     # Vote, breaking ties according to class prevalance
     labels = pd.unique(y_train.squeeze())
     return tiebreaking_vote_pre(preds, labels)
+
 
 def tiebreaking_vote_pre(preds, labels):
     # Tiebreaking vote but uses a pre-calculated list of labels
@@ -70,4 +77,3 @@ def tiebreaking_vote_pre(preds, labels):
     else:
         # CDB: this is a major bottle neck at scale
         return np.array([_vote(p, labels) for p in preds.T])
-

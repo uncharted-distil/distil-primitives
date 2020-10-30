@@ -7,11 +7,11 @@ from joblib import Parallel, delayed
 
 from numba import jit
 from tqdm import tqdm
+
 # --
 # Helpers
 import logging
 from distil.third_party.torchvggish import vggish, vggish_input
-
 
 
 logger = logging.getLogger(__name__)
@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 @jit
 def _mem_to_arr(w):
-    return np.array(w, dtype='int16')
+    return np.array(w, dtype="int16")
 
 
 def audioarray2mel(data, sample_rate):
@@ -33,8 +33,8 @@ def audioarray2mel(data, sample_rate):
 # --
 # Model
 
-class AudiosetModel(DistilBaseModel):
 
+class AudiosetModel(DistilBaseModel):
     def __init__(self, model_path, target_metric=None):
         self.target_metric = target_metric
         self.model_path = model_path
@@ -44,10 +44,12 @@ class AudiosetModel(DistilBaseModel):
 
     def _featurize(self, A):
         jobs = [delayed(audioarray2mel)(xx.data, xx.sample_rate) for xx in A]
-        mel_feats = Parallel(n_jobs=64, backend='loky', verbose=10)(jobs)
+        mel_feats = Parallel(n_jobs=64, backend="loky", verbose=10)(jobs)
 
         feature_vecs = []
-        for i in tqdm(range(len(mel_feats)), desc='passing mel features through embedding model'):
+        for i in tqdm(
+            range(len(mel_feats)), desc="passing mel features through embedding model"
+        ):
             feature_vec = self.embedding_model.forward(mel_feats[i]).data.numpy()
             if feature_vec.shape[0] == 128:
                 feature_vec = feature_vec
@@ -59,7 +61,7 @@ class AudiosetModel(DistilBaseModel):
         return np.array(feature_vecs)
 
     def fit(self, X_train, y_train, U_train=None):
-        assert self.target_metric is not None, 'define a target metric'
+        assert self.target_metric is not None, "define a target metric"
 
         vec_maxpool = self._featurize(X_train)
         self.model = ForestCV(target_metric=self.target_metric)

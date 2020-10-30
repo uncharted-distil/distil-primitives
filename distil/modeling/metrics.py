@@ -1,7 +1,13 @@
 import sys
 import numpy as np
 from sklearn import metrics as sklearn_metrics
-from d3m.metrics import HitsAtKMetric, MeanReciprocalRankMetric, RocAucMicroMetric, RocAucMacroMetric, RocAucMetric
+from d3m.metrics import (
+    HitsAtKMetric,
+    MeanReciprocalRankMetric,
+    RocAucMicroMetric,
+    RocAucMacroMetric,
+    RocAucMetric,
+)
 
 # from external import objectDetectionAP
 hits_at_k = HitsAtKMetric(5)  # todo how does this get set?
@@ -78,7 +84,7 @@ def translate_d3m_metric(metric):
         "hitsAtK": "hits_at_k",
         "rocAucMacro": "roc_auc_macro",
         "rocAucMicro": "roc_auc_macro",
-        "rocAuc": "roc_auc"
+        "rocAuc": "roc_auc",
     }
     assert metric in lookup, "%s not in lookup" % metric
     return lookup[metric]
@@ -97,11 +103,11 @@ def translate_proto_metric(proto_metric):
         "MEAN_ABSOLUTE_ERROR": "meanAbsoluteError",
         "NORMALIZED_MUTUAL_INFORMATION": "normalizedMutualInformation",
         "OBJECT_DETECTION_AVERAGE_PRECISION": "objectDetectionAP",
-        "MEAN_RECIPROCAL_RANK": "meanReciprocalRank", # todo add this to primitives metrics
+        "MEAN_RECIPROCAL_RANK": "meanReciprocalRank",  # todo add this to primitives metrics
         "HITS_AT_K": "hitsAtK",
         "ROC_AUC_MACRO": "rocAucMacro",
         "ROC_AUC_MICRO": "rocAucMicro",
-        "ROC_AUC": "rocAuc"
+        "ROC_AUC": "rocAuc",
     }
     assert proto_metric in lookup, "%s not in lookup" % proto_metric
     return lookup[proto_metric]

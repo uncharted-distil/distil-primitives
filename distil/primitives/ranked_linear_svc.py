@@ -23,32 +23,43 @@ logger = logging.getLogger(__name__)
 
 class Hyperparams(hyperparams.Hyperparams):
     penalty = hyperparams.Enumeration[str](
-        default='l2',
-        values=('l1', 'l2'),
-        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
+        default="l2",
+        values=("l1", "l2"),
+        semantic_types=[
+            "https://metadata.datadrivendiscovery.org/types/ControlParameter"
+        ],
         description="The type of regularization for loss.",
     )
     loss = hyperparams.Enumeration[str](
-        default='squared_hinge',
-        values=('squared_hinge', 'hinge'),
-        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
+        default="squared_hinge",
+        values=("squared_hinge", "hinge"),
+        semantic_types=[
+            "https://metadata.datadrivendiscovery.org/types/ControlParameter"
+        ],
         description="The type of loss function.",
     )
     rank_confidences = hyperparams.Hyperparameter[bool](
         default=True,
-        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
-        description='Returns confidences as ranks.'
+        semantic_types=[
+            "https://metadata.datadrivendiscovery.org/types/ControlParameter"
+        ],
+        description="Returns confidences as ranks.",
     )
     tolerance = hyperparams.Hyperparameter[float](
         default=1e-4,
-        semantic_types=['https://metadata.datadrivendiscovery.org/types/TuningParameter'],
+        semantic_types=[
+            "https://metadata.datadrivendiscovery.org/types/TuningParameter"
+        ],
         description="Tolerance for error. Aims to stop within th is tolerance",
     )
     normalize = hyperparams.Hyperparameter[bool](
         default=False,
-        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
-        description="Whether or not to normalize the data before running SVC"
+        semantic_types=[
+            "https://metadata.datadrivendiscovery.org/types/ControlParameter"
+        ],
+        description="Whether or not to normalize the data before running SVC",
     )
+
 
 class Params(params.Params):
     model: LinearSVC
@@ -56,6 +67,7 @@ class Params(params.Params):
     needs_fit: bool
     binary: bool
     standard_scaler: Optional[StandardScaler]
+
 
 class RankedLinearSVCPrimitive(
     PrimitiveBase[container.DataFrame, container.DataFrame, Params, Hyperparams]
@@ -70,6 +82,7 @@ class RankedLinearSVCPrimitive(
     -------
     output : A DataFrame containing (target value, confidence ranking) tuples for each input row.
     """
+
     metadata = metadata_base.PrimitiveMetadata(
         {
             "id": "10d21bbe-9c58-4dc1-8f71-2b3834b71a5e",
@@ -84,15 +97,18 @@ class RankedLinearSVCPrimitive(
                     "https://github.com/uncharted-distil/distil-primitives",
                 ],
             },
-            "installation": [CYTHON_DEP,
+            "installation": [
+                CYTHON_DEP,
                 {
                     "type": metadata_base.PrimitiveInstallationType.PIP,
                     "package_uri": "git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=distil-primitives".format(
                         git_commit=utils.current_git_commit(os.path.dirname(__file__)),
                     ),
-                }
+                },
             ],
-            "algorithm_types": [metadata_base.PrimitiveAlgorithmType.SUPPORT_VECTOR_MACHINE,],
+            "algorithm_types": [
+                metadata_base.PrimitiveAlgorithmType.SUPPORT_VECTOR_MACHINE,
+            ],
             "primitive_family": metadata_base.PrimitiveFamily.CLASSIFICATION,
         },
     )
@@ -100,7 +116,12 @@ class RankedLinearSVCPrimitive(
     def __init__(self, *, hyperparams: Hyperparams, random_seed: int = 0) -> None:
 
         super().__init__(hyperparams=hyperparams, random_seed=random_seed)
-        self._model = LinearSVC(penalty=self.hyperparams['penalty'], loss=self.hyperparams['loss'], tol=self.hyperparams['tolerance'], random_state=random_seed)
+        self._model = LinearSVC(
+            penalty=self.hyperparams["penalty"],
+            loss=self.hyperparams["loss"],
+            tol=self.hyperparams["tolerance"],
+            random_state=random_seed,
+        )
         self._needs_fit = True
         self._binary = False
         self._standard_scaler = None
@@ -108,7 +129,7 @@ class RankedLinearSVCPrimitive(
     def set_training_data(
         self, *, inputs: container.DataFrame, outputs: container.DataFrame
     ) -> None:
-        if self.hyperparams['normalize']:
+        if self.hyperparams["normalize"]:
             self._standard_scaler = StandardScaler()
             self._inputs = self._standard_scaler.fit_transform(inputs.values)
         else:
@@ -116,7 +137,7 @@ class RankedLinearSVCPrimitive(
         self._outputs = outputs
         self._needs_fit = True
         self._target_cols: List[str] = []
-        self._binary = self._outputs.iloc[:,0].nunique(dropna=True) <= 2
+        self._binary = self._outputs.iloc[:, 0].nunique(dropna=True) <= 2
 
     def fit(self, *, timeout: float = None, iterations: int = None) -> CallResult[None]:
         logger.debug(f"Fitting {__name__}")
@@ -146,21 +167,23 @@ class RankedLinearSVCPrimitive(
         result: pd.DataFrame = None
         inputs = inputs.values
         # create dataframe to hold the result
-        if self.hyperparams['normalize']:
+        if self.hyperparams["normalize"]:
             inputs = self._standard_scaler.transform(inputs)
         result = self._model.predict(inputs)
         result_df: container.DataFrame = None
         if self._binary:
             confidences = self._model.decision_function(inputs)
-            if self.hyperparams['rank_confidences']:
+            if self.hyperparams["rank_confidences"]:
                 confidences = rankdata(confidences)
             result_df = container.DataFrame(
-                {self._target_cols[0]: result, 'confidence': confidences}, generate_metadata=True
+                {self._target_cols[0]: result, "confidence": confidences},
+                generate_metadata=True,
             )
         else:
             confidences = self._get_confidence(inputs)
             result_df = container.DataFrame(
-                {self._target_cols[0]: result, 'confidence': confidences.max(axis=1)}, generate_metadata=True
+                {self._target_cols[0]: result, "confidence": confidences.max(axis=1)},
+                generate_metadata=True,
             )
 
         # mark the semantic types on the dataframe
@@ -197,17 +220,17 @@ class RankedLinearSVCPrimitive(
 
     def get_params(self) -> Params:
         return Params(
-            model = self._model,
-            needs_fit = self._needs_fit,
-            target_cols = self._target_cols,
-            binary = self._binary,
-            standard_scaler = self._standard_scaler
+            model=self._model,
+            needs_fit=self._needs_fit,
+            target_cols=self._target_cols,
+            binary=self._binary,
+            standard_scaler=self._standard_scaler,
         )
 
     def set_params(self, *, params: Params) -> None:
-        self._model = params['model']
-        self._needs_fit = params['needs_fit']
-        self._target_cols = params['target_cols']
-        self._binary = params['binary']
-        self._standard_scaler = params['standard_scaler']
+        self._model = params["model"]
+        self._needs_fit = params["needs_fit"]
+        self._target_cols = params["target_cols"]
+        self._binary = params["binary"]
+        self._standard_scaler = params["standard_scaler"]
         return
