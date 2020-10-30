@@ -25,28 +25,44 @@ from distil.primitives.text_encoder import TextEncoderPrimitive
 from distil.primitives import utils
 import utils as test_utils
 
+
 class TextEncoderPrimitiveTestCase(unittest.TestCase):
 
-    _dataset_path = path.abspath(path.join(path.dirname(__file__), 'text_encoder_dataset'))
+    _dataset_path = path.abspath(
+        path.join(path.dirname(__file__), "text_encoder_dataset")
+    )
 
     def test_defaults(self) -> None:
         # load test data into a dataframe
         dataset = test_utils.load_dataset(self._dataset_path)
-        dataframe = test_utils.get_dataframe(dataset, 'learningData')
+        dataframe = test_utils.get_dataframe(dataset, "learningData")
 
         # create the encoder
-        hyperparams_class = \
-            TextEncoderPrimitive.metadata.query()['primitive_code']['class_type_arguments']['Hyperparams']
+        hyperparams_class = TextEncoderPrimitive.metadata.query()["primitive_code"][
+            "class_type_arguments"
+        ]["Hyperparams"]
         encoder = TextEncoderPrimitive(hyperparams=hyperparams_class.defaults())
-        encoder.set_training_data(inputs=dataframe.iloc[:, [0, 1]], outputs=dataframe.iloc[:, 2])
+        encoder.set_training_data(
+            inputs=dataframe.iloc[:, [0, 1]], outputs=dataframe.iloc[:, 2]
+        )
         encoder.fit()
         result = encoder.produce(inputs=dataframe).value
 
         # don't assert on invidual values - just check basic sanity of result
         self.assertEqual(len(result.index), 9)
-        self.assertEqual(result.metadata.list_columns_with_semantic_types(('https://metadata.datadrivendiscovery.org/types/Attribute',)), [1, 2, 3, 4])
-        self.assertSequenceEqual(list(result.columns), ["d3mIndex", "bravo", "__text_0", "__text_1", "__text_2"])
-        self.assertSequenceEqual(result.dtypes.tolist(), [object, object, float, float, float])
+        self.assertEqual(
+            result.metadata.list_columns_with_semantic_types(
+                ("https://metadata.datadrivendiscovery.org/types/Attribute",)
+            ),
+            [1, 2, 3, 4],
+        )
+        self.assertSequenceEqual(
+            list(result.columns),
+            ["d3mIndex", "bravo", "__text_0", "__text_1", "__text_2"],
+        )
+        self.assertSequenceEqual(
+            result.dtypes.tolist(), [object, object, float, float, float]
+        )
 
     # def test_empty_col(self) -> None:
     #     dataset = test_utils.load_dataset('/Users/vkorapaty/data/datasets/seed_datasets_current/JIDO_SOHR_Tab_Articles_8569/TRAIN/dataset_TRAIN/')
@@ -63,37 +79,51 @@ class TextEncoderPrimitiveTestCase(unittest.TestCase):
     def test_classification_binary_label(self) -> None:
         # load test data into a dataframe
         dataset = test_utils.load_dataset(self._dataset_path)
-        dataframe = test_utils.get_dataframe(dataset, 'learningData')
+        dataframe = test_utils.get_dataframe(dataset, "learningData")
         dataframe = dataframe.iloc[0:5]
 
         # create the encoder
-        hyperparams_class = \
-            TextEncoderPrimitive.metadata.query()['primitive_code']['class_type_arguments']['Hyperparams']
+        hyperparams_class = TextEncoderPrimitive.metadata.query()["primitive_code"][
+            "class_type_arguments"
+        ]["Hyperparams"]
         encoder = TextEncoderPrimitive(hyperparams=hyperparams_class.defaults())
-        encoder.set_training_data(inputs=dataframe.iloc[:, [0, 1]], outputs=dataframe.iloc[:, 2])
+        encoder.set_training_data(
+            inputs=dataframe.iloc[:, [0, 1]], outputs=dataframe.iloc[:, 2]
+        )
         encoder.fit()
         result = encoder.produce(inputs=dataframe).value
 
         # don't assert on invidual values - just check basic sanity of result
         self.assertEqual(len(result.index), 5)
-        self.assertEqual(result.metadata.list_columns_with_semantic_types(('https://metadata.datadrivendiscovery.org/types/Attribute',)), [1, 2])
-        self.assertSequenceEqual(list(result.columns), ["d3mIndex", "bravo", "__text_0"])
+        self.assertEqual(
+            result.metadata.list_columns_with_semantic_types(
+                ("https://metadata.datadrivendiscovery.org/types/Attribute",)
+            ),
+            [1, 2],
+        )
+        self.assertSequenceEqual(
+            list(result.columns), ["d3mIndex", "bravo", "__text_0"]
+        )
         self.assertSequenceEqual(result.dtypes.tolist(), [object, object, float])
 
     def test_classification_singleton_label(self) -> None:
         # load test data into a dataframe
         dataset = test_utils.load_dataset(self._dataset_path)
-        dataframe = test_utils.get_dataframe(dataset, 'learningData')
+        dataframe = test_utils.get_dataframe(dataset, "learningData")
         dataframe = dataframe.iloc[0:6]
 
         # create the encoder
-        hyperparams_class = \
-            TextEncoderPrimitive.metadata.query()['primitive_code']['class_type_arguments']['Hyperparams']
+        hyperparams_class = TextEncoderPrimitive.metadata.query()["primitive_code"][
+            "class_type_arguments"
+        ]["Hyperparams"]
         encoder = TextEncoderPrimitive(hyperparams=hyperparams_class.defaults())
-        encoder.set_training_data(inputs=dataframe.iloc[:, [0, 1]], outputs=dataframe.iloc[:, 2])
+        encoder.set_training_data(
+            inputs=dataframe.iloc[:, [0, 1]], outputs=dataframe.iloc[:, 2]
+        )
 
         # should fail in this case because we have a label with a cardinality of 1
         self.assertRaises(ValueError, encoder.fit)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

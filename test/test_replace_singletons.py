@@ -25,22 +25,25 @@ from distil.primitives.replace_singletons import ReplaceSingletonsPrimitive
 from distil.primitives import utils
 import utils as test_utils
 
+
 class ReplaceSingletonsPrimitiveTestCase(unittest.TestCase):
 
-    _dataset_path = path.abspath(path.join(path.dirname(__file__), 'tabular_dataset'))
+    _dataset_path = path.abspath(path.join(path.dirname(__file__), "tabular_dataset"))
 
     def test_defaults(self) -> None:
         # load test data into a dataframe
         dataset = test_utils.load_dataset(self._dataset_path)
-        dataframe = test_utils.get_dataframe(dataset, 'learningData')
+        dataframe = test_utils.get_dataframe(dataset, "learningData")
 
         # create the imputer
-        hyperparams_class = \
-            ReplaceSingletonsPrimitive.metadata.query()['primitive_code']['class_type_arguments']['Hyperparams']
+        hyperparams_class = ReplaceSingletonsPrimitive.metadata.query()[
+            "primitive_code"
+        ]["class_type_arguments"]["Hyperparams"]
         replacer = ReplaceSingletonsPrimitive(hyperparams=hyperparams_class.defaults())
 
         result = replacer.produce(inputs=dataframe).value
-        self.assertEqual(result['alpha'].iloc[4], utils.SINGLETON_INDICATOR)
+        self.assertEqual(result["alpha"].iloc[4], utils.SINGLETON_INDICATOR)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

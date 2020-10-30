@@ -4,6 +4,7 @@
     distil/modeling/base.py
 """
 
+
 class DistilBaseModel:
     @property
     def details(self):

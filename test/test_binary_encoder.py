@@ -25,39 +25,47 @@ from distil.primitives.binary_encoder import BinaryEncoderPrimitive
 from distil.primitives import utils
 import utils as test_utils
 
+
 class BinaryEncoderPrimitiveTestCase(unittest.TestCase):
 
-    _dataset_path = path.abspath(path.join(path.dirname(__file__), 'tabular_dataset'))
+    _dataset_path = path.abspath(path.join(path.dirname(__file__), "tabular_dataset"))
 
     def test_single_row(self) -> None:
         # load test data into a dataframe
         dataset = test_utils.load_dataset(self._dataset_path)
-        dataframe = test_utils.get_dataframe(dataset, 'learningData')
+        dataframe = test_utils.get_dataframe(dataset, "learningData")
 
         # create the encoder
-        hyperparams_class = \
-            BinaryEncoderPrimitive.metadata.query()['primitive_code']['class_type_arguments']['Hyperparams']
-        encoder = BinaryEncoderPrimitive(hyperparams=hyperparams_class.defaults().replace({
-            "min_binary": 3
-        }))
+        hyperparams_class = BinaryEncoderPrimitive.metadata.query()["primitive_code"][
+            "class_type_arguments"
+        ]["Hyperparams"]
+        encoder = BinaryEncoderPrimitive(
+            hyperparams=hyperparams_class.defaults().replace({"min_binary": 3})
+        )
 
         encoder.set_training_data(inputs=dataframe)
         encoder.fit()
         result = encoder.produce(inputs=dataframe.head(1)).value
         self.assertEqual(len(result.index), 1)
-        self.assertEqual(result.metadata.list_columns_with_semantic_types(('https://metadata.datadrivendiscovery.org/types/Attribute',)), [1, 2, 3, 4, 5, 6, 7])
+        self.assertEqual(
+            result.metadata.list_columns_with_semantic_types(
+                ("https://metadata.datadrivendiscovery.org/types/Attribute",)
+            ),
+            [1, 2, 3, 4, 5, 6, 7],
+        )
 
     def test_get_set_params(self) -> None:
         # load test data into a dataframe
         dataset = test_utils.load_dataset(self._dataset_path)
-        dataframe = test_utils.get_dataframe(dataset, 'learningData')
+        dataframe = test_utils.get_dataframe(dataset, "learningData")
 
         # create the imputer
-        hyperparams_class = \
-            BinaryEncoderPrimitive.metadata.query()['primitive_code']['class_type_arguments']['Hyperparams']
-        encoder = BinaryEncoderPrimitive(hyperparams=hyperparams_class.defaults().replace({
-            "min_binary": 3
-        }))
+        hyperparams_class = BinaryEncoderPrimitive.metadata.query()["primitive_code"][
+            "class_type_arguments"
+        ]["Hyperparams"]
+        encoder = BinaryEncoderPrimitive(
+            hyperparams=hyperparams_class.defaults().replace({"min_binary": 3})
+        )
         encoder.set_training_data(inputs=dataframe)
         encoder.fit()
 
@@ -69,8 +77,23 @@ class BinaryEncoderPrimitiveTestCase(unittest.TestCase):
         result = encoder.produce(inputs=dataframe).value
 
         self.assertEqual(len(result.index), 5)
-        self.assertSequenceEqual(list(result.columns), ["d3mIndex", "charlie", "delta", "__binary_0", "__binary_1", "__binary_2", "__binary_3", "__binary_4"])
-        self.assertSequenceEqual(result.dtypes.tolist(), [object, object, object, int, int, int, int, int])
+        self.assertSequenceEqual(
+            list(result.columns),
+            [
+                "d3mIndex",
+                "charlie",
+                "delta",
+                "__binary_0",
+                "__binary_1",
+                "__binary_2",
+                "__binary_3",
+                "__binary_4",
+            ],
+        )
+        self.assertSequenceEqual(
+            result.dtypes.tolist(), [object, object, object, int, int, int, int, int]
+        )
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

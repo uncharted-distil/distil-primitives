@@ -45,10 +45,10 @@ class Hyperparams(hyperparams.Hyperparams):
         lower=1,
         upper=2048,
         default=32,
-        description='The number of trees in the forest.',
+        description="The number of trees in the forest.",
         semantic_types=[
-            'https://metadata.datadrivendiscovery.org/types/TuningParameter',
-            'https://metadata.datadrivendiscovery.org/types/ResourcesUseParameter',
+            "https://metadata.datadrivendiscovery.org/types/TuningParameter",
+            "https://metadata.datadrivendiscovery.org/types/ResourcesUseParameter",
         ],
     )
 
@@ -56,25 +56,29 @@ class Hyperparams(hyperparams.Hyperparams):
         lower=1,
         upper=31,
         default=2,
-        description='Minimum number of samples to split leaf',
+        description="Minimum number of samples to split leaf",
         semantic_types=[
-            'https://metadata.datadrivendiscovery.org/types/TuningParameter',
-            'https://metadata.datadrivendiscovery.org/types/ResourcesUseParameter',
+            "https://metadata.datadrivendiscovery.org/types/TuningParameter",
+            "https://metadata.datadrivendiscovery.org/types/ResourcesUseParameter",
         ],
     )
 
     class_weight = hyperparams.Enumeration[str](
-        values=["None", 'balanced', 'balanced_subsample'],
+        values=["None", "balanced", "balanced_subsample"],
         default="None",
-        description='todo',
-        semantic_types=['https://metadata.datadrivendiscovery.org/types/TuningParameter'],
+        description="todo",
+        semantic_types=[
+            "https://metadata.datadrivendiscovery.org/types/TuningParameter"
+        ],
     )
 
     estimator = hyperparams.Enumeration[str](
         values=["ExtraTrees", "RandomForest"],
         default="ExtraTrees",
-        description='todo',
-        semantic_types=['https://metadata.datadrivendiscovery.org/types/TuningParameter'],
+        description="todo",
+        semantic_types=[
+            "https://metadata.datadrivendiscovery.org/types/TuningParameter"
+        ],
     )
 
     grid_search = hyperparams.Hyperparameter[bool](
@@ -83,7 +87,7 @@ class Hyperparams(hyperparams.Hyperparams):
             "https://metadata.datadrivendiscovery.org/types/ControlParameter"
         ],
         description="Runs an internal grid search to fit the primitive, ignoring caller supplied values for "
-        + "n_estimators, min_samples_leaf, class_weight, estimator"
+        + "n_estimators, min_samples_leaf, class_weight, estimator",
     )
 
     small_dataset_threshold = hyperparams.Hyperparameter[int](
@@ -118,8 +122,10 @@ class Hyperparams(hyperparams.Hyperparams):
     )
     n_jobs = hyperparams.Hyperparameter[int](
         default=64,
-        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
-        description='The value of the n_jobs parameter for the joblib library'
+        semantic_types=[
+            "https://metadata.datadrivendiscovery.org/types/ControlParameter"
+        ],
+        description="The value of the n_jobs parameter for the joblib library",
     )
 
 
@@ -154,15 +160,18 @@ class EnsembleForestPrimitive(
                     "https://github.com/uncharted-distil/distil-primitives",
                 ],
             },
-            "installation": [CYTHON_DEP,
+            "installation": [
+                CYTHON_DEP,
                 {
                     "type": metadata_base.PrimitiveInstallationType.PIP,
                     "package_uri": "git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=distil-primitives".format(
                         git_commit=utils.current_git_commit(os.path.dirname(__file__)),
                     ),
-                }
+                },
             ],
-            "algorithm_types": [metadata_base.PrimitiveAlgorithmType.RANDOM_FOREST,],
+            "algorithm_types": [
+                metadata_base.PrimitiveAlgorithmType.RANDOM_FOREST,
+            ],
             "primitive_family": metadata_base.PrimitiveFamily.LEARNER,
         },
     )
@@ -171,27 +180,36 @@ class EnsembleForestPrimitive(
 
         super().__init__(hyperparams=hyperparams, random_seed=random_seed)
         # hack to get around typing constraints.
-        if self.hyperparams['class_weight'] == "None":
+        if self.hyperparams["class_weight"] == "None":
             class_weight = None
         else:
-            class_weight = self.hyperparams['class_weight']
+            class_weight = self.hyperparams["class_weight"]
 
-        grid_search = self.hyperparams['grid_search']
+        grid_search = self.hyperparams["grid_search"]
         if grid_search is True:
             current_hyperparams = None
         else:
             current_hyperparams = {
-                "estimator"        : self.hyperparams['estimator'],
-                "n_estimators"     : self.hyperparams['n_estimators'], #[32, 64, 128, 256, 512, 1024, 2048],
-                "min_samples_leaf" : self.hyperparams['min_samples_leaf'], # '[1, 2, 4, 8, 16, 32],
+                "estimator": self.hyperparams["estimator"],
+                "n_estimators": self.hyperparams[
+                    "n_estimators"
+                ],  # [32, 64, 128, 256, 512, 1024, 2048],
+                "min_samples_leaf": self.hyperparams[
+                    "min_samples_leaf"
+                ],  # '[1, 2, 4, 8, 16, 32],
             }
             if self.hyperparams["metric"] in classification_metrics:
-                current_hyperparams.update({"class_weight" : class_weight})
+                current_hyperparams.update({"class_weight": class_weight})
             else:  # regression
                 current_hyperparams.update({"bootstrap": True})
 
-        self._model = ForestCV(self.hyperparams["metric"], random_seed=self.random_seed,
-            hyperparams=current_hyperparams, grid_search=grid_search, n_jobs=self.hyperparams['n_jobs'])
+        self._model = ForestCV(
+            self.hyperparams["metric"],
+            random_seed=self.random_seed,
+            hyperparams=current_hyperparams,
+            grid_search=grid_search,
+            n_jobs=self.hyperparams["n_jobs"],
+        )
         self._needs_fit = True
         self._label_map: Dict[int, str] = {}
         self._target_cols: List[str] = []
@@ -247,7 +265,7 @@ class EnsembleForestPrimitive(
         # same in other direction
         inputs_rows = self._inputs.shape[0]
         inputs_cols = self._inputs.shape[1]
-        self._inputs = self._inputs.select_dtypes(include='number')
+        self._inputs = self._inputs.select_dtypes(include="number")
         col_diff = inputs_cols - self._inputs.shape[1]
         if col_diff != 0:
             logger.warn(f"Removed {col_diff} unencoded columns from training data.")
@@ -291,9 +309,9 @@ class EnsembleForestPrimitive(
             self.fit()
 
         # drop any non-numeric columns
-         # drop all non-numeric columns
+        # drop all non-numeric columns
         num_cols = inputs.shape[1]
-        inputs = inputs.select_dtypes(include='number')
+        inputs = inputs.select_dtypes(include="number")
         col_diff = num_cols - inputs.shape[1]
         if col_diff > 0:
             logger.warn(f"Removed {col_diff} unencoded columns from produce data.")
@@ -316,50 +334,62 @@ class EnsembleForestPrimitive(
         # if we mapped values earlier map them back.
         if len(self._label_map) > 0:
             # TODO label map will not work if there are multiple output columns.
-            result_df[self._target_cols[0]] = result_df[
-                self._target_cols[0]
-            ].map(self._label_map)
+            result_df[self._target_cols[0]] = result_df[self._target_cols[0]].map(
+                self._label_map
+            )
         # mark the semantic types on the dataframe
         for i, _ in enumerate(result_df.columns):
             result_df.metadata = result_df.metadata.add_semantic_type(
                 (metadata_base.ALL_ELEMENTS, i),
                 "https://metadata.datadrivendiscovery.org/types/PredictedTarget",
             )
-        if self._model.mode == "classification" and self.hyperparams['compute_confidences']:
+        if (
+            self._model.mode == "classification"
+            and self.hyperparams["compute_confidences"]
+        ):
             # add confidence scores as some metrics require them.
             confidence = self._model.predict_proba(inputs.values)
-            confidence = pd.Series(confidence.tolist(), name='confidence')
+            confidence = pd.Series(confidence.tolist(), name="confidence")
 
             # this is a hack, but str conversions on lists later on break things
-            #confidence = pd.Series([1]*len(result_df), name='confidence')
+            # confidence = pd.Series([1]*len(result_df), name='confidence')
             result_df = pd.concat([result_df, confidence], axis=1)
 
-            confidences = [item for sublist in result_df['confidence'].values.tolist() for item in sublist]
+            confidences = [
+                item
+                for sublist in result_df["confidence"].values.tolist()
+                for item in sublist
+            ]
             if self._label_map:
                 labels = np.array(list(self._label_map.values()) * len(result_df))
             else:
-                labels = np.array(list(np.arange(len(confidence.iloc[0]))) * len(result_df))
-            index = [item for sublist in [[i] * len(np.unique(labels)) for i in result_df.index] for item in sublist]
+                labels = np.array(
+                    list(np.arange(len(confidence.iloc[0]))) * len(result_df)
+                )
+            index = [
+                item
+                for sublist in [[i] * len(np.unique(labels)) for i in result_df.index]
+                for item in sublist
+            ]
             result_df_temp = container.DataFrame()
             result_df_temp["Class"] = labels
             result_df_temp["Class"] = result_df_temp["Class"]
             result_df_temp["confidence"] = confidences
             result_df_temp.metadata = result_df.metadata
-            result_df_temp['index_temp'] = index
-            result_df_temp = result_df_temp.set_index('index_temp')
+            result_df_temp["index_temp"] = index
+            result_df_temp = result_df_temp.set_index("index_temp")
             result_df = result_df_temp
 
-
             result_df.metadata = result_df.metadata.add_semantic_type(
-                (metadata_base.ALL_ELEMENTS, len(result_df.columns)-1),
+                (metadata_base.ALL_ELEMENTS, len(result_df.columns) - 1),
                 "https://metadata.datadrivendiscovery.org/types/Confidence",
             )
             result_df.metadata = result_df.metadata.add_semantic_type(
-                (metadata_base.ALL_ELEMENTS, len(result_df.columns)-1),
+                (metadata_base.ALL_ELEMENTS, len(result_df.columns) - 1),
                 "https://metadata.datadrivendiscovery.org/types/PredictedTarget",
             )
             result_df.metadata = result_df.metadata.add_semantic_type(
-                (metadata_base.ALL_ELEMENTS, len(result_df.columns)-1),
+                (metadata_base.ALL_ELEMENTS, len(result_df.columns) - 1),
                 "https://metadata.datadrivendiscovery.org/types/FloatVector",
             )
 
@@ -394,20 +424,24 @@ class EnsembleForestPrimitive(
         # a one hot encoding column, that is derived from some original source column
         source_col_importances: Dict[str, float] = {}
         for col_idx in range(0, len(output.columns)):
-            col_dict = dict(inputs.metadata.query((metadata_base.ALL_ELEMENTS, col_idx)))
+            col_dict = dict(
+                inputs.metadata.query((metadata_base.ALL_ELEMENTS, col_idx))
+            )
             # if a column points back to a source column, add that columns importance to the
             # total for that source column
             if "source_column" in col_dict:
                 source_col = col_dict["source_column"]
                 if source_col not in source_col_importances:
                     source_col_importances[source_col] = 0.0
-                source_col_importances[source_col] += output.iloc[:,col_idx]
+                source_col_importances[source_col] += output.iloc[:, col_idx]
 
         for source_col, importance in source_col_importances.items():
             # add the source columns and their importances to the returned data
             output_col_length = len(output.columns)
-            output.insert(output_col_length, source_col, importance, True);
-            output.metadata = output.metadata.update_column(output_col_length, {"name": source_col})
+            output.insert(output_col_length, source_col, importance, True)
+            output.metadata = output.metadata.update_column(
+                output_col_length, {"name": source_col}
+            )
 
         return CallResult(output)
 
@@ -424,7 +458,10 @@ class EnsembleForestPrimitive(
 
         # don't want to produce SHAP predictions on train set because too computationally intensive
         check_rows = min(self._input_hash.shape[0], inputs.shape[0])
-        if (pd.util.hash_pandas_object(inputs.head(check_rows)) == self._input_hash.head(check_rows)).all():
+        if (
+            pd.util.hash_pandas_object(inputs.head(check_rows))
+            == self._input_hash.head(check_rows)
+        ).all():
             logger.info(
                 "Not producing SHAP interpretations on train set because of computational considerations"
             )
@@ -432,13 +469,13 @@ class EnsembleForestPrimitive(
 
         # drop any non-numeric columns
         num_cols = inputs.shape[1]
-        inputs = inputs.select_dtypes(include='number')
+        inputs = inputs.select_dtypes(include="number")
         col_diff = num_cols - inputs.shape[1]
         if col_diff > 0:
             logger.warn(f"Removed {col_diff} unencoded columns.")
 
         explainer = shap.TreeExplainer(self._model._models[0].model)
-        max_size = self.hyperparams['shap_max_dataset_size']
+        max_size = self.hyperparams["shap_max_dataset_size"]
         if inputs.shape[0] > max_size:
             logger.warning(
                 f"There are more than {max_size} rows in dataset, sub-sampling ~{max_size} approximately representative rows "
@@ -457,7 +494,7 @@ class EnsembleForestPrimitive(
 
         output_df = container.DataFrame(shap_values, generate_metadata=True)
         for i, col in enumerate(inputs.columns):
-            output_df.metadata = output_df.metadata.update_column(i, {'name': col})
+            output_df.metadata = output_df.metadata.update_column(i, {"name": col})
 
         component_cols: Dict[str, List[int]] = {}
         for c in range(0, len(output_df.columns)):
@@ -495,39 +532,49 @@ class EnsembleForestPrimitive(
     def _shap_sub_sample(self, inputs: container.DataFrame):
 
         df = pd.DataFrame(inputs)
-        df["cluster_assignment"] = KMeans(random_state=self.random_seed).fit_predict(df).astype(int)
+        df["cluster_assignment"] = (
+            KMeans(random_state=self.random_seed).fit_predict(df).astype(int)
+        )
         n_classes = df["cluster_assignment"].unique()
 
         # deal with cases in which the predictions are all one class
         if len(n_classes) == 1:
-            return df.sample(self.hyperparams['shap_max_dataset_size']).drop(columns=["cluster_assignment"])
+            return df.sample(self.hyperparams["shap_max_dataset_size"]).drop(
+                columns=["cluster_assignment"]
+            )
 
         else:
-            proportion = round(self.hyperparams['shap_max_dataset_size'] / len(n_classes))
+            proportion = round(
+                self.hyperparams["shap_max_dataset_size"] / len(n_classes)
+            )
             dfs = []
             for i in n_classes:
                 # dealing with classes that have less than or equal to their proportional representation
                 if df[df["cluster_assignment"] == i].shape[0] <= proportion:
                     dfs.append(df[df["cluster_assignment"] == i])
                 else:
-                    dfs.append(df[df["cluster_assignment"] == i].sample(proportion, random_state = self.random_seed))
+                    dfs.append(
+                        df[df["cluster_assignment"] == i].sample(
+                            proportion, random_state=self.random_seed
+                        )
+                    )
 
             sub_sample_df = pd.concat(dfs)
             return sub_sample_df.drop(columns=["cluster_assignment"])
 
     def get_params(self) -> Params:
         return Params(
-            model = self._model,
-            target_cols = self._target_cols,
-            label_map = self._label_map,
-            needs_fit = self._needs_fit,
-            input_hash = self._input_hash
+            model=self._model,
+            target_cols=self._target_cols,
+            label_map=self._label_map,
+            needs_fit=self._needs_fit,
+            input_hash=self._input_hash,
         )
 
     def set_params(self, *, params: Params) -> None:
-        self._model = params['model']
-        self._target_cols = params['target_cols']
-        self._label_map = params['label_map']
-        self._needs_fit = params['needs_fit']
-        self._input_hash = params['input_hash']
+        self._model = params["model"]
+        self._target_cols = params["target_cols"]
+        self._label_map = params["label_map"]
+        self._needs_fit = params["needs_fit"]
+        self._input_hash = params["input_hash"]
         return

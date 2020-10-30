@@ -4,13 +4,13 @@ import numpy as np
 from .base import DistilBaseModel
 from .metrics import metrics
 
-class CommunityDetection(DistilBaseModel):
 
+class CommunityDetection(DistilBaseModel):
     def __init__(self, overlapping):
-        self.overlapping   = overlapping
+        self.overlapping = overlapping
 
     def fit(self, X_train, y_train, U_train=None):
-        print('!! CommunityDetection: using null model', file=sys.stderr)
+        print("!! CommunityDetection: using null model", file=sys.stderr)
         return self
 
     def predict(self, X):
@@ -18,6 +18,4 @@ class CommunityDetection(DistilBaseModel):
 
     @property
     def details(self):
-        return {
-            "null_model" : True
-        }
+        return {"null_model": True}

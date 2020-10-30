@@ -6,8 +6,8 @@ import json
 import importlib
 import inspect
 
-PRIMITIVES_DIR = 'distil/primitives'
-OUTPUT_DIR = 'annotations'
+PRIMITIVES_DIR = "distil/primitives"
+OUTPUT_DIR = "annotations"
 
 ADDITIONAL_ENTRIES = set(["SKLabelEncoder"])
 
@@ -17,17 +17,21 @@ if not os.path.exists(OUTPUT_DIR):
 # List all the primitives
 primitives = os.listdir(PRIMITIVES_DIR)
 for primitive in primitives:
-    f = primitive.replace('.py', '')
+    f = primitive.replace(".py", "")
     try:
-        lib = importlib.import_module('distil.primitives.' + f)
+        lib = importlib.import_module("distil.primitives." + f)
     except:
         continue
     for l in dir(lib):
-        if ('Primitive' in l or l in ADDITIONAL_ENTRIES) and l != 'PrimitiveBase' and l != "UnsupervisedLearnerPrimitiveBase":
+        if (
+            ("Primitive" in l or l in ADDITIONAL_ENTRIES)
+            and l != "PrimitiveBase"
+            and l != "UnsupervisedLearnerPrimitiveBase"
+        ):
             pp = getattr(lib, l)
-            print(f'Extracting {l}')
+            print(f"Extracting {l}")
             md = pp.metadata.to_json_structure()
-            name = md['python_path']
-            with open(os.path.join(OUTPUT_DIR, name + '.json'), 'w') as f:
+            name = md["python_path"]
+            with open(os.path.join(OUTPUT_DIR, name + ".json"), "w") as f:
                 f.write(json.dumps(md, indent=4))
-                f.write('\n')
+                f.write("\n")

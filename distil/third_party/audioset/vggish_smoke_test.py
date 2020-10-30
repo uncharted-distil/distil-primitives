@@ -39,11 +39,11 @@ from distil.third_party.audioset import vggish_params
 from distil.third_party.audioset import vggish_postprocess
 from distil.third_party.audioset import vggish_slim
 
-print('\nTesting your install of VGGish\n')
+print("\nTesting your install of VGGish\n")
 
 # Paths to downloaded VGGish files.
-checkpoint_path = 'vggish_model.ckpt'
-pca_params_path = 'vggish_pca_params.npz'
+checkpoint_path = "vggish_model.ckpt"
+pca_params_path = "vggish_pca_params.npz"
 
 # Relative tolerance of errors in mean and standard deviation of embeddings.
 rel_error = 0.1  # Up to 10%
@@ -58,40 +58,41 @@ x = np.sin(2 * np.pi * freq * t)
 
 # Produce a batch of log mel spectrogram examples.
 input_batch = vggish_input.waveform_to_examples(x, sr)
-print('Log Mel Spectrogram example: ', input_batch[0])
+print("Log Mel Spectrogram example: ", input_batch[0])
 np.testing.assert_equal(
-    input_batch.shape,
-    [num_secs, vggish_params.NUM_FRAMES, vggish_params.NUM_BANDS])
+    input_batch.shape, [num_secs, vggish_params.NUM_FRAMES, vggish_params.NUM_BANDS]
+)
 
 # Define VGGish, load the checkpoint, and run the batch through the model to
 # produce embeddings.
 with tf.Graph().as_default(), tf.Session() as sess:
-  vggish_slim.define_vggish_slim()
-  vggish_slim.load_vggish_slim_checkpoint(sess, checkpoint_path)
+    vggish_slim.define_vggish_slim()
+    vggish_slim.load_vggish_slim_checkpoint(sess, checkpoint_path)
 
-  features_tensor = sess.graph.get_tensor_by_name(
-      vggish_params.INPUT_TENSOR_NAME)
-  embedding_tensor = sess.graph.get_tensor_by_name(
-      vggish_params.OUTPUT_TENSOR_NAME)
-  [embedding_batch] = sess.run([embedding_tensor],
-                               feed_dict={features_tensor: input_batch})
-  print('VGGish embedding: ', embedding_batch[0])
-  expected_embedding_mean = 0.131
-  expected_embedding_std = 0.238
-  np.testing.assert_allclose(
-      [np.mean(embedding_batch), np.std(embedding_batch)],
-      [expected_embedding_mean, expected_embedding_std],
-      rtol=rel_error)
+    features_tensor = sess.graph.get_tensor_by_name(vggish_params.INPUT_TENSOR_NAME)
+    embedding_tensor = sess.graph.get_tensor_by_name(vggish_params.OUTPUT_TENSOR_NAME)
+    [embedding_batch] = sess.run(
+        [embedding_tensor], feed_dict={features_tensor: input_batch}
+    )
+    print("VGGish embedding: ", embedding_batch[0])
+    expected_embedding_mean = 0.131
+    expected_embedding_std = 0.238
+    np.testing.assert_allclose(
+        [np.mean(embedding_batch), np.std(embedding_batch)],
+        [expected_embedding_mean, expected_embedding_std],
+        rtol=rel_error,
+    )
 
 # Postprocess the results to produce whitened quantized embeddings.
 pproc = vggish_postprocess.Postprocessor(pca_params_path)
 postprocessed_batch = pproc.postprocess(embedding_batch)
-print('Postprocessed VGGish embedding: ', postprocessed_batch[0])
+print("Postprocessed VGGish embedding: ", postprocessed_batch[0])
 expected_postprocessed_mean = 123.0
 expected_postprocessed_std = 75.0
 np.testing.assert_allclose(
     [np.mean(postprocessed_batch), np.std(postprocessed_batch)],
     [expected_postprocessed_mean, expected_postprocessed_std],
-    rtol=rel_error)
+    rtol=rel_error,
+)
 
-print('\nLooks Good To Me!\n')
+print("\nLooks Good To Me!\n")
