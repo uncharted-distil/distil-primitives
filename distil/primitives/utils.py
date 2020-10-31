@@ -2,6 +2,8 @@ import importlib.machinery
 import importlib.util
 import io
 import sys
+import cProfile
+import pstats
 from typing import Any, Callable, Dict, Sequence, Tuple
 import logging
 import time
@@ -91,14 +93,32 @@ def lazy_load(fullname: str):
         loader.exec_module(module)
         return module
 
+
 # an annotation that can be added to function calls to time their execution
 def timed(fcn: Callable) -> Callable:
     def wrapped(*args: Tuple, **kwargs: Dict[str, Any]) -> Any:
         logger = logging.getLogger(__name__)
         start = time.time()
-        logger.debug(f'Executing: {fcn.__module__}.{fcn.__name__}')
+        logger.debug(f"Executing: {fcn.__module__}.{fcn.__name__}")
         result = fcn(*args, **kwargs)
         end = time.time()
-        logger.debug(f'Finished: {fcn.__module__}.{fcn.__name__} in {end - start} ms')
+        logger.debug(f"Finished: {fcn.__module__}.{fcn.__name__} in {end - start} ms")
         return result
+
+    return wrapped
+
+
+# an annotation that can be added to function calls to fully profile their execution
+def profiled(fcn: Callable) -> Callable:
+    def wrapped(*args: Tuple, **kwargs: Dict[str, Any]) -> Any:
+        pr = cProfile.Profile()
+        pr.enable()
+        fcn(*args, **kwargs)
+        pr.disable()
+        s = io.StringIO()
+        sortby = "cumulative"
+        ps = pstats.Stats(pr, stream=s).sort_stats(sortby).strip_dirs()
+        ps.print_stats()
+        print(s.getvalue())
+
     return wrapped
