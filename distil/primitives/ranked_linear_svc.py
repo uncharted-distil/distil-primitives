@@ -14,7 +14,6 @@ from d3m.primitive_interfaces import base
 from d3m.primitive_interfaces.base import CallResult
 from d3m.primitive_interfaces.supervised_learning import PrimitiveBase
 from distil.utils import CYTHON_DEP
-from distil.primitives.utils import timed
 import version
 
 __all__ = ("RankedLinearSVC",)
@@ -141,6 +140,8 @@ class RankedLinearSVCPrimitive(
         self._binary = self._outputs.iloc[:, 0].nunique(dropna=True) <= 2
 
     def fit(self, *, timeout: float = None, iterations: int = None) -> CallResult[None]:
+        logger.debug(f"Fitting {__name__}")
+
         if self._needs_fit:
             self._model.fit(self._inputs, self._outputs.values.ravel())
             self._needs_fit = False
@@ -153,6 +154,7 @@ class RankedLinearSVCPrimitive(
         timeout: float = None,
         iterations: int = None,
     ) -> CallResult[container.DataFrame]:
+        logger.debug(f"Producing {__name__}")
 
         # force a fit it hasn't yet been done
         if self._needs_fit:
