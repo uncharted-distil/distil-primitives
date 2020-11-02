@@ -154,7 +154,6 @@ class RankedLinearSVCPrimitive(
         timeout: float = None,
         iterations: int = None,
     ) -> CallResult[container.DataFrame]:
-
         logger.debug(f"Producing {__name__}")
 
         # force a fit it hasn't yet been done
@@ -209,7 +208,6 @@ class RankedLinearSVCPrimitive(
             (metadata_base.ALL_ELEMENTS, 1),
             "http://schema.org/Float",
         )
-
         return base.CallResult(result_df)
 
     def _get_confidence(self, X):
