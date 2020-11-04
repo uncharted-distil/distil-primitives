@@ -169,7 +169,17 @@ class ForestCV(DistilBaseModel):
         )
 
         model = model.fit(X, y)
-        oob_fitness = metrics[self.target_metric](y, model.predict_oob())
+
+        # current implementation doesn't properly support evaluating using roc_auc
+        applied_metric = self.target_metric
+        if applied_metric == "rocAuc":
+            applied_metric = "f1"
+        elif applied_metric == "rocAucMicro":
+            applied_metric = "f1Micro"
+        elif applied_metric == "rocAucMacro":
+            applied_metric = "f1Macro"
+
+        oob_fitness = metrics[applied_metric](y, model.predict_oob())
         return {"params": params, "fitness": oob_fitness}
 
     def _fit(self, Xf_train, y_train, param_grid=None):
