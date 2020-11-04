@@ -243,7 +243,7 @@ class EnsembleForestPrimitive(
         # if we are doing a binary classification the outputs need to be integer classes.
         # label map is used to covert these back on produce.
         col = outputs.columns[0]
-        if len(pd.factorize(outputs[col])[1]) <= 2:
+        if len(pd.factorize(outputs[col])[1]):
             factor = pd.factorize(outputs[col])
             outputs = pd.DataFrame(factor[0], columns=[col])
             self._label_map = {k: v for k, v in enumerate(factor[1])}
@@ -350,9 +350,6 @@ class EnsembleForestPrimitive(
             # add confidence scores as some metrics require them.
             confidence = self._model.predict_proba(inputs.values)
             confidence = pd.Series(confidence.tolist(), name="confidence")
-
-            # this is a hack, but str conversions on lists later on break things
-            # confidence = pd.Series([1]*len(result_df), name='confidence')
             result_df = pd.concat([result_df, confidence], axis=1)
 
             confidences = [
@@ -360,12 +357,8 @@ class EnsembleForestPrimitive(
                 for sublist in result_df["confidence"].values.tolist()
                 for item in sublist
             ]
-            if self._label_map:
-                labels = np.array(list(self._label_map.values()) * len(result_df))
-            else:
-                labels = np.array(
-                    list(np.arange(len(confidence.iloc[0]))) * len(result_df)
-                )
+            labels = np.array(list(self._label_map.values()) * len(result_df))
+
             index = [
                 item
                 for sublist in [[i] * len(np.unique(labels)) for i in result_df.index]
@@ -373,7 +366,6 @@ class EnsembleForestPrimitive(
             ]
             result_df_temp = container.DataFrame()
             result_df_temp["Class"] = labels
-            result_df_temp["Class"] = result_df_temp["Class"]
             result_df_temp["confidence"] = confidences
             result_df_temp.metadata = result_df.metadata
             result_df_temp["index_temp"] = index
