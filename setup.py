@@ -19,8 +19,8 @@ setup(
     packages=find_packages(),
     keywords=["d3m_primitive"],
     install_requires=[
+        "d3m",  # d3m best-practice moving forward is to remove the version (simplifies updates)
         # shared d3m versions - need to be aligned with core package
-        "d3m==v2020.5.18",
         "scikit-learn==0.22.2.post1",
         "scipy==1.4.1",
         "numpy==1.18.2",
