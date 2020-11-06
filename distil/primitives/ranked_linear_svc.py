@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from pandas.core.computation.pytables import ConditionBinOp
 from sklearn.svm import LinearSVC
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, normalize
 from scipy.stats import rankdata
 from d3m import container, utils
 from d3m.metadata import base as metadata_base, hyperparams, params
@@ -52,12 +52,13 @@ class Hyperparams(hyperparams.Hyperparams):
         ],
         description="Tolerance for error. Aims to stop within th is tolerance",
     )
-    normalize = hyperparams.Hyperparameter[bool](
-        default=False,
+    scaling = hyperparams.Enumeration[Optional[str]](
+        default=None,
+        values=("standardize", "unit_norm", None),
         semantic_types=[
             "https://metadata.datadrivendiscovery.org/types/ControlParameter"
         ],
-        description="Whether or not to normalize the data before running SVC",
+        description="How to scale the data before running SVC.",
     )
 
 
@@ -124,14 +125,17 @@ class RankedLinearSVCPrimitive(
         )
         self._needs_fit = True
         self._binary = False
-        self._standard_scaler = None
+        self._standard_scaler: StandardScaler = None
 
     def set_training_data(
         self, *, inputs: container.DataFrame, outputs: container.DataFrame
     ) -> None:
-        if self.hyperparams["normalize"]:
+        if self.hyperparams["scaling"] == "standardize":
             self._standard_scaler = StandardScaler()
             self._inputs = self._standard_scaler.fit_transform(inputs.values)
+        elif self.hyperparams["scaling"] == "unit_norm":
+            self._inputs = inputs.values
+            self._inputs = normalize(self._inputs)
         else:
             self._inputs = inputs.values
         self._outputs = outputs
@@ -162,12 +166,13 @@ class RankedLinearSVCPrimitive(
         if not self._target_cols:
             self._target_cols = [self._outputs.columns[0]]
 
-        confidences_ranked: np.ndarray = None
         result: pd.DataFrame = None
         inputs = inputs.values
         # create dataframe to hold the result
-        if self.hyperparams["normalize"]:
+        if self.hyperparams["scaling"] == "standarize":
             inputs = self._standard_scaler.transform(inputs)
+        elif self.hyperparams["scaling"] == "unit_norm":
+            inputs = normalize(inputs)
         result = self._model.predict(inputs)
         result_df: container.DataFrame = None
         if self._binary:
@@ -195,7 +200,6 @@ class RankedLinearSVCPrimitive(
             "http://schema.org/Integer",
         )
 
-        # this is a hack, but str conversions on lists later on break things
         result_df.metadata = result_df.metadata.add_semantic_type(
             (metadata_base.ALL_ELEMENTS, 1),
             "https://metadata.datadrivendiscovery.org/types/PredictedTarget",
