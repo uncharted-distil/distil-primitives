@@ -172,7 +172,7 @@ class VectorBoundsFilterPrimitive(
             "id": "c2fa34c0-2d1b-42af-91d2-515da4a27752",
             "version": version.__version__,
             "name": "Vector bound filter",
-            "python_path": "d3m.primitives.data_preprocessing.vector_bounds_filter.DistilVectorBoundsFilter",
+            "python_path": "d3m.primitives.data_transformation.vector_bounds_filter.DistilVectorBoundsFilter",
             "source": {
                 "name": "Distil",
                 "contact": "mailto:vkorapaty@uncharted.software",
@@ -193,7 +193,7 @@ class VectorBoundsFilterPrimitive(
             "algorithm_types": [
                 metadata_base.PrimitiveAlgorithmType.ARRAY_SLICING,
             ],
-            "primitive_family": metadata_base.PrimitiveFamily.DATA_PREPROCESSING,
+            "primitive_family": metadata_base.PrimitiveFamily.DATA_TRANSFORMATION,
         }
     )
 
