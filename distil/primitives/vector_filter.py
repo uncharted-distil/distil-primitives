@@ -67,17 +67,8 @@ class Hyperparams(hyperparams.Hyperparams):
                 ],
                 description="A set of minimum values, corresponding to the vector values to filter on",
             ),
-            # negative_infinity=hyperparams.Constant(float("-inf")),
             float=hyperparams.Hyperparameter[float](0),
         ),
-        # elements=hyperparams.Union[typing.Union[float, list]](
-        #     elements=hyperparams.Hyperparameter[float](-1),
-        #     default=(),
-        #     semantic_types=[
-        #         "https://metadata.datadrivendiscovery.org/types/ControlParameter"
-        #     ],
-        #     description="A set of column indices to filter on",
-        # ),
         default="float",
         semantic_types=[
             "https://metadata.datadrivendiscovery.org/types/ControlParameter"
@@ -113,17 +104,8 @@ class Hyperparams(hyperparams.Hyperparams):
                 ],
                 description="A set of minimum values, corresponding to the vector values to filter on",
             ),
-            # positive_infinity=hyperparams.Constant(float("inf")),
             float=hyperparams.Hyperparameter[float](0),
         ),
-        # elements=hyperparams.Union[typing.Union[float, list]](
-        #     elements=hyperparams.Hyperparameter[float](-1),
-        #     default=(),
-        #     semantic_types=[
-        #         "https://metadata.datadrivendiscovery.org/types/ControlParameter"
-        #     ],
-        #     description="A set of column indices to filter on",
-        # ),
         default="float",
         semantic_types=[
             "https://metadata.datadrivendiscovery.org/types/ControlParameter"
@@ -163,6 +145,26 @@ class VectorBoundsFilterPrimitive(
     list will indicate the appropriate min/max to filter out the indicated row indices. Note that the amount
     of row indices must match the amount of mins and maxs provided, otherwise the excess given indices won't
     have any filter applied on them.
+
+    The filter assumes the mins and maxs are the same type of data. They can be of type int, list, and two
+    dimensional list.
+
+    If row_indices_list is empty, it filters on all indices.
+    If the mins/maxs are an int, all values in all vectors will be filtered with those bounds.
+    If the mins/maxs are a list, then it expect it to be the same length as the amount of indice lists given.
+    i.e each scalar in the mins/maxs will correspond to each set of indices in row_indices_list to filter.
+    If the mins/maxs are a two dimensional list, then each vector of filters in the list will correspond to
+    each set of row_indices_list. In there, each i'th value in the filter vector will correspond to each i'th
+    column in the vector to be filtered.
+    i.e if we have the dataframe:
+    d3mIndex | values
+    0        | 10, 20, 30
+    1        | 15, 25, 35
+    2        | 40, 20, 50
+    And you provide row_indices_list = [[0, 1], [2]],
+    mins = [[12, 18, 31], [20, 25, 50]], maxs = [[20, 30, 40], [30, 25, 60]]
+    Only row with index 1 will be returned, as row 0 has 10 < 12, and 30 < 31.
+    Row 2 was filtered out because 40 > 20 and 50 > 40, 20 < 25.
     """
 
     metadata = metadata_base.PrimitiveMetadata(
@@ -377,11 +379,6 @@ class VectorBoundsFilterPrimitive(
             rows_to_keep = rows.sum(axis=1) == rows.shape[1]
         except ValueError as error:
             rows = inputs.iloc[indices, vector_column]
-            # get length of each vector
-            # vector_lengths = rows.apply(np.shape).apply(np.take, args=([0]))
-            # filter_lengths = vector_lengths.apply(
-            #     min, args=(len(mins[i]), len(maxs[i]))
-            # )
 
             def _filter_r(row, min_val, max_val):
                 return self._logical_op(
