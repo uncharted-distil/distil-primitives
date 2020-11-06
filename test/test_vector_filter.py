@@ -132,6 +132,106 @@ class VectorBoundsFilterPrimitiveTestCase(unittest.TestCase):
         self.assertEqual(result_df.shape[0], 1)
         self.assertListEqual(result_df["bravo"][0].tolist(), [1.0, 2.0])
 
+    def test_uneven_vector_to_filters_length(self) -> None:
+        dataframe = self._load_data()
+        dataframe["bravo"][0] = np.append(dataframe["bravo"][0], [35])
+        dataframe["bravo"][2] = np.array([30])
+        dataframe["bravo"][3] = np.append(dataframe["bravo"][0], [10])
+
+        hyperparam_class = VectorBoundsFilterPrimitive.metadata.query()[
+            "primitive_code"
+        ]["class_type_arguments"]["Hyperparams"]
+        vbf = VectorBoundsFilterPrimitive(
+            hyperparams=hyperparam_class.defaults().replace(
+                {"mins": [[10, 20]], "maxs": [[50, 60]], "column": 2}
+            )
+        )
+
+        result_df = vbf.produce(inputs=dataframe).value
+        self.assertEqual(result_df.shape[0], 2)
+        self.assertListEqual(result_df["bravo"][0].tolist(), [10.0, 20.0])
+        self.assertListEqual(result_df["bravo"][1].tolist(), [30.0])
+
+    def test_scalar(self) -> None:
+        dataframe = self._load_data()
+
+        hyperparam_class = VectorBoundsFilterPrimitive.metadata.query()[
+            "primitive_code"
+        ]["class_type_arguments"]["Hyperparams"]
+        vbf = VectorBoundsFilterPrimitive(
+            hyperparams=hyperparam_class.defaults().replace(
+                {"mins": 15.0, "maxs": 40.0, "column": 2}
+            )
+        )
+
+        result_df = vbf.produce(inputs=dataframe).value
+        self.assertEqual(result_df.shape[0], 1)
+        self.assertListEqual(result_df["bravo"][0].tolist(), [30.0, 40.0])
+
+    def test_uneven_scalar(self) -> None:
+        dataframe = self._load_data()
+        dataframe["bravo"][0] = np.append(dataframe["bravo"][0], [35])
+        dataframe["bravo"][2] = np.array([30])
+        dataframe["bravo"][3] = np.append(dataframe["bravo"][0], [10])
+
+        hyperparam_class = VectorBoundsFilterPrimitive.metadata.query()[
+            "primitive_code"
+        ]["class_type_arguments"]["Hyperparams"]
+        vbf = VectorBoundsFilterPrimitive(
+            hyperparams=hyperparam_class.defaults().replace(
+                {"mins": 15.0, "maxs": 40.0, "column": 2}
+            )
+        )
+
+        result_df = vbf.produce(inputs=dataframe).value
+        self.assertEqual(result_df.shape[0], 1)
+        self.assertListEqual(result_df["bravo"][0].tolist(), [30.0])
+
+    def test_one_dim_filter(self) -> None:
+        dataframe = self._load_data()
+
+        hyperparam_class = VectorBoundsFilterPrimitive.metadata.query()[
+            "primitive_code"
+        ]["class_type_arguments"]["Hyperparams"]
+        vbf = VectorBoundsFilterPrimitive(
+            hyperparams=hyperparam_class.defaults().replace(
+                {
+                    "mins": [15.0, 20.0],
+                    "maxs": [40.0, 50.0],
+                    "column": 2,
+                    "row_indices_list": [[0, 1, 2], [3, 4]],
+                }
+            )
+        )
+
+        result_df = vbf.produce(inputs=dataframe).value
+        self.assertEqual(result_df.shape[0], 1)
+        self.assertListEqual(result_df["bravo"][0].tolist(), [30.0, 40.0])
+
+    def test_uneven_one_dim_filter(self) -> None:
+        dataframe = self._load_data()
+        dataframe["bravo"][0] = np.append(dataframe["bravo"][0], [35])
+        dataframe["bravo"][2] = np.array([30])
+        dataframe["bravo"][3] = np.append(dataframe["bravo"][0], [10])
+
+        hyperparam_class = VectorBoundsFilterPrimitive.metadata.query()[
+            "primitive_code"
+        ]["class_type_arguments"]["Hyperparams"]
+        vbf = VectorBoundsFilterPrimitive(
+            hyperparams=hyperparam_class.defaults().replace(
+                {
+                    "mins": [15.0, 20.0],
+                    "maxs": [40.0, 50.0],
+                    "column": 2,
+                    "row_indices_list": [[0, 1, 2], [3, 4]],
+                }
+            )
+        )
+
+        result_df = vbf.produce(inputs=dataframe).value
+        self.assertEqual(result_df.shape[0], 1)
+        self.assertListEqual(result_df["bravo"][0].tolist(), [30.0])
+
 
 if __name__ == "__main__":
     unittest.main()

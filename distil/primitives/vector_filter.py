@@ -1,5 +1,6 @@
 import logging
 import os
+import collections
 import typing
 from typing import List, Optional
 
@@ -37,31 +38,93 @@ class Hyperparams(hyperparams.Hyperparams):
         ],
         description="A set with sets to specify rows to apply filters on.",
     )
-    mins = hyperparams.Set(
-        elements=hyperparams.Set(
-            elements=hyperparams.Hyperparameter[float](-1),
-            default=(),
-            semantic_types=[
-                "https://metadata.datadrivendiscovery.org/types/ControlParameter"
-            ],
-            description="A set of column indices to filter on",
+    mins = hyperparams.Union[
+        typing.Union[
+            float, typing.Sequence[float], typing.Sequence[typing.Sequence[float]]
+        ]
+    ](
+        configuration=collections.OrderedDict(
+            sets=hyperparams.Set(
+                elements=hyperparams.Set(
+                    elements=hyperparams.Hyperparameter[float](-1),
+                    default=(),
+                    semantic_types=[
+                        "https://metadata.datadrivendiscovery.org/types/ControlParameter"
+                    ],
+                    description="A set of minimum values, corresponding to the vector values to filter on",
+                ),
+                default=(),
+                semantic_types=[
+                    "https://metadata.datadrivendiscovery.org/types/ControlParameter"
+                ],
+                description="A set of minimum values, corresponding to the vector values to filter on",
+            ),
+            set=hyperparams.Set(
+                elements=hyperparams.Hyperparameter[float](-1),
+                default=(),
+                semantic_types=[
+                    "https://metadata.datadrivendiscovery.org/types/ControlParameter"
+                ],
+                description="A set of minimum values, corresponding to the vector values to filter on",
+            ),
+            # negative_infinity=hyperparams.Constant(float("-inf")),
+            float=hyperparams.Hyperparameter[float](0),
         ),
-        default=(),
+        # elements=hyperparams.Union[typing.Union[float, list]](
+        #     elements=hyperparams.Hyperparameter[float](-1),
+        #     default=(),
+        #     semantic_types=[
+        #         "https://metadata.datadrivendiscovery.org/types/ControlParameter"
+        #     ],
+        #     description="A set of column indices to filter on",
+        # ),
+        default="float",
         semantic_types=[
             "https://metadata.datadrivendiscovery.org/types/ControlParameter"
         ],
         description="A set of column indices to filter on",
     )
-    maxs = hyperparams.Set(
-        elements=hyperparams.Set(
-            elements=hyperparams.Hyperparameter[float](-1),
-            default=(),
-            semantic_types=[
-                "https://metadata.datadrivendiscovery.org/types/ControlParameter"
-            ],
-            description="A set of column indices to filter on",
+    maxs = hyperparams.Union[
+        typing.Union[
+            float, typing.Sequence[float], typing.Sequence[typing.Sequence[float]]
+        ]
+    ](
+        configuration=collections.OrderedDict(
+            sets=hyperparams.Set(
+                elements=hyperparams.Set(
+                    elements=hyperparams.Hyperparameter[float](-1),
+                    default=(),
+                    semantic_types=[
+                        "https://metadata.datadrivendiscovery.org/types/ControlParameter"
+                    ],
+                    description="A set of minimum values, corresponding to the vector values to filter on",
+                ),
+                default=(),
+                semantic_types=[
+                    "https://metadata.datadrivendiscovery.org/types/ControlParameter"
+                ],
+                description="A set of minimum values, corresponding to the vector values to filter on",
+            ),
+            set=hyperparams.Set(
+                elements=hyperparams.Hyperparameter[float](-1),
+                default=(),
+                semantic_types=[
+                    "https://metadata.datadrivendiscovery.org/types/ControlParameter"
+                ],
+                description="A set of minimum values, corresponding to the vector values to filter on",
+            ),
+            # positive_infinity=hyperparams.Constant(float("inf")),
+            float=hyperparams.Hyperparameter[float](0),
         ),
-        default=(),
+        # elements=hyperparams.Union[typing.Union[float, list]](
+        #     elements=hyperparams.Hyperparameter[float](-1),
+        #     default=(),
+        #     semantic_types=[
+        #         "https://metadata.datadrivendiscovery.org/types/ControlParameter"
+        #     ],
+        #     description="A set of column indices to filter on",
+        # ),
+        default="float",
         semantic_types=[
             "https://metadata.datadrivendiscovery.org/types/ControlParameter"
         ],
@@ -136,6 +199,25 @@ class VectorBoundsFilterPrimitive(
         "https://metadata.datadrivendiscovery.org/types/FloatVector",
     )
 
+    def __init__(self, *, hyperparams: Hyperparams, random_seed: int = 0) -> None:
+        super().__init__(hyperparams=hyperparams, random_seed=random_seed)
+        if self.hyperparams["inclusive"]:
+            self._logical_op = np.logical_and
+            if self.hyperparams["strict"]:
+                self._min_comparison_op = lambda x, y: x > y
+                self._max_comparision_op = lambda x, y: x < y
+            else:
+                self._min_comparison_op = lambda x, y: x >= y
+                self._max_comparision_op = lambda x, y: x <= y
+        else:
+            self._logical_op = np.logical_or
+            if self.hyperparams["strict"]:
+                self._min_comparison_op = lambda x, y: x < y
+                self._max_comparision_op = lambda x, y: x > y
+            else:
+                self._min_comparison_op = lambda x, y: x <= y
+                self._max_comparision_op = lambda x, y: x >= y
+
     def produce(
         self,
         *,
@@ -152,13 +234,14 @@ class VectorBoundsFilterPrimitive(
         mins = self.hyperparams["mins"]
         indices = self.hyperparams["row_indices_list"]
 
-        # if len(maxs) != len(indices) or len(mins) != len(indices):
-        # if min(len(maxs), len(mins), len(indices))
+        if type(mins) == float or type(mins) == int:
+            return base.CallResult(self._scalar_filter(inputs, vector_column))
+
         total_filters_to_apply = 0
 
         if len(indices) == 0:
             total_filters_to_apply = 1
-            if len(maxs) == 0 and len(mins) == 0:
+            if len(maxs) == 0 or len(mins) == 0:
                 return base.CallResult(inputs)
             indices = [inputs.index.tolist()]
         elif len(maxs) < len(mins):
@@ -178,44 +261,88 @@ class VectorBoundsFilterPrimitive(
         else:
             total_filters_to_apply = len(indices)
 
-        mins = [
-            [
-                float("-inf") if min_filter[i] == None else min_filter[i]
-                for i in range(len(min_filter))
+        if type(mins[0]) == list:
+            mins = [
+                [
+                    float("-inf") if min_filter[i] == None else min_filter[i]
+                    for i in range(len(min_filter))
+                ]
+                for min_filter in mins
             ]
-            for min_filter in mins
-        ]
-        maxs = [
-            [
-                float("inf") if max_filter[i] == None else max_filter[i]
-                for i in range(len(max_filter))
+            maxs = [
+                [
+                    float("inf") if max_filter[i] == None else max_filter[i]
+                    for i in range(len(max_filter))
+                ]
+                for max_filter in maxs
             ]
-            for max_filter in maxs
-        ]
+        else:
+            mins = [float("-inf") if i == None else i for i in mins]
+            maxs = [float("inf") if i == None else i for i in maxs]
 
         indices_to_keep = np.empty((inputs.shape[0],))
         final_index = 0
+
         for i in range(total_filters_to_apply):
-            rows = np.stack(inputs.iloc[indices[i], vector_column], axis=0)
-            if self.hyperparams["inclusive"]:
-                if self.hyperparams["strict"]:
-                    rows = np.logical_and(
-                        rows > np.array(mins[i]), rows < np.array(maxs[i])
+            try:
+                rows = np.stack(inputs.iloc[indices[i], vector_column], axis=0)
+                if type(mins[i]) == list:
+                    filter_length = min(rows.shape[1], len(mins[i]), len(maxs[i]))
+                    mins_for_filter = np.array(mins[i][:filter_length])
+                    maxs_for_filter = np.array(maxs[i][:filter_length])
+                else:
+                    filter_length = rows.shape[1]
+                    mins_for_filter = mins[i]
+                    maxs_for_filter = maxs[i]
+
+                rows = self._logical_op(
+                    self._min_comparison_op(
+                        rows[:, :filter_length],
+                        mins_for_filter,
+                    ),
+                    self._max_comparision_op(rows[:, :filter_length], maxs_for_filter),
+                )
+                rows_to_keep = rows.sum(axis=1) == filter_length
+            except ValueError as error:
+                # rows had uneven length
+                rows = inputs.iloc[indices[i], vector_column]
+                # get length of each vector
+                vector_lengths = rows.apply(np.shape).apply(np.take, args=([0]))
+                if type(mins[i]) == list:
+                    filter_lengths = vector_lengths.apply(
+                        min, args=(len(mins[i]), len(maxs[i]))
                     )
                 else:
-                    rows = np.logical_and(
-                        rows >= np.array(mins[i]), rows <= np.array(maxs[i])
+                    filter_lengths = vector_lengths.values
+                # need this to loop over lengths array while keeping vectorised
+                # apply function over rows
+                count_for_ref = [0]
+
+                def _filter_r(row, filter_lengths, mins, maxs, counter):
+                    if type(mins) == list:
+                        mins_for_filter = np.array(mins[: filter_lengths[counter[0]]])
+                        maxs_for_filter = np.array(maxs[: filter_lengths[counter[0]]])
+                    else:
+                        mins_for_filter = mins
+                        maxs_for_filter = maxs
+                    filtered_row = self._logical_op(
+                        self._min_comparison_op(
+                            row[: filter_lengths[counter[0]]], mins_for_filter
+                        ),
+                        self._max_comparision_op(
+                            row[: filter_lengths[counter[0]]],
+                            maxs_for_filter,
+                        ),
                     )
-            else:
-                if self.hyperparams["strict"]:
-                    rows = np.logical_or(
-                        rows < np.array(mins[i]), rows > np.array(maxs[i])
-                    )
-                else:
-                    rows = np.logical_or(
-                        rows <= np.array(mins[i]), rows >= np.array(maxs[i])
-                    )
-            rows_to_keep = rows.sum(axis=1) == rows.shape[1]
+                    counter[0] += 1
+                    return filtered_row
+
+                rows = rows.apply(
+                    _filter_r,
+                    args=(filter_lengths, mins[i], maxs[i], count_for_ref),
+                )
+                rows_to_keep = rows.apply(np.sum).values == filter_lengths
+
             amount_of_kept_rows = rows_to_keep.sum()
             indices_to_keep[final_index : final_index + amount_of_kept_rows] = [
                 indices[i][j] for j in range(len(indices[i])) if rows_to_keep[j]
@@ -225,6 +352,59 @@ class VectorBoundsFilterPrimitive(
         outputs = dataframe_utils.select_rows(inputs, indices_to_keep[0:final_index])
 
         return base.CallResult(outputs)
+
+    def _scalar_filter(self, inputs, vector_column):
+        max_value = self.hyperparams["maxs"]
+        min_value = self.hyperparams["mins"]
+        indices = self.hyperparams["row_indices_list"]
+        if len(indices) == 0:
+            indices = inputs.index.tolist()
+        if min_value == None:
+            float("-inf")
+        if max_value == None:
+            float("inf")
+
+        try:
+            rows = np.stack(inputs.iloc[indices, vector_column], axis=0)
+
+            rows = self._logical_op(
+                self._min_comparison_op(
+                    rows,
+                    min_value,
+                ),
+                self._max_comparision_op(rows, max_value),
+            )
+            rows_to_keep = rows.sum(axis=1) == rows.shape[1]
+        except ValueError as error:
+            rows = inputs.iloc[indices, vector_column]
+            # get length of each vector
+            # vector_lengths = rows.apply(np.shape).apply(np.take, args=([0]))
+            # filter_lengths = vector_lengths.apply(
+            #     min, args=(len(mins[i]), len(maxs[i]))
+            # )
+
+            def _filter_r(row, min_val, max_val):
+                return self._logical_op(
+                    self._min_comparison_op(
+                        row,
+                        min_val,
+                    ),
+                    self._max_comparision_op(
+                        row,
+                        max_val,
+                    ),
+                )
+
+            rows = rows.apply(
+                _filter_r,
+                args=(min_value, max_value),
+            )
+            rows_to_keep = rows.apply(np.sum) == rows.apply(np.shape).apply(
+                np.take, args=([0])
+            )
+        return dataframe_utils.select_rows(
+            inputs, [indices[j] for j in range(len(indices)) if rows_to_keep[j]]
+        )
 
     def _get_floatvector_column(self, inputs_metadata: metadata_base.DataMetadata):
         fv_column = self.hyperparams["column"]
