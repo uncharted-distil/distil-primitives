@@ -374,7 +374,7 @@ class EnsembleForestPrimitive(
 
             result_df.metadata = result_df.metadata.add_semantic_type(
                 (metadata_base.ALL_ELEMENTS, len(result_df.columns) - 1),
-                "https://metadata.datadrivendiscovery.org/types/Confidence",
+                "https://metadata.datadrivendiscovery.org/types/Score",
             )
             result_df.metadata = result_df.metadata.add_semantic_type(
                 (metadata_base.ALL_ELEMENTS, len(result_df.columns) - 1),

@@ -202,7 +202,7 @@ class RankedLinearSVCPrimitive(
         )
         result_df.metadata = result_df.metadata.add_semantic_type(
             (metadata_base.ALL_ELEMENTS, 1),
-            "https://metadata.datadrivendiscovery.org/types/Confidence",
+            "https://metadata.datadrivendiscovery.org/types/Score",
         )
         result_df.metadata = result_df.metadata.add_semantic_type(
             (metadata_base.ALL_ELEMENTS, 1),
