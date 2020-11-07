@@ -134,7 +134,7 @@ class AudioDatasetLoaderPrimitive(
             "id": "f2a0cf71-0f61-41a7-a0ad-b907083ae56c",
             "version": version.__version__,
             "name": "Load audio collection from dataset into a single dataframe",
-            "python_path": "d3m.primitives.data_preprocessing.audio_reader.DistilAudioDatasetLoader",
+            "python_path": "d3m.primitives.data_transformation.audio_reader.DistilAudioDatasetLoader",
             "source": {
                 "name": "Distil",
                 "contact": "mailto:cbethune@uncharted.software",
@@ -155,7 +155,7 @@ class AudioDatasetLoaderPrimitive(
             "algorithm_types": [
                 metadata_base.PrimitiveAlgorithmType.FILE_MANIPULATION,
             ],
-            "primitive_family": metadata_base.PrimitiveFamily.DATA_PREPROCESSING,
+            "primitive_family": metadata_base.PrimitiveFamily.DATA_TRANSFORMATION,
         },
     )
 

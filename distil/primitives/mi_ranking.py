@@ -137,7 +137,7 @@ class MIRankingPrimitive(
             "algorithm_types": [
                 metadata_base.PrimitiveAlgorithmType.MUTUAL_INFORMATION,
             ],
-            "primitive_family": metadata_base.PrimitiveFamily.DATA_PREPROCESSING,
+            "primitive_family": metadata_base.PrimitiveFamily.FEATURE_SELECTION,
         }
     )
 
