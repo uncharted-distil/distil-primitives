@@ -104,7 +104,7 @@ class TimeSeriesBinnerPrimitive(
             "id": "5fee7a91-b843-4636-a21e-a02bf0fd7f3a",
             "version": version.__version__,
             "name": "Time series binner",
-            "python_path": "d3m.primitives.data_transformation.binning.DistilTimeSeriesBinner",
+            "python_path": "d3m.primitives.data_transformation.time_series_binner.DistilTimeSeriesBinner",
             "source": {
                 "name": "Distil",
                 "contact": "mailto:vkorapaty@uncharted.software",

@@ -38,7 +38,7 @@ class DistilCommunityDetectionPrimitive(
             "id": "064cec55-39dd-45b7-a663-50d3e17e0c42",
             "version": version.__version__,
             "name": "CommunityDetection",
-            "python_path": "d3m.primitives.community_detection.community_detection.DistilCommunityDetection",
+            "python_path": "d3m.primitives.community_detection.parser.DistilCommunityDetection",
             "source": {
                 "name": "Distil",
                 "contact": "mailto:cbethune@uncharted.software",

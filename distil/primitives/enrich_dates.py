@@ -49,7 +49,7 @@ class EnrichDatesPrimitive(
             "id": "b1367f5b-bab1-4dfc-a1a9-6a56430e516a",
             "version": version.__version__,
             "name": "Enrich dates",
-            "python_path": "d3m.primitives.data_transformation.data_cleaning.DistilEnrichDates",
+            "python_path": "d3m.primitives.data_transformation.enrich_dates.DistilEnrichDates",
             "source": {
                 "name": "Distil",
                 "contact": "mailto:cbethune@uncharted.software",

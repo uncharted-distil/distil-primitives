@@ -94,7 +94,7 @@ class TimeSeriesFormatterPrimitive(
             "id": "6a1ce3ee-ee70-428b-b1ff-0490bdb23023",
             "version": version.__version__,
             "name": "Time series formatter",
-            "python_path": "d3m.primitives.data_transformation.data_cleaning.DistilTimeSeriesFormatter",
+            "python_path": "d3m.primitives.data_transformation.time_series_formatter.DistilTimeSeriesFormatter",
             "keywords": ["series", "reader", "csv"],
             "source": {
                 "name": "Distil",
