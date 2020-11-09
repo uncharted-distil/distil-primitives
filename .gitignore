@@ -13,3 +13,4 @@ distil_primitives.egg-info
 *.pth
 static
 .pytest_cache
+model_weights.pth
