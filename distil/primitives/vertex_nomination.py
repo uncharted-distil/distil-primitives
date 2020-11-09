@@ -44,7 +44,7 @@ class DistilVertexNominationPrimitive(
             "id": "0130828c-1ac0-47a9-a167-f05bae5a3146",
             "version": version.__version__,
             "name": "VertexNomination",
-            "python_path": "d3m.primitives.vertex_nomination.vertex_nomination.DistilVertexNomination",
+            "python_path": "d3m.primitives.vertex_nomination.seeded_graph_matching.DistilVertexNomination",
             "source": {
                 "name": "Distil",
                 "contact": "mailto:cbethune@uncharted.software",

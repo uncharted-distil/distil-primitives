@@ -41,7 +41,7 @@ class ReplaceSingletonsPrimitive(
             "id": "7cacc8b6-85ad-4c8f-9f75-360e0faee2b8",
             "version": version.__version__,
             "name": "Replace singeltons",
-            "python_path": "d3m.primitives.data_transformation.data_cleaning.DistilReplaceSingletons",
+            "python_path": "d3m.primitives.data_transformation.replace_singletons.DistilReplaceSingletons",
             "source": {
                 "name": "Distil",
                 "contact": "mailto:cbethune@uncharted.software",

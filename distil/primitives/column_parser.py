@@ -78,7 +78,7 @@ class ColumnParserPrimitive(
             "id": "e8e78214-9770-4c26-9eae-a45bd0ede91a",
             "version": version.__version__,
             "name": "Column Parser",
-            "python_path": "d3m.primitives.data_transformation.DistilColumnParser",
+            "python_path": "d3m.primitives.data_transformation.column_parser.DistilColumnParser",
             "source": {
                 "name": "Distil",
                 "contact": "mailto:vkorapaty@uncharted.software",

@@ -124,7 +124,7 @@ class DataFrameSatelliteImageLoaderPrimitive(
             "id": "77d20419-aeb6-44f9-8e63-349ea5b654f7",
             "version": version.__version__,
             "name": "Columns satellite image loader",
-            "python_path": "d3m.primitives.data_transformation.satellite_image_loader.DistilSatelliteImageLoader",
+            "python_path": "d3m.primitives.data_transformation.image_reader.DistilSatelliteImageLoader",
             "keywords": ["satellite", "image", "reader", "tiff"],
             "source": {
                 "name": "Distil",

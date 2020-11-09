@@ -89,7 +89,7 @@ class RankedLinearSVCPrimitive(
             "id": "10d21bbe-9c58-4dc1-8f71-2b3834b71a5e",
             "version": version.__version__,
             "name": "DistilRankedLinearSVC",
-            "python_path": "d3m.primitives.classification.support_vector_machine.DistilRankedLinearSVC",
+            "python_path": "d3m.primitives.classification.linear_svc.DistilRankedLinearSVC",
             "source": {
                 "name": "Distil",
                 "contact": "mailto:cbethune@uncharted.software",
