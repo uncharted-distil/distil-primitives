@@ -240,10 +240,10 @@ class EnsembleForestPrimitive(
         # At this point anything that needed to be imputed should have been, so we'll
         # clear out any remaining NaN values as a last measure.
 
-        # if we are doing a binary classification the outputs need to be integer classes.
+        # if we are doing classification the outputs need to be integer classes.
         # label map is used to covert these back on produce.
         col = outputs.columns[0]
-        if len(pd.factorize(outputs[col])[1]):
+        if self._model.mode == "classification":
             factor = pd.factorize(outputs[col])
             outputs = pd.DataFrame(factor[0], columns=[col])
             self._label_map = {k: v for k, v in enumerate(factor[1])}
