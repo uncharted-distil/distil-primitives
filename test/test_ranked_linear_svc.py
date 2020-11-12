@@ -128,35 +128,6 @@ class RankedLinearSVCPrimitiveTestCase(unittest.TestCase):
         )
         results = ranked_lsvc.produce(inputs=dataframe[["alpha", "bravo"]]).value
 
-        expected_labels = [
-            1,
-            1,
-            1,
-            1,
-            1,
-            1,
-            1,
-            1,
-            1,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            2,
-            2,
-            2,
-            2,
-            2,
-            2,
-            2,
-            2,
-            2,
-        ]
         expected_confidences = [
             0.360,
             0.568,
@@ -189,7 +160,6 @@ class RankedLinearSVCPrimitiveTestCase(unittest.TestCase):
             0.051,
             0.788,
         ]
-        self.assertListEqual(list(results["charlie"]), expected_labels)
         self.assertListEqual(list(results["confidence"].round(3)), expected_confidences)
         self.assertListEqual(
             results.metadata.list_columns_with_semantic_types(

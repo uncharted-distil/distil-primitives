@@ -61,6 +61,13 @@ class Hyperparams(hyperparams.Hyperparams):
         ],
         description="How to scale the data before running SVC.",
     )
+    calibrate = hyperparams.Hyperparameter[bool](
+        default=True,
+        semantic_types=[
+            "https://metadata.datadrivendiscovery.org/types/ControlParameter"
+        ],
+        description="Calibrates probabilities for confidence.",
+    )
 
 
 class Params(params.Params):
@@ -177,10 +184,13 @@ class RankedLinearSVCPrimitive(
             inputs = normalize(inputs)
         result = self._model.predict(inputs)
         result_df: container.DataFrame = None
-        cccv = CalibratedClassifierCV(self._model, cv="prefit")
-        cccv.fit(inputs, result)
         if self._binary:
-            confidences = cccv.predict_proba(inputs)[:, 1]
+            if self.hyperparams["calibrate"]:
+                cccv = CalibratedClassifierCV(self._model, cv="prefit")
+                cccv.fit(inputs, result)
+                confidences = cccv.predict_proba(inputs)[:, 1]
+            else:
+                confidences = self._model.decision_function(inputs)
             if self.hyperparams["rank_confidences"]:
                 confidences = rankdata(confidences)
             result_df = container.DataFrame(
@@ -188,11 +198,16 @@ class RankedLinearSVCPrimitive(
                 generate_metadata=True,
             )
         else:
-            confidences = cccv.predict_proba(inputs)
+            if self.hyperparams["calibrate"]:
+                cccv = CalibratedClassifierCV(self._model, cv="prefit")
+                cccv.fit(inputs, result)
+                confidences = cccv.predict_proba(inputs)
+            else:
+                confidences = self._get_confidence(inputs)
             result_df = container.DataFrame(
                 {
                     "d3mIndex": np.repeat(index, confidences.shape[1]),
-                    self._target_cols[0]: np.repeat(result, confidences.shape[1]),
+                    self._target_cols[0]: np.tile(self._model.classes_, index.shape[0]),
                     "confidence": np.concatenate(confidences),
                 },
                 generate_metadata=True,
