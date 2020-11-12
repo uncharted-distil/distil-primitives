@@ -7,6 +7,7 @@ import pandas as pd
 from pandas.core.computation.pytables import ConditionBinOp
 from sklearn.svm import LinearSVC
 from sklearn.preprocessing import StandardScaler, normalize
+from sklearn.calibration import CalibratedClassifierCV
 from scipy.stats import rankdata
 from d3m import container, utils
 from d3m.metadata import base as metadata_base, hyperparams, params
@@ -167,6 +168,7 @@ class RankedLinearSVCPrimitive(
             self._target_cols = [self._outputs.columns[0]]
 
         result: pd.DataFrame = None
+        index = inputs.index
         inputs = inputs.values
         # create dataframe to hold the result
         if self.hyperparams["scaling"] == "standarize":
@@ -175,8 +177,10 @@ class RankedLinearSVCPrimitive(
             inputs = normalize(inputs)
         result = self._model.predict(inputs)
         result_df: container.DataFrame = None
+        cccv = CalibratedClassifierCV(self._model, cv="prefit")
+        cccv.fit(inputs, result)
         if self._binary:
-            confidences = self._model.decision_function(inputs)
+            confidences = cccv.predict_proba(inputs)[:, 1]
             if self.hyperparams["rank_confidences"]:
                 confidences = rankdata(confidences)
             result_df = container.DataFrame(
@@ -184,32 +188,36 @@ class RankedLinearSVCPrimitive(
                 generate_metadata=True,
             )
         else:
-            confidences = self._get_confidence(inputs)
+            confidences = cccv.predict_proba(inputs)
             result_df = container.DataFrame(
-                {self._target_cols[0]: result, "confidence": confidences.max(axis=1)},
+                {
+                    "d3mIndex": np.repeat(index, confidences.shape[1]),
+                    self._target_cols[0]: np.repeat(result, confidences.shape[1]),
+                    "confidence": np.concatenate(confidences),
+                },
                 generate_metadata=True,
             )
 
         # mark the semantic types on the dataframe
         result_df.metadata = result_df.metadata.add_semantic_type(
-            (metadata_base.ALL_ELEMENTS, 0),
+            (metadata_base.ALL_ELEMENTS, 1),
             "https://metadata.datadrivendiscovery.org/types/PredictedTarget",
         )
         result_df.metadata = result_df.metadata.add_semantic_type(
-            (metadata_base.ALL_ELEMENTS, 0),
+            (metadata_base.ALL_ELEMENTS, 1),
             "http://schema.org/Integer",
         )
 
         result_df.metadata = result_df.metadata.add_semantic_type(
-            (metadata_base.ALL_ELEMENTS, 1),
+            (metadata_base.ALL_ELEMENTS, 2),
             "https://metadata.datadrivendiscovery.org/types/PredictedTarget",
         )
         result_df.metadata = result_df.metadata.add_semantic_type(
-            (metadata_base.ALL_ELEMENTS, 1),
+            (metadata_base.ALL_ELEMENTS, 2),
             "https://metadata.datadrivendiscovery.org/types/Score",
         )
         result_df.metadata = result_df.metadata.add_semantic_type(
-            (metadata_base.ALL_ELEMENTS, 1),
+            (metadata_base.ALL_ELEMENTS, 2),
             "http://schema.org/Float",
         )
         return base.CallResult(result_df)
