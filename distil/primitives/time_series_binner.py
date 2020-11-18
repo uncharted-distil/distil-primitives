@@ -92,6 +92,14 @@ class TimeSeriesBinnerPrimitive(
         container.DataFrame, container.DataFrame, Hyperparams
     ]
 ):
+    """
+    Bins according to the binning_operation on timeseries values. The time value can be
+    a datetime stamp or an integer. If there is a GroupingKey column, it will apply binning
+    to the groups. This will also bin on any value columns set, not just for one column.
+
+    Currently works for downsampling. If the column with the time semantic is a datetime,
+    it can upsample but will leave NaN values for the time.
+    """
 
     _grouping_key_semantic = (
         "https://metadata.datadrivendiscovery.org/types/GroupingKey",
