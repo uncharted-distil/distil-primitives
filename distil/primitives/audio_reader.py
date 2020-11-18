@@ -252,7 +252,7 @@ class AudioDatasetLoaderPrimitive(
                     (os.path.join(base_path, row["filename"]), None, None)
                 )
 
-        outputs = self._audio_load(file_paths)
+        outputs = self._audio_load(self.hyperparams["n_jobs"], file_paths)
 
         logger.debug(f"\n{outputs}")
 
@@ -291,12 +291,10 @@ class AudioDatasetLoaderPrimitive(
         return new_metadata
 
     @classmethod
-    def _audio_load(cls, files_in: Sequence[Tuple]) -> List:
+    def _audio_load(cls, n_jobs: int, files_in: Sequence[Tuple]) -> List:
         jobs = [
             delayed(convert_load_file)(f[0], float(f[1]), float(f[2]))
             for f in tqdm(files_in, total=len(files_in))
         ]
-        files_out = Parallel(
-            n_jobs=self.hyperparams["n_jobs"], backend="loky", verbose=10
-        )(jobs)
+        files_out = Parallel(n_jobs=n_jobs, backend="loky", verbose=10)(jobs)
         return files_out
