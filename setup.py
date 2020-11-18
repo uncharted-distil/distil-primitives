@@ -73,7 +73,6 @@ setup(
             "collaborative_filtering.link_prediction.DistilCollaborativeFiltering = distil.primitives.collaborative_filtering_link_prediction:CollaborativeFilteringPrimitive",
             "data_transformation.one_hot_encoder.DistilOneHotEncoder = distil.primitives.one_hot_encoder:OneHotEncoderPrimitive",
             "data_transformation.encoder.DistilBinaryEncoder = distil.primitives.binary_encoder:BinaryEncoderPrimitive",
-            "data_transformation.encoder.SKLabelEncoder = distil.primitives.label_encoder:SKLabelEncoder",
             "data_transformation.encoder.DistilTextEncoder = distil.primitives.text_encoder:TextEncoderPrimitive",
             "data_transformation.satellite_image_loader.DistilSatelliteImageLoader = distil.primitives.satellite_image_loader:DataFrameSatelliteImageLoaderPrimitive",
             "data_transformation.time_series_formatter.DistilTimeSeriesFormatter = distil.primitives.time_series_formatter:TimeSeriesFormatterPrimitive",
