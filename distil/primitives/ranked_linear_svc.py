@@ -220,7 +220,6 @@ class RankedLinearSVCPrimitive(
                     confidences = self._get_confidence(inputs)
                 result_df = container.DataFrame(
                     {
-                        "temp_index": np.repeat(index, confidences.shape[1]),
                         self._target_cols[0]: np.tile(
                             self._model.classes_, index.shape[0]
                         ),
@@ -228,7 +227,8 @@ class RankedLinearSVCPrimitive(
                     },
                     generate_metadata=True,
                 )
-                result_df.set_index("temp_index", inplace=True)
+                temp_index = np.repeat(index, confidences.shape[1])
+                result_df.set_index(temp_index, inplace=True)
             else:
                 result_df = container.DataFrame(
                     {
@@ -237,32 +237,24 @@ class RankedLinearSVCPrimitive(
                     generate_metadata=True,
                 )
 
-        # mark the semantic types on the dataframe
-        # result_df.metadata = result_df.metadata.add_semantic_type(
-        #     (metadata_base.ALL_ELEMENTS, 0),
-        #     "https://metadata.datadrivendiscovery.org/types/PrimaryKey",
-        # )
         result_df.metadata = result_df.metadata.add_semantic_type(
             (metadata_base.ALL_ELEMENTS, 0),
             "https://metadata.datadrivendiscovery.org/types/PredictedTarget",
-        )
-        result_df.metadata = result_df.metadata.add_semantic_type(
-            (metadata_base.ALL_ELEMENTS, 0),
-            "http://schema.org/Integer",
         )
 
-        result_df.metadata = result_df.metadata.add_semantic_type(
-            (metadata_base.ALL_ELEMENTS, 1),
-            "https://metadata.datadrivendiscovery.org/types/PredictedTarget",
-        )
-        result_df.metadata = result_df.metadata.add_semantic_type(
-            (metadata_base.ALL_ELEMENTS, 1),
-            "https://metadata.datadrivendiscovery.org/types/Score",
-        )
-        result_df.metadata = result_df.metadata.add_semantic_type(
-            (metadata_base.ALL_ELEMENTS, 1),
-            "http://schema.org/Float",
-        )
+        if self.hyperparams["confidences"]:
+            result_df.metadata = result_df.metadata.add_semantic_type(
+                (metadata_base.ALL_ELEMENTS, 1),
+                "https://metadata.datadrivendiscovery.org/types/PredictedTarget",
+            )
+            result_df.metadata = result_df.metadata.add_semantic_type(
+                (metadata_base.ALL_ELEMENTS, 1),
+                "https://metadata.datadrivendiscovery.org/types/Score",
+            )
+            result_df.metadata = result_df.metadata.add_semantic_type(
+                (metadata_base.ALL_ELEMENTS, 1),
+                "http://schema.org/Float",
+            )
         return base.CallResult(result_df)
 
     def _get_confidence(self, X):
