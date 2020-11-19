@@ -68,6 +68,13 @@ class Hyperparams(hyperparams.Hyperparams):
         ],
         description="Calibrates probabilities for confidence.",
     )
+    confidences = hyperparams.Hyperparameter[bool](
+        default=True,
+        semantic_types=[
+            "https://metadata.datadrivendiscovery.org/types/ControlParameter"
+        ],
+        description="Whether or not to calculate confidences.",
+    )
 
 
 class Params(params.Params):
@@ -185,54 +192,75 @@ class RankedLinearSVCPrimitive(
         result = self._model.predict(inputs)
         result_df: container.DataFrame = None
         if self._binary:
-            if self.hyperparams["calibrate"]:
-                cccv = CalibratedClassifierCV(self._model, cv="prefit")
-                cccv.fit(inputs, result)
-                confidences = cccv.predict_proba(inputs)[:, 1]
+            if self.hyperparams["confidences"]:
+                if self.hyperparams["calibrate"]:
+                    cccv = CalibratedClassifierCV(self._model, cv="prefit")
+                    cccv.fit(inputs, result)
+                    confidences = cccv.predict_proba(inputs)[:, 1]
+                else:
+                    confidences = self._model.decision_function(inputs)
+                if self.hyperparams["rank_confidences"]:
+                    confidences = rankdata(confidences)
+                result_df = container.DataFrame(
+                    {self._target_cols[0]: result, "confidence": confidences},
+                    generate_metadata=True,
+                )
             else:
-                confidences = self._model.decision_function(inputs)
-            if self.hyperparams["rank_confidences"]:
-                confidences = rankdata(confidences)
-            result_df = container.DataFrame(
-                {self._target_cols[0]: result, "confidence": confidences},
-                generate_metadata=True,
-            )
+                result_df = container.DataFrame(
+                    {self._target_cols[0]: result},
+                    generate_metadata=True,
+                )
         else:
-            if self.hyperparams["calibrate"]:
-                cccv = CalibratedClassifierCV(self._model, cv="prefit")
-                cccv.fit(inputs, result)
-                confidences = cccv.predict_proba(inputs)
+            if self.hyperparams["confidences"]:
+                if self.hyperparams["calibrate"]:
+                    cccv = CalibratedClassifierCV(self._model, cv="prefit")
+                    cccv.fit(inputs, result)
+                    confidences = cccv.predict_proba(inputs)
+                else:
+                    confidences = self._get_confidence(inputs)
+                result_df = container.DataFrame(
+                    {
+                        "temp_index": np.repeat(index, confidences.shape[1]),
+                        self._target_cols[0]: np.tile(
+                            self._model.classes_, index.shape[0]
+                        ),
+                        "confidence": np.concatenate(confidences),
+                    },
+                    generate_metadata=True,
+                )
+                result_df.set_index("temp_index", inplace=True)
             else:
-                confidences = self._get_confidence(inputs)
-            result_df = container.DataFrame(
-                {
-                    "d3mIndex": np.repeat(index, confidences.shape[1]),
-                    self._target_cols[0]: np.tile(self._model.classes_, index.shape[0]),
-                    "confidence": np.concatenate(confidences),
-                },
-                generate_metadata=True,
-            )
+                result_df = container.DataFrame(
+                    {
+                        self._target_cols[0]: result,
+                    },
+                    generate_metadata=True,
+                )
 
         # mark the semantic types on the dataframe
+        # result_df.metadata = result_df.metadata.add_semantic_type(
+        #     (metadata_base.ALL_ELEMENTS, 0),
+        #     "https://metadata.datadrivendiscovery.org/types/PrimaryKey",
+        # )
         result_df.metadata = result_df.metadata.add_semantic_type(
-            (metadata_base.ALL_ELEMENTS, 1),
+            (metadata_base.ALL_ELEMENTS, 0),
             "https://metadata.datadrivendiscovery.org/types/PredictedTarget",
         )
         result_df.metadata = result_df.metadata.add_semantic_type(
-            (metadata_base.ALL_ELEMENTS, 1),
+            (metadata_base.ALL_ELEMENTS, 0),
             "http://schema.org/Integer",
         )
 
         result_df.metadata = result_df.metadata.add_semantic_type(
-            (metadata_base.ALL_ELEMENTS, 2),
+            (metadata_base.ALL_ELEMENTS, 1),
             "https://metadata.datadrivendiscovery.org/types/PredictedTarget",
         )
         result_df.metadata = result_df.metadata.add_semantic_type(
-            (metadata_base.ALL_ELEMENTS, 2),
+            (metadata_base.ALL_ELEMENTS, 1),
             "https://metadata.datadrivendiscovery.org/types/Score",
         )
         result_df.metadata = result_df.metadata.add_semantic_type(
-            (metadata_base.ALL_ELEMENTS, 2),
+            (metadata_base.ALL_ELEMENTS, 1),
             "http://schema.org/Float",
         )
         return base.CallResult(result_df)
