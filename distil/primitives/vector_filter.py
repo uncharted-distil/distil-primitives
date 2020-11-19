@@ -287,7 +287,7 @@ class VectorBoundsFilterPrimitive(
 
         for i in range(total_filters_to_apply):
             try:
-                rows = np.stack(inputs.iloc[indices[i], vector_column], axis=0)
+                rows = np.stack(inputs.iloc[list(indices[i]), vector_column], axis=0)
                 if type(mins[i]) == list:
                     filter_length = min(rows.shape[1], len(mins[i]), len(maxs[i]))
                     mins_for_filter = np.array(mins[i][:filter_length])
@@ -307,7 +307,7 @@ class VectorBoundsFilterPrimitive(
                 rows_to_keep = rows.sum(axis=1) == filter_length
             except ValueError as error:
                 # rows had uneven length
-                rows = inputs.iloc[indices[i], vector_column]
+                rows = inputs.iloc[list(indices[i]), vector_column]
                 # get length of each vector
                 vector_lengths = rows.apply(np.shape).apply(np.take, args=([0]))
                 if type(mins[i]) == list:
@@ -361,6 +361,8 @@ class VectorBoundsFilterPrimitive(
         indices = self.hyperparams["row_indices_list"]
         if len(indices) == 0:
             indices = inputs.index.tolist()
+        else:
+            indices = list(indices)
         if min_value == None:
             float("-inf")
         if max_value == None:
