@@ -90,25 +90,25 @@ class RankedLinearSVCPrimitiveTestCase(unittest.TestCase):
             results.metadata.list_columns_with_semantic_types(
                 ("https://metadata.datadrivendiscovery.org/types/PredictedTarget",)
             ),
-            [1, 2],
+            [0, 1],
         )
         self.assertListEqual(
             results.metadata.list_columns_with_semantic_types(
                 ("http://schema.org/Integer",)
             ),
-            [1],
+            [0],
         )
         self.assertListEqual(
             results.metadata.list_columns_with_semantic_types(
                 ("https://metadata.datadrivendiscovery.org/types/Score",)
             ),
-            [2],
+            [1],
         )
         self.assertListEqual(
             results.metadata.list_columns_with_semantic_types(
                 ("https://metadata.datadrivendiscovery.org/types/PredictedTarget",)
             ),
-            [1, 2],
+            [0, 1],
         )
 
     def test_multiclass(self) -> None:
@@ -165,13 +165,13 @@ class RankedLinearSVCPrimitiveTestCase(unittest.TestCase):
             results.metadata.list_columns_with_semantic_types(
                 ("https://metadata.datadrivendiscovery.org/types/Score",)
             ),
-            [2],
+            [1],
         )
         self.assertListEqual(
             results.metadata.list_columns_with_semantic_types(
                 ("https://metadata.datadrivendiscovery.org/types/PredictedTarget",)
             ),
-            [1, 2],
+            [0, 1],
         )
 
 
