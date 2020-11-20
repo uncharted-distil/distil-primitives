@@ -137,7 +137,7 @@ class ImageTransferPrimitive(
         if self._model is None:
             model_path = self.volumes[self._VOLUME_KEY]
             logger.info(f"Loading pre-trained model from {model_path}")
-            self._model = Img2Vec(model_path)
+            self._model = Img2Vec(model_path, cuda=True)
         filename_col_index = self._get_filename_column_index(inputs.metadata)
         self.filename_col = inputs.columns[filename_col_index]
 
