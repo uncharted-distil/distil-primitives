@@ -5,6 +5,7 @@ from typing import List, Optional
 import numpy as np
 import pandas as pd
 from pandas.core.computation.pytables import ConditionBinOp
+import sklearn
 from sklearn.svm import LinearSVC
 from sklearn.preprocessing import StandardScaler, normalize
 from sklearn.calibration import CalibratedClassifierCV
@@ -201,6 +202,10 @@ class RankedLinearSVCPrimitive(
                     confidences = self._model.decision_function(inputs)
                 if self.hyperparams["rank_confidences"]:
                     confidences = rankdata(confidences)
+                    confidences = 1.0 - (
+                        (confidences - np.min(confidences))
+                        / (np.max(confidences) - np.min(confidences))
+                    )
                 result_df = container.DataFrame(
                     {self._target_cols[0]: result, "confidence": confidences},
                     generate_metadata=True,
