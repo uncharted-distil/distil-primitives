@@ -5,6 +5,7 @@ from typing import List, Optional
 import numpy as np
 import pandas as pd
 from pandas.core.computation.pytables import ConditionBinOp
+import sklearn
 from sklearn.svm import LinearSVC
 from sklearn.preprocessing import StandardScaler, normalize
 from sklearn.calibration import CalibratedClassifierCV
@@ -191,20 +192,41 @@ class RankedLinearSVCPrimitive(
             inputs = normalize(inputs)
         result = self._model.predict(inputs)
         result_df: container.DataFrame = None
+
         if self._binary:
             if self.hyperparams["confidences"]:
+                # If we're generating confidences, check to see where or not we calibrate
+                # to probabilities, or just return the raw decision function values.
                 if self.hyperparams["calibrate"]:
                     cccv = CalibratedClassifierCV(self._model, cv="prefit")
                     cccv.fit(inputs, result)
                     confidences = cccv.predict_proba(inputs)[:, 1]
                 else:
                     confidences = self._model.decision_function(inputs)
+
+                # Generate ranks if required, otherwise we just include the confidence / decision
+                # function values.
                 if self.hyperparams["rank_confidences"]:
-                    confidences = rankdata(confidences)
-                result_df = container.DataFrame(
-                    {self._target_cols[0]: result, "confidence": confidences},
-                    generate_metadata=True,
-                )
+                    ranks = rankdata(confidences)
+                    # ranks = 1.0 - (
+                    #     (ranks - np.min(ranks)) / (np.max(ranks) - np.min(ranks))
+                    # )
+                    result_df = container.DataFrame(
+                        {
+                            self._target_cols[0]: result,
+                            "confidence": confidences,
+                            "rank": ranks,
+                        },
+                        generate_metadata=True,
+                    )
+                else:
+                    result_df = container.DataFrame(
+                        {
+                            self._target_cols[0]: result,
+                            "confidence": confidences,
+                        },
+                        generate_metadata=True,
+                    )
             else:
                 result_df = container.DataFrame(
                     {self._target_cols[0]: result},
@@ -212,12 +234,14 @@ class RankedLinearSVCPrimitive(
                 )
         else:
             if self.hyperparams["confidences"]:
+                # If generating confidences, generate calibrated or uncalibrated probabilities.
                 if self.hyperparams["calibrate"]:
                     cccv = CalibratedClassifierCV(self._model, cv="prefit")
                     cccv.fit(inputs, result)
                     confidences = cccv.predict_proba(inputs)
                 else:
                     confidences = self._get_confidence(inputs)
+
                 result_df = container.DataFrame(
                     {
                         self._target_cols[0]: np.tile(
@@ -242,7 +266,7 @@ class RankedLinearSVCPrimitive(
             "https://metadata.datadrivendiscovery.org/types/PredictedTarget",
         )
 
-        if self.hyperparams["confidences"]:
+        if "confidence" in result_df.columns:
             result_df.metadata = result_df.metadata.add_semantic_type(
                 (metadata_base.ALL_ELEMENTS, 1),
                 "https://metadata.datadrivendiscovery.org/types/PredictedTarget",
@@ -255,6 +279,21 @@ class RankedLinearSVCPrimitive(
                 (metadata_base.ALL_ELEMENTS, 1),
                 "http://schema.org/Float",
             )
+
+        if "rank" in result_df.columns:
+            result_df.metadata = result_df.metadata.add_semantic_type(
+                (metadata_base.ALL_ELEMENTS, 2),
+                "https://metadata.datadrivendiscovery.org/types/PredictedTarget",
+            )
+            result_df.metadata = result_df.metadata.add_semantic_type(
+                (metadata_base.ALL_ELEMENTS, 2),
+                "https://metadata.datadrivendiscovery.org/types/Rank",
+            )
+            result_df.metadata = result_df.metadata.add_semantic_type(
+                (metadata_base.ALL_ELEMENTS, 2),
+                "http://schema.org/Float",
+            )
+
         return base.CallResult(result_df)
 
     def _get_confidence(self, X):
