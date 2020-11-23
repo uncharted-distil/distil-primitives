@@ -211,14 +211,14 @@ class RankedLinearSVCPrimitive(
                     # ranks = 1.0 - (
                     #     (ranks - np.min(ranks)) / (np.max(ranks) - np.min(ranks))
                     # )
-                    # result_df = container.DataFrame(
-                    #     {
-                    #         self._target_cols[0]: result,
-                    #         "confidence": confidences,
-                    #         "rank": ranks,
-                    #     },
-                    #     generate_metadata=True,
-                    # )
+                    result_df = container.DataFrame(
+                        {
+                            self._target_cols[0]: result,
+                            "confidence": confidences,
+                            "rank": ranks,
+                        },
+                        generate_metadata=True,
+                    )
                 else:
                     result_df = container.DataFrame(
                         {
