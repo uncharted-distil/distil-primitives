@@ -237,8 +237,11 @@ class RankedLinearSVCPrimitive(
                 # If generating confidences, generate calibrated or uncalibrated probabilities.
                 if self.hyperparams["calibrate"]:
                     cccv = CalibratedClassifierCV(self._model, cv="prefit")
-                    cccv.fit(inputs, result)
-                    confidences = cccv.predict_proba(inputs)
+                    try:
+                        cccv.fit(inputs, result)
+                        confidences = cccv.predict_proba(inputs)
+                    except:
+                        confidences = self._get_confidence(inputs)
                 else:
                     confidences = self._get_confidence(inputs)
 
