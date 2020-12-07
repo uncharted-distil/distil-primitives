@@ -94,12 +94,6 @@ class RankedLinearSVCPrimitiveTestCase(unittest.TestCase):
         )
         self.assertListEqual(
             results.metadata.list_columns_with_semantic_types(
-                ("http://schema.org/Integer",)
-            ),
-            [0],
-        )
-        self.assertListEqual(
-            results.metadata.list_columns_with_semantic_types(
                 ("https://metadata.datadrivendiscovery.org/types/Score",)
             ),
             [1],
