@@ -35,9 +35,23 @@ class RankedLinearSVCPrimitiveTestCase(unittest.TestCase):
         ranked_lsvc.fit()
         results = ranked_lsvc.produce(inputs=dataframe[["alpha", "bravo"]]).value
         expected_labels = [1, 1, 1, 0, 0, 0, 0, 0, 0]
-        expected_confidence_rank = [8, 8, 8, 5, 5, 5, 2, 2, 2]
+        expected_confidence = [
+            0.73,
+            0.73,
+            0.73,
+            0.269,
+            0.269,
+            0.269,
+            0.052,
+            0.052,
+            0.052,
+        ]
+        expected_rank = [8, 8, 8, 5, 5, 5, 2, 2, 2]
         self.assertListEqual(list(results["charlie"]), expected_labels)
-        self.assertListEqual(list(results["confidence"]), expected_confidence_rank)
+        np.testing.assert_almost_equal(
+            list(results["confidence"]), expected_confidence, decimal=3
+        )
+        self.assertListEqual(list(results["rank"]), expected_rank)
 
     def test_normalized(self) -> None:
         dataset = test_utils.load_dataset(self._dataset_path)
@@ -61,9 +75,23 @@ class RankedLinearSVCPrimitiveTestCase(unittest.TestCase):
         ranked_lsvc.fit()
         results = ranked_lsvc.produce(inputs=dataframe[["alpha", "bravo"]]).value
         expected_labels = [1, 1, 1, 0, 0, 0, 1, 1, 1]
-        expected_confidence_rank = [5, 5, 5, 2, 2, 2, 8, 8, 8]
+        expected_confidence = [
+            0.807,
+            0.807,
+            0.807,
+            0.218,
+            0.218,
+            0.218,
+            0.923,
+            0.923,
+            0.923,
+        ]
+        expected_rank = [5, 5, 5, 2, 2, 2, 8, 8, 8]
         self.assertListEqual(list(results["charlie"]), expected_labels)
-        self.assertListEqual(list(results["confidence"]), expected_confidence_rank)
+        np.testing.assert_almost_equal(
+            list(results["confidence"]), expected_confidence, decimal=3
+        )
+        self.assertListEqual(list(results["rank"]), expected_rank)
 
     def test_produce_no_fit(self) -> None:
         dataset = test_utils.load_dataset(self._dataset_path)
@@ -82,16 +110,24 @@ class RankedLinearSVCPrimitiveTestCase(unittest.TestCase):
         )
         results = ranked_lsvc.produce(inputs=dataframe[["alpha", "bravo"]]).value
         expected_labels = [1, 1, 1, 0, 0, 0, 0, 0, 0]
-        expected_confidence_rank = [8, 8, 8, 5, 5, 5, 2, 2, 2]
+        expected_rank = [8, 8, 8, 5, 5, 5, 2, 2, 2]
+        expected_confidence = [
+            0.729,
+            0.729,
+            0.729,
+            0.268,
+            0.268,
+            0.268,
+            0.051,
+            0.051,
+            0.051,
+        ]
         self.assertListEqual(list(results["charlie"]), expected_labels)
-        self.assertListEqual(list(results["confidence"]), expected_confidence_rank)
-
-        self.assertListEqual(
-            results.metadata.list_columns_with_semantic_types(
-                ("https://metadata.datadrivendiscovery.org/types/PredictedTarget",)
-            ),
-            [0, 1],
+        self.assertListEqual(list(results["rank"]), expected_rank)
+        np.testing.assert_almost_equal(
+            list(results["confidence"]), expected_confidence, decimal=3
         )
+
         self.assertListEqual(
             results.metadata.list_columns_with_semantic_types(
                 ("https://metadata.datadrivendiscovery.org/types/Score",)
@@ -102,7 +138,13 @@ class RankedLinearSVCPrimitiveTestCase(unittest.TestCase):
             results.metadata.list_columns_with_semantic_types(
                 ("https://metadata.datadrivendiscovery.org/types/PredictedTarget",)
             ),
-            [0, 1],
+            [0, 1, 2],
+        ),
+        self.assertListEqual(
+            results.metadata.list_columns_with_semantic_types(
+                ("https://metadata.datadrivendiscovery.org/types/Rank",)
+            ),
+            [2],
         )
 
     def test_multiclass(self) -> None:
