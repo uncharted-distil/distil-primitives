@@ -1,9 +1,5 @@
 import unittest
 from os import path
-import csv
-import sys
-import math
-import pandas as pd
 import numpy as np
 
 # from common_primitives.column_parser import ColumnParserPrimitive
@@ -166,6 +162,42 @@ class ColumnParserPrimitiveTestCase(unittest.TestCase):
             ],
             np.ndarray,
         )
+
+    def test_vector_parse_twice(self) -> None:
+        dataset = test_utils.load_dataset(self._image_dataset_path)
+        df = test_utils.get_dataframe(dataset, "learningData")
+
+        hyperparams_class = ColumnParserPrimitive.metadata.get_hyperparams()
+        cpp = ColumnParserPrimitive(
+            hyperparams=hyperparams_class.defaults().replace(
+                {
+                    "parsing_semantics": [
+                        "https://metadata.datadrivendiscovery.org/types/FloatVector",
+                    ]
+                }
+            )
+        )
+        target_coords = [
+            20.999598,
+            63.488694,
+            20.999598,
+            63.499462,
+            21.023702,
+            63.499462,
+            21.023702,
+            63.488694,
+        ]
+        result_df = cpp.produce(inputs=df).value
+        result_coords = result_df["coordinates"][0]
+        self.assertEquals(len(result_coords), len(target_coords))
+        for a, b in zip(target_coords, result_coords):
+            self.assertAlmostEqual(a, b, 5)
+
+        result_2_df = cpp.produce(inputs=result_df).value
+        result_2_coords = result_2_df["coordinates"][0]
+        self.assertEquals(len(result_2_coords), len(target_coords))
+        for a, b in zip(target_coords, result_2_coords):
+            self.assertAlmostEqual(a, b, 5)
 
 
 if __name__ == "__main__":

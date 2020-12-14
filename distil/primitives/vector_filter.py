@@ -44,8 +44,8 @@ class Hyperparams(hyperparams.Hyperparams):
         ]
     ](
         configuration=collections.OrderedDict(
-            sets=hyperparams.Set(
-                elements=hyperparams.Set(
+            sets=hyperparams.List(
+                elements=hyperparams.List(
                     elements=hyperparams.Hyperparameter[float](-1),
                     default=(),
                     semantic_types=[
@@ -59,7 +59,7 @@ class Hyperparams(hyperparams.Hyperparams):
                 ],
                 description="A set of minimum values, corresponding to the vector values to filter on",
             ),
-            set=hyperparams.Set(
+            set=hyperparams.List(
                 elements=hyperparams.Hyperparameter[float](-1),
                 default=(),
                 semantic_types=[
@@ -81,8 +81,8 @@ class Hyperparams(hyperparams.Hyperparams):
         ]
     ](
         configuration=collections.OrderedDict(
-            sets=hyperparams.Set(
-                elements=hyperparams.Set(
+            sets=hyperparams.List(
+                elements=hyperparams.List(
                     elements=hyperparams.Hyperparameter[float](-1),
                     default=(),
                     semantic_types=[
@@ -96,7 +96,7 @@ class Hyperparams(hyperparams.Hyperparams):
                 ],
                 description="A set of minimum values, corresponding to the vector values to filter on",
             ),
-            set=hyperparams.Set(
+            set=hyperparams.List(
                 elements=hyperparams.Hyperparameter[float](-1),
                 default=(),
                 semantic_types=[

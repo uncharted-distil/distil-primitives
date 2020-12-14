@@ -117,14 +117,12 @@ class ColumnParserPrimitive(
 
         parsing_semantics = self.hyperparams["parsing_semantics"]
 
-        def fromstring(x):
-            parsed_numbers = np.fromstring(x, dtype=float, sep=",")
-            return (
-                parsed_numbers
-                if len(parsed_numbers) > 0
-                # removes and brackets surrounding numbers in a last attempt
-                else np.fromstring(x[1 : len(x)], dtype=float, sep=",")
-            )
+        def fromstring(x: str) -> np.ndarray:
+            # if column isn't a string, we'll just pass it through assuming it doesn't need to be parsed
+            if type(x) is not str:
+                return x
+
+            return np.fromstring(x, dtype=float, sep=",")
 
         for col_index in range(len(inputs.columns)):
             if col_index in cols:
