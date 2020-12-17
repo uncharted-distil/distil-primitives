@@ -86,6 +86,7 @@ setup(
             "data_transformation.list_to_dataframe.DistilListEncoder = distil.primitives.list_to_dataframe:ListEncoderPrimitive",
             "data_transformation.time_series_binner.DistilTimeSeriesBinner = distil.primitives.time_series_binner:TimeSeriesBinnerPrimitive",
             "data_transformation.column_parser.DistilColumnParser = distil.primitives.column_parser:ColumnParserPrimitive",
+            "remote_sensing.remote_sensing_pretrained.PrefeaturisedPooler = distil.primitives.prefeaturised_pooler:PrefeaturisedPoolingPrimitive",
         ],
     },
 )
