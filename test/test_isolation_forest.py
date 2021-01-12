@@ -32,7 +32,6 @@ class IsolationForestPrimitiveTestCase(unittest.TestCase):
         isp = IsolationForestPrimitive(hyperparams=hyperparams)
         isp.set_training_data(
             inputs=dataframe[["alpha", "bravo"]],
-            outputs=pd.DataFrame({"charlie": dataframe["charlie"].astype(int)}),
         )
         isp.fit()
         results = isp.produce(inputs=dataframe[["alpha", "bravo"]]).value
@@ -97,7 +96,6 @@ class IsolationForestPrimitiveTestCase(unittest.TestCase):
     #                 "fatalities",
     #             ]
     #         ],
-    #         outputs=pd.DataFrame({"charlie": dataframe["event_type"].astype(int)}),
     #     )
     #     isp.fit()
     #     results = isp.produce(

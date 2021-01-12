@@ -9,8 +9,7 @@ import pandas as pd
 
 from d3m import container, utils
 from d3m.metadata import base as metadata_base, hyperparams, params
-from d3m.primitive_interfaces import base, transformer
-from d3m.primitive_interfaces.supervised_learning import PrimitiveBase
+from d3m.primitive_interfaces import base, unsupervised_learning
 
 from sklearn.ensemble import IsolationForest
 
@@ -38,7 +37,9 @@ class Params(params.Params):
 
 
 class IsolationForestPrimitive(
-    PrimitiveBase[container.DataFrame, container.DataFrame, Params, Hyperparams]
+    unsupervised_learning.UnsupervisedLearnerPrimitiveBase[
+        container.DataFrame, container.DataFrame, Params, Hyperparams
+    ]
 ):
     """
     Uses scikit learn's Isolated Forest primitive to detect and label anomalies.
@@ -79,11 +80,8 @@ class IsolationForestPrimitive(
         super().__init__(hyperparams=hyperparams, random_seed=random_seed)
         self._model = IsolationForest(random_state=np.random.RandomState(random_seed))
 
-    def set_training_data(
-        self, *, inputs: container.DataFrame, outputs: container.DataFrame
-    ) -> None:
+    def set_training_data(self, *, inputs: container.DataFrame) -> None:
         self._inputs = inputs
-        self._outputs = outputs
         self._needs_fit = True
 
     def fit(
