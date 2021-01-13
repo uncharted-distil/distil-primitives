@@ -37,7 +37,7 @@ class IsolationForestPrimitiveTestCase(unittest.TestCase):
         results = isp.produce(inputs=dataframe[["alpha", "bravo"]]).value
 
         self.assertListEqual(
-            list(results["label"]), [-1, -1, -1, -1, -1, -1, -1, -1, -1]
+            list(results["outlier_label"]), [-1, -1, -1, -1, -1, -1, -1, -1, -1]
         )
 
     # def test_acled(self) -> None:

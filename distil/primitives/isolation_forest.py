@@ -111,7 +111,7 @@ class IsolationForestPrimitive(
 
         result_df = container.DataFrame(
             {
-                "label": result,
+                "outlier_label": result,
             },
             generate_metadata=True,
         )
