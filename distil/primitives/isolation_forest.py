@@ -111,11 +111,21 @@ class IsolationForestPrimitive(
 
         result_df = container.DataFrame(
             {
+                "d3mIndex": index,
                 "outlier_label": result,
             },
             generate_metadata=True,
         )
         result_df.set_index(index, inplace=True)
+
+        result_df.metadata = result_df.metadata.add_semantic_type(
+            (metadata_base.ALL_ELEMENTS, 0),
+            "https://metadata.datadrivendiscovery.org/types/PrimaryKey",
+        )
+        result_df.metadata = result_df.metadata.add_semantic_type(
+            (metadata_base.ALL_ELEMENTS, 1),
+            "https://metadata.datadrivendiscovery.org/types/PredictedTarget",
+        )
 
         return base.CallResult(result_df)
 
