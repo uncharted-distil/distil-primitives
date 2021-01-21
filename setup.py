@@ -70,6 +70,7 @@ setup(
             "learner.random_forest.DistilEnsembleForest = distil.primitives.ensemble_forest:EnsembleForestPrimitive",
             "classification.bert_classifier.DistilBertPairClassification = distil.primitives.bert_classifier:BertPairClassificationPrimitive",
             "classification.linear_svc.DistilRankedLinearSVC = distil.primitives.ranked_linear_svc:RankedLinearSVCPrimitive",
+            "classification.isolation_forest.IsolationForestPrimitive = distil.primitives.isolation_forest:IsolationForestPrimitive",
             "collaborative_filtering.link_prediction.DistilCollaborativeFiltering = distil.primitives.collaborative_filtering_link_prediction:CollaborativeFilteringPrimitive",
             "data_transformation.one_hot_encoder.DistilOneHotEncoder = distil.primitives.one_hot_encoder:OneHotEncoderPrimitive",
             "data_transformation.encoder.DistilBinaryEncoder = distil.primitives.binary_encoder:BinaryEncoderPrimitive",
