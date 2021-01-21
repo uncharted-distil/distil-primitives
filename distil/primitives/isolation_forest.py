@@ -29,6 +29,13 @@ class Hyperparams(hyperparams.Hyperparams):
         ],
         description="The value of the n_jobs parameter for the joblib library",
     )
+    n_estimators = hyperparams.Hyperparameter[int](
+        default=100,
+        semantic_types=[
+            "https://metadata.datadrivendiscovery.org/types/TuningParameter"
+        ],
+        description="The amount of ensembles used in the primitive.",
+    )
 
 
 class Params(params.Params):
@@ -78,7 +85,10 @@ class IsolationForestPrimitive(
     def __init__(self, *, hyperparams: Hyperparams, random_seed: int = 0) -> None:
 
         super().__init__(hyperparams=hyperparams, random_seed=random_seed)
-        self._model = IsolationForest(random_state=np.random.RandomState(random_seed))
+        self._model = IsolationForest(
+            n_estimators=self.hyperparams["n_estimators"],
+            random_state=np.random.RandomState(random_seed),
+        )
 
     def set_training_data(self, *, inputs: container.DataFrame) -> None:
         self._inputs = inputs
