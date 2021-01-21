@@ -31,6 +31,8 @@ class Hyperparams(hyperparams.Hyperparams):
     )
     n_estimators = hyperparams.Hyperparameter[int](
         default=100,
+        lower=10,
+        upper=1000,
         semantic_types=[
             "https://metadata.datadrivendiscovery.org/types/TuningParameter"
         ],
@@ -131,6 +133,10 @@ class IsolationForestPrimitive(
         result_df.metadata = result_df.metadata.add_semantic_type(
             (metadata_base.ALL_ELEMENTS, 0),
             "https://metadata.datadrivendiscovery.org/types/PrimaryKey",
+        )
+        result_df.metadata = result_df.metadata.add_semantic_type(
+            (metadata_base.ALL_ELEMENTS, 0),
+            "https://schema.org/Integer",
         )
         result_df.metadata = result_df.metadata.add_semantic_type(
             (metadata_base.ALL_ELEMENTS, 1),
