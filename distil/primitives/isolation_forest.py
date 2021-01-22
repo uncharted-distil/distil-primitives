@@ -29,7 +29,7 @@ class Hyperparams(hyperparams.Hyperparams):
         ],
         description="The value of the n_jobs parameter for the joblib library",
     )
-    n_estimators = hyperparams.Hyperparameter[int](
+    n_estimators = hyperparams.UniformInt(
         default=100,
         lower=10,
         upper=1000,
