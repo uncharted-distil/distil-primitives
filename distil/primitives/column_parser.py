@@ -28,6 +28,7 @@ class Hyperparams(hyperparams.Hyperparams):
                 "http://schema.org/Float",
                 "https://metadata.datadrivendiscovery.org/types/FloatVector",
                 "http://schema.org/DateTime",
+                "https://metadata.datadrivendiscovery.org/types/CategoricalData",
             ],
             default="http://schema.org/Float",
         ),
@@ -165,12 +166,24 @@ class ColumnParserPrimitive(
                                 col_index,
                                 {"structural_type": type(outputs[col_index][0])},
                             )
-                        # outputs[col_index] = [
-                        #     utils.parse_datetime_to_float(
-                        #         value, fuzzy=self.hyperparams["fuzzy_time_parsing"]
-                        #     )
-                        #     for value in inputs.iloc[:, column_index]
-                        # ]
+                    elif (
+                        "https://metadata.datadrivendiscovery.org/types/CategoricalData"
+                        in desired_semantics
+                    ):
+                        # need to make sure if a categorical type is a numeric string, convert it
+                        if inputs[inputs.columns[col_index]][0].isnumeric():
+                            outputs[col_index] = pd.to_numeric(
+                                inputs.iloc[:, col_index],
+                                errors=self.hyperparams["error_handling"],
+                            )
+                            if outputs[col_index].shape[0] > 0:
+                                updated_type = type(outputs[col_index][0].item())
+                                inputs.metadata = inputs.metadata.update_column(
+                                    col_index, {"structural_type": updated_type}
+                                )
+                        else:
+                            # if it's categorical but not numerical, ensure the string stays
+                            outputs[col_index] = inputs.iloc[:, col_index]
                     else:
                         outputs[col_index] = pd.to_numeric(
                             inputs.iloc[:, col_index],
