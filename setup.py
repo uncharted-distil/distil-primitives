@@ -90,6 +90,7 @@ setup(
             "data_transformation.time_series_binner.DistilTimeSeriesBinner = distil.primitives.time_series_binner:TimeSeriesBinnerPrimitive",
             "data_transformation.column_parser.DistilColumnParser = distil.primitives.column_parser:ColumnParserPrimitive",
             "remote_sensing.remote_sensing_pretrained.PrefeaturisedPooler = distil.primitives.prefeaturised_pooler:PrefeaturisedPoolingPrimitive",
+            "data_transformation.fuzzy_join.DistilFuzzyJoin = distil.primitives.fuzzy_join:FuzzyJoinPrimitive",
         ],
     },
 )
