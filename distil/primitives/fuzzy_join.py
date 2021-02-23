@@ -448,27 +448,6 @@ class FuzzyJoinPrimitive(
 
         return joined
 
-        # right_df = right_df.drop(columns="d3mIndex")
-
-        # choices = np.vstack({tuple(row) for row in right_df[right_col]})
-        # left_df.index = left_df[left_col].map(
-        #     lambda x: cls._vector_fuzzy_match(x, choices, accuracy)
-        # )
-        # right_df = right_df.set_index(right_col)
-
-        # joined = container.DataFrame(
-        #     left_df.join(right_df, lsuffix="_1", rsuffix="_2", how="inner")
-        # )
-
-        # # sort on the d3m index if there, otherwise use the joined column
-        # if "d3mIndex" in joined:
-        #     joined = joined.sort_values(by=["d3mIndex"])
-        # else:
-        #     joined = joined.sort_values(by=[left_col])
-        # joined = joined.reset_index(drop=True)
-
-        # return joined
-
     @classmethod
     def _join_datetime_col(
         cls,
