@@ -42,6 +42,7 @@ class Img2Vec:
         :param model: String name of requested model
         :param layer: String or Int depending on model.  See more docs: https://github.com/christiansafka/img2vec.git
         :param layer_output_size: Int depicting the output size of the requested layer
+        :param device: String that lets us decide between using cpu and gpu
         """
         self.device = device
         self.layer_output_size = layer_output_size
