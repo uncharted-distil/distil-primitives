@@ -3,6 +3,7 @@ import os
 import typing
 from typing import Dict, Optional
 
+import torch
 import pandas as pd
 from PIL import Image
 from d3m import container, utils, exceptions
@@ -28,6 +29,13 @@ class Hyperparams(hyperparams.Hyperparams):
             "https://metadata.datadrivendiscovery.org/types/ControlParameter"
         ],
         description="The filname column index for image data.",
+    )
+    force_cpu = hyperparams.Hyperparameter[bool](
+        default=False,
+        semantic_types=[
+            "https://metadata.datadrivendiscovery.org/types/ControlParameter"
+        ],
+        description="Force CPU execution regardless of GPU availability.",
     )
 
 
@@ -137,7 +145,17 @@ class ImageTransferPrimitive(
         if self._model is None:
             model_path = self.volumes[self._VOLUME_KEY]
             logger.info(f"Loading pre-trained model from {model_path}")
-            self._model = Img2Vec(model_path, cuda=True)
+            if torch.cuda.is_available():
+                if self.hyperparams["force_cpu"]:
+                    logger.info("Detected CUDA support - forcing use of CPU")
+                    device = "cpu"
+                else:
+                    logger.info("Detected CUDA support - using GPU")
+                    device = "cuda"
+            else:
+                logger.info("CUDA does not appear to be supported - using CPU.")
+                device = "cpu"
+            self._model = Img2Vec(model_path, device=device)
         filename_col_index = self._get_filename_column_index(inputs.metadata)
         self.filename_col = inputs.columns[filename_col_index]
 
