@@ -199,18 +199,20 @@ class RankedLinearSVCPrimitive(
                 # to probabilities, or just return the raw decision function values.
                 if self.hyperparams["calibrate"]:
                     cccv = CalibratedClassifierCV(self._model, cv="prefit")
-                    cccv.fit(inputs, result)
-                    confidences = cccv.predict_proba(inputs)[:, 1]
+                    try:
+                        cccv.fit(inputs, result)
+                        confidences = cccv.predict_proba(inputs)[:, 1]
+                    except:
+                        # calibration can fail for a variety of reasons - we'll just fall back on
+                        # simpler methods when it does
+                        confidences = self._get_confidence(inputs)
                 else:
                     confidences = self._model.decision_function(inputs)
 
                 # Generate ranks if required, otherwise we just include the confidence / decision
                 # function values.
                 if self.hyperparams["rank_confidences"]:
-                    ranks = rankdata(confidences)
-                    # ranks = 1.0 - (
-                    #     (ranks - np.min(ranks)) / (np.max(ranks) - np.min(ranks))
-                    # )
+                    ranks = rankdata(self._model.decision_function(inputs))
                     result_df = container.DataFrame(
                         {
                             self._target_cols[0]: result,
@@ -297,10 +299,20 @@ class RankedLinearSVCPrimitive(
                 "http://schema.org/Float",
             )
 
+        # DEMO HACK: dump the classes
+        # pos_label = self._model.classes_[1]
+        # if pos_label == "no_hoppers":
+        #     result_df["confidence"] = result_df["confidence"] * -1
+
         return base.CallResult(result_df)
 
     def _get_confidence(self, X):
         decisions = self._model.decision_function(X)
+        if self._binary:
+            # in the binary case we'll just apply a sigmoid function to get everything into a [0,1]
+            # interval
+            return 1 / (1 + np.exp(-decisions))
+
         exp_decisions = np.exp(decisions - np.max(decisions, axis=1).reshape(-1, 1))
         exp_sum = np.sum(exp_decisions, axis=1)
         return exp_decisions / exp_sum.reshape((-1, 1))
