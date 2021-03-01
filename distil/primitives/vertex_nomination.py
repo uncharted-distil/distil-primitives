@@ -49,7 +49,7 @@ class DistilVertexNominationPrimitive(
                 "name": "Distil",
                 "contact": "mailto:cbethune@uncharted.software",
                 "uris": [
-                    "https://github.com/uncharted-distil/distil-primitives/distil/primitives/vertex_nomination.py",
+                    "https://github.com/uncharted-distil/distil-primitives/blob/main/distil/primitives/vertex_nomination.py",
                     "https://github.com/uncharted-distil/distil-primitives",
                 ],
             },
