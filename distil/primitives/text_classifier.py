@@ -51,7 +51,7 @@ class TextClassifierPrimitive(
                 "name": "Distil",
                 "contact": "mailto:cbethune@uncharted.software",
                 "uris": [
-                    "https://github.com/uncharted-distil/distil-primitives/distil/primitives/text_classifier.py",
+                    "https://github.com/uncharted-distil/distil-primitives/blob/main/distil/primitives/text_classifier.py",
                     "https://github.com/uncharted-distil/distil-primitives",
                 ],
             },

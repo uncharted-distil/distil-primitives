@@ -66,7 +66,7 @@ class PrefeaturisedPoolingPrimitive(
                 "name": "Distil",
                 "contact": "mailto:vkorapaty@uncharted.software",
                 "uris": [
-                    "https://github.com/uncharted-distil/distil-primitives/primitives/prefeaturised_pooler.py",
+                    "https://github.com/uncharted-distil/distil-primitives/blob/main/distil/primitives/prefeaturised_pooler.py",
                     "https://github.com/uncharted-distil/distil-primitives",
                 ],
             },

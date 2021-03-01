@@ -72,7 +72,7 @@ class CategoricalImputerPrimitive(
                 "name": "Distil",
                 "contact": "mailto:cbethune@uncharted.software",
                 "uris": [
-                    "https://github.com/uncharted-distil/distil-primitives/distil/primitives/categorical_imputer.py",
+                    "https://github.com/uncharted-distil/distil-primitives/blob/main/distil/primitives/categorical_imputer.py",
                     "https://github.com/uncharted-distil/distil-primitives",
                 ],
             },

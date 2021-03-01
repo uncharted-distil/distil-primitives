@@ -156,7 +156,7 @@ class EnsembleForestPrimitive(
                 "name": "Distil",
                 "contact": "mailto:cbethune@uncharted.software",
                 "uris": [
-                    "https://github.com/uncharted-distil/distil-primitives/distil/primitives/ensemble_forest.py",
+                    "https://github.com/uncharted-distil/distil-primitives/blob/main/distil/primitives/ensemble_forest.py",
                     "https://github.com/uncharted-distil/distil-primitives",
                 ],
             },

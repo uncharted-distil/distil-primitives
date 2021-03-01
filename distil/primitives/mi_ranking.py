@@ -119,7 +119,7 @@ class MIRankingPrimitive(
                 "name": "Distil",
                 "contact": "mailto:cbethune@uncharted.software",
                 "uris": [
-                    "https://github.com/uncharted-distil/distil-primitives/distil/primitives/mi_ranking.py",
+                    "https://github.com/uncharted-distil/distil-primitives/blob/main/distil/primitives/mi_ranking.py",
                     "https://github.com/uncharted-distil/distil-primitives/",
                 ],
             },
@@ -231,7 +231,9 @@ class MIRankingPrimitive(
         feature_df.dropna(inplace=True)
 
         # split out the target feature
-        target_df = feature_df.iloc[:, feature_df.columns.get_loc(inputs.columns[target_idx])]
+        target_df = feature_df.iloc[
+            :, feature_df.columns.get_loc(inputs.columns[target_idx])
+        ]
 
         # drop features that are not compatible with ranking
         feature_indices = set(
