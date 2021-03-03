@@ -99,7 +99,10 @@ class TimeSeriesFormatterPrimitive(
             "source": {
                 "name": "Distil",
                 "contact": "mailto:cbethune@uncharted.software",
-                "uris": ["https://gitlab.com/uncharted-distil/distil-primitives"],
+                "uris": [
+                    "https://github.com/uncharted-distil/distil-primitives/blob/main/distil/primitives/time_series_formatter.py",
+                    "https://gitlab.com/uncharted-distil/distil-primitives",
+                ],
             },
             "installation": [
                 CYTHON_DEP,

@@ -116,7 +116,10 @@ class TimeSeriesBinnerPrimitive(
             "source": {
                 "name": "Distil",
                 "contact": "mailto:vkorapaty@uncharted.software",
-                "uris": ["https://gitlab.com/uncharted-distil/distil-primitives"],
+                "uris": [
+                    "https://github.com/uncharted-distil/distil-primitives/blob/main/distil/primitives/time_series_binner.py",
+                    "https://gitlab.com/uncharted-distil/distil-primitives",
+                ],
             },
             "installation": [
                 CYTHON_DEP,

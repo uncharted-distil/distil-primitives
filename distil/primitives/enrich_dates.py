@@ -54,7 +54,7 @@ class EnrichDatesPrimitive(
                 "name": "Distil",
                 "contact": "mailto:cbethune@uncharted.software",
                 "uris": [
-                    "https://github.com/uncharted-distil/distil-primitives/distil/primitives/enrich_dates.py",
+                    "https://github.com/uncharted-distil/distil-primitives/blob/main/distil/primitives/enrich_dates.py",
                     "https://github.com/uncharted-distil/distil-primitives",
                 ],
             },

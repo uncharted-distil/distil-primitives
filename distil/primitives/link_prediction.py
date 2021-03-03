@@ -48,7 +48,7 @@ class DistilLinkPredictionPrimitive(
                 "name": "Distil",
                 "contact": "mailto:cbethune@uncharted.software",
                 "uris": [
-                    "https://github.com/uncharted-distil/distil-primitives/distil/primitives/link_prediction.py",
+                    "https://github.com/uncharted-distil/distil-primitives/blob/main/distil/primitives/link_prediction.py",
                     "https://github.com/uncharted-distil/distil-primitives",
                 ],
             },

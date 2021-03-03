@@ -110,7 +110,7 @@ class RankedLinearSVCPrimitive(
                 "name": "Distil",
                 "contact": "mailto:cbethune@uncharted.software",
                 "uris": [
-                    "https://github.com/uncharted-distil/distil-primitives/distil/primitives/ranked_linear_svc.py",
+                    "https://github.com/uncharted-distil/distil-primitives/blob/main/distil/primitives/ranked_linear_svc.py",
                     "https://github.com/uncharted-distil/distil-primitives",
                 ],
             },

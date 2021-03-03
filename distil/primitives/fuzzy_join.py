@@ -88,7 +88,10 @@ class FuzzyJoinPrimitive(
             "source": {
                 "name": "Uncharted Software",
                 "contact": "mailto:cbethune@uncharted.software",
-                "uris": ["git+https://github.com/uncharted-distil/distil-fuzzy-join"],
+                "uris": [
+                    "https://github.com/uncharted-distil/distil-primitives/blob/main/distil/primitives/fuzzy_join.py",
+                    "https://github.com/uncharted-distil/distil-primitives",
+                ],
             },
             "installation": [
                 CYTHON_DEP,

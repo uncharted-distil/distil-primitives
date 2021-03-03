@@ -46,7 +46,7 @@ class ReplaceSingletonsPrimitive(
                 "name": "Distil",
                 "contact": "mailto:cbethune@uncharted.software",
                 "uris": [
-                    "https://github.com/uncharted-distil/distil-primitives/primitives/replace_singletons.py",
+                    "https://github.com/uncharted-distil/distil-primitives/blob/main/distil/primitives/replace_singletons.py",
                     "https://github.com/uncharted-distil/distil-primitives",
                 ],
             },

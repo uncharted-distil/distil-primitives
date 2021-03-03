@@ -130,7 +130,7 @@ class DataFrameSatelliteImageLoaderPrimitive(
                 "name": "Distil",
                 "contact": "mailto:cbethune@uncharted.software",
                 "uris": [
-                    "https://github.com/uncharted-distil/distil-primitives/distil/primitives/satellite_image_loader.py",
+                    "https://github.com/uncharted-distil/distil-primitives/blob/main/distil/primitives/satellite_image_loader.py",
                     "https://github.com/uncharted-distil/distil-primitives",
                 ],
             },
