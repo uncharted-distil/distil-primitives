@@ -70,7 +70,7 @@ class DataFrameSatelliteImageLoaderPrimitiveTestCase(unittest.TestCase):
         hyperparams_class = DataFrameSatelliteImageLoaderPrimitive.metadata.query()[
             "primitive_code"
         ]["class_type_arguments"]["Hyperparams"]
-        hyperparams = hyperparams_class.defaults()
+        hyperparams = hyperparams_class.defaults().replace({"n_jobs": -1})
         loader = DataFrameSatelliteImageLoaderPrimitive(hyperparams=hyperparams)
         result_dataframe = loader.produce(inputs=dataframe).value
 
@@ -106,7 +106,9 @@ class DataFrameSatelliteImageLoaderPrimitiveTestCase(unittest.TestCase):
         hyperparams_class = DataFrameSatelliteImageLoaderPrimitive.metadata.query()[
             "primitive_code"
         ]["class_type_arguments"]["Hyperparams"]
-        hyperparams = hyperparams_class.defaults().replace({"return_result": "replace"})
+        hyperparams = hyperparams_class.defaults().replace(
+            {"return_result": "replace", "n_jobs": -1}
+        )
         loader = DataFrameSatelliteImageLoaderPrimitive(hyperparams=hyperparams)
         result_dataframe = loader.produce(inputs=dataframe).value
 
@@ -132,6 +134,11 @@ class DataFrameSatelliteImageLoaderPrimitiveTestCase(unittest.TestCase):
             ("learningData", metadata_base.ALL_ELEMENTS, 1),
             "https://metadata.datadrivendiscovery.org/types/FileName",
         )
+        # test band column
+        dataset.metadata = dataset.metadata.add_semantic_type(
+            ("learningData", metadata_base.ALL_ELEMENTS, 3),
+            "https://metadata.datadrivendiscovery.org/types/Band",
+        )
         dataset.metadata = dataset.metadata.update(
             ("0",), {"location_base_uris": self._media_path}
         )
@@ -144,7 +151,10 @@ class DataFrameSatelliteImageLoaderPrimitiveTestCase(unittest.TestCase):
         hyperparams_class = DataFrameSatelliteImageLoaderPrimitive.metadata.query()[
             "primitive_code"
         ]["class_type_arguments"]["Hyperparams"]
-        hyperparams = hyperparams_class.defaults().replace({"compress_data": True})
+        # included bad column name for testing band column purposes
+        hyperparams = hyperparams_class.defaults().replace(
+            {"compress_data": True, "n_jobs": -1, "band_column": "bleh"}
+        )
         loader = DataFrameSatelliteImageLoaderPrimitive(hyperparams=hyperparams)
         result_dataframe = loader.produce(inputs=dataframe).value
 
@@ -160,7 +170,7 @@ class DataFrameSatelliteImageLoaderPrimitiveTestCase(unittest.TestCase):
 
         # load a test image
         original_image = image_array = imageio.imread(
-            "satellite_image_dataset/media/S2A_MSIL2A_20170613T101031_0_49_B02.tif"
+            "test/satellite_image_dataset/media/S2A_MSIL2A_20170613T101031_0_49_B02.tif"
         )
         loaded_image = result_array[1]
         self.assertEqual(original_image.tobytes(), loaded_image.tobytes())
