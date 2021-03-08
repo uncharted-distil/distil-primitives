@@ -338,6 +338,15 @@ class DataFrameSatelliteImageLoaderPrimitive(
             (), {"dimension": {"length": outputs.shape[0]}}
         )
 
+        vector_columns = outputs.metadata.list_columns_with_semantic_types(
+            ("https://metadata.datadrivendiscovery.org/types/FloatVector",)
+        )
+        if len(vector_columns) > 0:
+            outputs.metadata = outputs.metadata.add_semantic_type(
+                (metadata_base.ALL_ELEMENTS, vector_columns[0]),
+                "https://metadata.datadrivendiscovery.org/types/LocationPolygon",
+            )
+
         return base_prim.CallResult(outputs)
 
     def _reassign_boundaries(

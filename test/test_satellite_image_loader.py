@@ -94,6 +94,10 @@ class DataFrameSatelliteImageLoaderPrimitiveTestCase(unittest.TestCase):
             ("learningData", metadata_base.ALL_ELEMENTS, 1),
             "https://metadata.datadrivendiscovery.org/types/FileName",
         )
+        dataset.metadata = dataset.metadata.add_semantic_type(
+            ("learningData", metadata_base.ALL_ELEMENTS, 5),
+            "https://metadata.datadrivendiscovery.org/types/FloatVector",
+        )
         dataset.metadata = dataset.metadata.update(
             ("0",), {"location_base_uris": self._media_path}
         )
@@ -123,6 +127,12 @@ class DataFrameSatelliteImageLoaderPrimitiveTestCase(unittest.TestCase):
         )
         self.assertEqual(result_dataframe["d3mIndex"][1], "2")
         self.assertEqual(result_dataframe["group_id"][1], "2")
+        self.assertEqual(
+            result_dataframe.metadata.list_columns_with_semantic_types(
+                ("https://metadata.datadrivendiscovery.org/types/LocationPolygon",)
+            ),
+            [5],
+        )
 
     def test_band_mapping_compressed(self) -> None:
         dataset = test_utils.load_dataset(self._dataset_path)
