@@ -352,8 +352,11 @@ class EnsembleForestPrimitive(
         ):
             confidence = self._model.predict_proba(inputs.values)
             if self._binary:
-                # result_df = pd.concat([result_df, confidence[:, 1]], axis=1)
                 result_df.insert(result_df.shape[1], "confidence", confidence[:, 1])
+                result_df.metadata = result_df.metadata.add_semantic_type(
+                    (metadata_base.ALL_ELEMENTS, len(result_df.columns) - 1),
+                    "http://schema.org/Float",
+                )
             else:
                 # add confidence scores as some metrics require them.
                 confidence = pd.Series(confidence.tolist(), name="confidence")
