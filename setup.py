@@ -18,6 +18,7 @@ setup(
     description="Distil primitives as a single library",
     packages=find_packages(),
     keywords=["d3m_primitive"],
+    license='Apache-2.0',
     install_requires=[
         "d3m",  # d3m best-practice moving forward is to remove the version (simplifies updates)
         # shared d3m versions - need to be aligned with core package
