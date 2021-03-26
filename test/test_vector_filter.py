@@ -51,30 +51,7 @@ class VectorBoundsFilterPrimitiveTestCase(unittest.TestCase):
         ]["class_type_arguments"]["Hyperparams"]
         vbf = VectorBoundsFilterPrimitive(
             hyperparams=hyperparam_class.defaults().replace(
-                {"mins": [[10, 20]], "maxs": [[50, 60]], "column": 2}
-            )
-        )
-
-        result_df = vbf.produce(inputs=dataframe).value
-        self.assertEqual(result_df.shape[0], 3)
-        self.assertListEqual(result_df["bravo"][0].tolist(), [10.0, 20.0])
-        self.assertListEqual(result_df["bravo"][1].tolist(), [30.0, 40.0])
-        self.assertListEqual(result_df["bravo"][2].tolist(), [50.0, 60.0])
-
-    def test_multiple_indices(self) -> None:
-        dataframe = self._load_data()
-
-        hyperparam_class = VectorBoundsFilterPrimitive.metadata.query()[
-            "primitive_code"
-        ]["class_type_arguments"]["Hyperparams"]
-        vbf = VectorBoundsFilterPrimitive(
-            hyperparams=hyperparam_class.defaults().replace(
-                {
-                    "mins": [[10, 20], [50, 60]],
-                    "maxs": [[50, 60], [69, 80]],
-                    "column": 2,
-                    "row_indices_list": [[0, 1, 2], [3, 4]],
-                }
+                {"mins": [10, 20], "maxs": [50, 60], "column": 2}
             )
         )
 
@@ -94,20 +71,17 @@ class VectorBoundsFilterPrimitiveTestCase(unittest.TestCase):
             hyperparams=hyperparam_class.defaults().replace(
                 {
                     "inclusive": False,
-                    "mins": [[10, 20], [50, 60]],
-                    "maxs": [[50, 60], [69, 80]],
+                    "mins": [10, 20],
+                    "maxs": [50, 60],
                     "column": 2,
-                    "row_indices_list": [[0, 1, 2], [3, 4]],
                 }
             )
         )
 
         result_df = vbf.produce(inputs=dataframe).value
-        self.assertEqual(result_df.shape[0], 4)
+        self.assertEqual(result_df.shape[0], 2)
         self.assertListEqual(result_df["bravo"][0].tolist(), [1.0, 2.0])
-        self.assertListEqual(result_df["bravo"][1].tolist(), [10.0, 20.0])
-        self.assertListEqual(result_df["bravo"][2].tolist(), [50.0, 60.0])
-        self.assertListEqual(result_df["bravo"][3].tolist(), [70.0, 80.0])
+        self.assertListEqual(result_df["bravo"][1].tolist(), [70.0, 80.0])
 
     def test_strict(self) -> None:
         dataframe = self._load_data()
@@ -120,17 +94,19 @@ class VectorBoundsFilterPrimitiveTestCase(unittest.TestCase):
                 {
                     "inclusive": False,
                     "strict": True,
-                    "mins": [[10, 20], [50, 60]],
-                    "maxs": [[50, 60], [69, 80]],
+                    "mins": [10, 20],
+                    "maxs": [50, 60],
                     "column": 2,
-                    "row_indices_list": [[0, 1, 2], [3, 4]],
                 }
             )
         )
 
         result_df = vbf.produce(inputs=dataframe).value
-        self.assertEqual(result_df.shape[0], 1)
+        self.assertEqual(result_df.shape[0], 4)
         self.assertListEqual(result_df["bravo"][0].tolist(), [1.0, 2.0])
+        self.assertListEqual(result_df["bravo"][1].tolist(), [10.0, 20.0])
+        self.assertListEqual(result_df["bravo"][2].tolist(), [50.0, 60.0])
+        self.assertListEqual(result_df["bravo"][3].tolist(), [70.0, 80.0])
 
     def test_uneven_vector_to_filters_length(self) -> None:
         dataframe = self._load_data()
@@ -143,7 +119,7 @@ class VectorBoundsFilterPrimitiveTestCase(unittest.TestCase):
         ]["class_type_arguments"]["Hyperparams"]
         vbf = VectorBoundsFilterPrimitive(
             hyperparams=hyperparam_class.defaults().replace(
-                {"mins": [[10, 20]], "maxs": [[50, 60]], "column": 2}
+                {"mins": [10, 20], "maxs": [50, 60], "column": 2}
             )
         )
 
@@ -196,10 +172,9 @@ class VectorBoundsFilterPrimitiveTestCase(unittest.TestCase):
         vbf = VectorBoundsFilterPrimitive(
             hyperparams=hyperparam_class.defaults().replace(
                 {
-                    "mins": [15.0, 20.0],
-                    "maxs": [40.0, 50.0],
+                    "mins": [15.0],
+                    "maxs": [40.0],
                     "column": 2,
-                    "row_indices_list": [[0, 1, 2], [3, 4]],
                 }
             )
         )
@@ -220,10 +195,9 @@ class VectorBoundsFilterPrimitiveTestCase(unittest.TestCase):
         vbf = VectorBoundsFilterPrimitive(
             hyperparams=hyperparam_class.defaults().replace(
                 {
-                    "mins": [15.0, 20.0],
-                    "maxs": [40.0, 50.0],
+                    "mins": [15.0],
+                    "maxs": [40.0],
                     "column": 2,
-                    "row_indices_list": [[0, 1, 2], [3, 4]],
                 }
             )
         )
