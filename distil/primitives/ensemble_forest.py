@@ -127,6 +127,13 @@ class Hyperparams(hyperparams.Hyperparams):
         ],
         description="The value of the n_jobs parameter for the joblib library",
     )
+    pos_label = hyperparams.Hyperparameter[Optional[str]](
+        default=None,
+        semantic_types=[
+            "https://metadata.datadrivendiscovery.org/types/ControlParameter"
+        ],
+        description="Name of the positive label in the binary case. If none is provided, second column is assumed to be positive",
+    )
 
 
 class Params(params.Params):
@@ -352,7 +359,12 @@ class EnsembleForestPrimitive(
         ):
             confidence = self._model.predict_proba(inputs.values)
             if self._binary:
-                result_df.insert(result_df.shape[1], "confidence", confidence[:, 1])
+                pos_column = (
+                    0 if self.hyperparams["pos_label"] == self._label_map[0] else 1
+                )
+                result_df.insert(
+                    result_df.shape[1], "confidence", confidence[:, pos_column]
+                )
                 result_df.metadata = result_df.metadata.add_semantic_type(
                     (metadata_base.ALL_ELEMENTS, len(result_df.columns) - 1),
                     "http://schema.org/Float",
