@@ -202,10 +202,11 @@ class FuzzyJoinPrimitive(
             ) from error
 
         accuracy = self.hyperparams["accuracy"]
-        if type(accuracy) == float and (accuracy <= 0.0 or accuracy > 1.0):
-            raise exceptions.InvalidArgumentValueError(
-                "accuracy of " + str(accuracy) + " is out of range"
-            )
+        if type(accuracy) == float:
+            if accuracy <= 0.0 or accuracy > 1.0:
+                raise exceptions.InvalidArgumentValueError(
+                    "accuracy of " + str(accuracy) + " is out of range"
+                )
         else:
             for acc in accuracy:
                 if acc <= 0.0 or acc > 1.0:
@@ -274,8 +275,27 @@ class FuzzyJoinPrimitive(
                 excess_columns = set(joined.columns).difference(left_df.columns)
                 # ensure columns with the same name from left df column doesn't get removed
                 for col_inter in column_intersection:
-                    if col_inter + "_left" in excess_columns:
+                    # if (
+                    #     col_inter in left_col
+                    #     and col_inter in right_col
+                    #     and col_inter + "_left" in joined.columns
+                    # ):
+                    #     joined.drop(columns=[col_inter + "_right"], inplace=True)
+                    #     joined.rename(
+                    #         columns={col_inter + "_left": col_inter}, inplace=True
+                    #     )
+                    # for the case where a column is not being joined, but same column name is in both df
+                    if (
+                        col_inter + "_left" in excess_columns
+                        and col_inter + "_right" in excess_columns
+                    ):
                         excess_columns.remove(col_inter + "_left")
+                        excess_columns.remove(col_inter + "_right")
+                        joined.drop(columns=[col_inter + "_right"], inplace=True)
+                        joined.rename(
+                            columns={col_inter + "_left": col_inter}, inplace=True
+                        )
+
                 # get rid of columns that will be added again from right df
                 if len(excess_columns) > 0:
                     joined.drop(columns=excess_columns, inplace=True)
@@ -315,6 +335,8 @@ class FuzzyJoinPrimitive(
                     raise exceptions.InvalidArgumentValueError(
                         "join not surpported on type " + str(join_type)
                     )
+                if right_col[col_index] in right_df.columns:
+                    right_df.drop(columns=[right_col[col_index]], inplace=True)
 
         # create a new dataset to hold the joined data
         resource_map = {}
