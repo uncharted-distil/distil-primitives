@@ -25,19 +25,65 @@ Outputs = container.Dataset
 
 
 class Hyperparams(hyperparams.Hyperparams):
-    left_col = hyperparams.Hyperparameter[str](
-        default="",
+    left_col = hyperparams.Union[typing.Union[str, typing.Sequence[str]]](
+        configuration=collections.OrderedDict(
+            set=hyperparams.Set(
+                elements=hyperparams.Hyperparameter[str](
+                    default="",
+                    semantic_types=[
+                        "https://metadata.datadrivendiscovery.org/types/ControlParameter"
+                    ],
+                    description="Name of the column.",
+                ),
+                default=(),
+                semantic_types=[
+                    "https://metadata.datadrivendiscovery.org/types/ControlParameter"
+                ],
+                description="A set of column indices to force primitive to operate on. If any specified column cannot be parsed, it is skipped.",
+            ),
+            str=hyperparams.Hyperparameter[str](
+                default="",
+                semantic_types=[
+                    "https://metadata.datadrivendiscovery.org/types/ControlParameter"
+                ],
+                description="Name of the column.",
+            ),
+        ),
+        default="str",
         semantic_types=[
             "https://metadata.datadrivendiscovery.org/types/ControlParameter"
         ],
-        description="Name of left join column.",
+        description="Columns to join on from left dataframe",
     )
-    right_col = hyperparams.Hyperparameter[str](
-        default="",
+    right_col = hyperparams.Union[typing.Union[str, typing.Sequence[str]]](
+        configuration=collections.OrderedDict(
+            set=hyperparams.Set(
+                elements=hyperparams.Hyperparameter[str](
+                    default="",
+                    semantic_types=[
+                        "https://metadata.datadrivendiscovery.org/types/ControlParameter"
+                    ],
+                    description="Name of the column.",
+                ),
+                default=(),
+                semantic_types=[
+                    "https://metadata.datadrivendiscovery.org/types/ControlParameter"
+                ],
+                description="A set of column indices to force primitive to operate on. If any specified column cannot be parsed, it is skipped.",
+            ),
+            str=hyperparams.Hyperparameter[str](
+                default="",
+                semantic_types=[
+                    "https://metadata.datadrivendiscovery.org/types/ControlParameter"
+                ],
+                description="Name of the column.",
+            ),
+        ),
+        default="str",
         semantic_types=[
             "https://metadata.datadrivendiscovery.org/types/ControlParameter"
         ],
-        description="Name of right join column.",
+        description="Columns to join on from right dataframe",
     )
     accuracy = hyperparams.Hyperparameter[float](
         default=0.0,
@@ -45,6 +91,24 @@ class Hyperparams(hyperparams.Hyperparams):
             "https://metadata.datadrivendiscovery.org/types/ControlParameter"
         ],
         description="Requierd accuracy of join ranging from 0.0 to 1.0, where 1.0 is an exact match.",
+    )
+    accuracy = hyperparams.Union[typing.Union[float, typing.Sequence[float]]](
+        configuration=collections.OrderedDict(
+            set=hyperparams.Set(
+                elements=hyperparams.Hyperparameter[float](-1),
+                default=(),
+                semantic_types=[
+                    "https://metadata.datadrivendiscovery.org/types/ControlParameter"
+                ],
+                description="A set of minimum values, corresponding to the vector values to filter on",
+            ),
+            float=hyperparams.Hyperparameter[float](0),
+        ),
+        default="float",
+        semantic_types=[
+            "https://metadata.datadrivendiscovery.org/types/ControlParameter"
+        ],
+        description="Required accuracy of join ranging from 0.0 to 1.0, where 1.0 is an exact match.",
     )
 
 
@@ -138,39 +202,119 @@ class FuzzyJoinPrimitive(
             ) from error
 
         accuracy = self.hyperparams["accuracy"]
-        if accuracy <= 0.0 or accuracy > 1.0:
+        if type(accuracy) == float and (accuracy <= 0.0 or accuracy > 1.0):
             raise exceptions.InvalidArgumentValueError(
                 "accuracy of " + str(accuracy) + " is out of range"
             )
+        else:
+            for acc in accuracy:
+                if acc <= 0.0 or acc > 1.0:
+                    raise exceptions.InvalidArgumentValueError(
+                        "accuracy of " + str(acc) + " is out of range"
+                    )
 
         left_col = self.hyperparams["left_col"]
         right_col = self.hyperparams["right_col"]
 
-        # perform join based on semantic type
-        join_type = self._get_join_semantic_type(
-            left, left_resource_id, left_col, right, right_resource_id, right_col
-        )
-        joined: pd.Dataframe = None
-        if join_type in self._STRING_JOIN_TYPES:
-            joined = self._join_string_col(
-                left_df, left_col, right_df, right_col, accuracy
+        if type(left_col) != type(right_col) or (
+            type(left_col) == list and len(left_col) != len(right_col)
+        ):
+            raise exceptions.InvalidArgumentTypeError(
+                "both left_col and right_col need to have same data type and if they are lists, the same list lengths"
             )
-        elif join_type in self._NUMERIC_JOIN_TYPES:
-            joined = self._join_numeric_col(
-                left_df, left_col, right_df, right_col, accuracy
+        if type(left_col) == str:
+            # perform join based on semantic type
+            join_type = self._get_join_semantic_type(
+                left, left_resource_id, left_col, right, right_resource_id, right_col
             )
-        elif join_type in self._VECTOR_JOIN_TYPES:
-            joined = self._join_vector_col(
-                left_df, left_col, right_df, right_col, accuracy
-            )
-        elif join_type in self._DATETIME_JOIN_TYPES:
-            joined = self._join_datetime_col(
-                left_df, left_col, right_df, right_col, accuracy
-            )
+            joined: pd.Dataframe = None
+            if join_type in self._STRING_JOIN_TYPES:
+                joined = self._join_string_col(
+                    left_df, left_col, right_df, right_col, accuracy
+                )
+            elif join_type in self._NUMERIC_JOIN_TYPES:
+                joined = self._join_numeric_col(
+                    left_df, left_col, right_df, right_col, accuracy
+                )
+            elif join_type in self._VECTOR_JOIN_TYPES:
+                joined = self._join_vector_col(
+                    left_df, left_col, right_df, right_col, accuracy
+                )
+            elif join_type in self._DATETIME_JOIN_TYPES:
+                joined = self._join_datetime_col(
+                    left_df, left_col, right_df, right_col, accuracy
+                )
+            else:
+                raise exceptions.InvalidArgumentValueError(
+                    "join not surpported on type " + str(join_type)
+                )
         else:
-            raise exceptions.InvalidArgumentValueError(
-                "join not surpported on type " + str(join_type)
-            )
+            join_types = [
+                self._get_join_semantic_type(
+                    left,
+                    left_resource_id,
+                    left_col[i],
+                    right,
+                    right_resource_id,
+                    right_col[i],
+                )
+                for i in range(len(left_col))
+            ]
+            # if self._VECTOR_JOIN_TYPES[0] in join_types:
+            #     column = join_types.index(self._VECTOR_JOIN_TYPES[0])
+            #     left_df = self._join_vector_col(
+            #         left_df, left_col[column], right_df, right_col[column], accuracy
+            #     )
+            #     del left_col[column]
+            #     del right_col[column]
+            #     del join_types[column]
+            joined = left_df
+            column_intersection = set(left_df.columns).intersection(right_df.columns)
+            for col_index in range(len(left_col)):
+                excess_columns = set(joined.columns).difference(left_df.columns)
+                # ensure columns with the same name from left df column doesn't get removed
+                for col_inter in column_intersection:
+                    if col_inter + "_left" in excess_columns:
+                        excess_columns.remove(col_inter + "_left")
+                # get rid of columns that will be added again from right df
+                if len(excess_columns) > 0:
+                    joined.drop(columns=excess_columns, inplace=True)
+                if join_types[col_index] in self._STRING_JOIN_TYPES:
+                    joined = self._join_string_col(
+                        joined,
+                        left_col[col_index],
+                        right_df,
+                        right_col[col_index],
+                        accuracy[col_index],
+                    )
+                elif join_types[col_index] in self._NUMERIC_JOIN_TYPES:
+                    joined = self._join_numeric_col(
+                        joined,
+                        left_col[col_index],
+                        right_df,
+                        right_col[col_index],
+                        accuracy[col_index],
+                    )
+                elif join_types[col_index] in self._VECTOR_JOIN_TYPES:
+                    joined = self._join_vector_col(
+                        joined,
+                        left_col[col_index],
+                        right_df,
+                        right_col[col_index],
+                        accuracy[col_index],
+                    )
+                elif join_types[col_index] in self._DATETIME_JOIN_TYPES:
+                    joined = self._join_datetime_col(
+                        joined,
+                        left_col[col_index],
+                        right_df,
+                        right_col[col_index],
+                        accuracy[col_index],
+                    )
+                else:
+                    raise exceptions.InvalidArgumentValueError(
+                        "join not surpported on type " + str(join_type)
+                    )
 
         # create a new dataset to hold the joined data
         resource_map = {}
@@ -328,7 +472,7 @@ class FuzzyJoinPrimitive(
 
         # inner join on the left / right indices
         joined = container.DataFrame(
-            left_df.join(right_df, lsuffix="_1", rsuffix="_2", how="inner")
+            left_df.join(right_df, lsuffix="_left", rsuffix="_right", how="inner")
         )
 
         # sort on the d3m index if there, otherwise use the joined column
@@ -379,7 +523,7 @@ class FuzzyJoinPrimitive(
 
         # inner join on the left / right indices
         joined = container.DataFrame(
-            left_df.join(right_df, lsuffix="_1", rsuffix="_2", how="inner")
+            left_df.join(right_df, lsuffix="_left", rsuffix="_right", how="inner")
         )
 
         # sort on the d3m index if there, otherwise use the joined column
@@ -432,8 +576,8 @@ class FuzzyJoinPrimitive(
             excess_columns = set(joined.columns).difference(left_df.columns)
             # ensure columns with the same name from left df column doesn't get removed
             for col_inter in column_intersection:
-                if col_inter + "_1" in excess_columns:
-                    excess_columns.remove(col_inter + "_1")
+                if col_inter + "_left" in excess_columns:
+                    excess_columns.remove(col_inter + "_left")
             # get rid of columns that will be added again from right df
             if len(excess_columns) > 0:
                 joined.drop(columns=excess_columns, inplace=True)
@@ -482,7 +626,7 @@ class FuzzyJoinPrimitive(
 
         # inner join on the left / right indices
         joined = container.DataFrame(
-            left_df.join(right_df, lsuffix="_1", rsuffix="_2", how="inner")
+            left_df.join(right_df, lsuffix="_left", rsuffix="_right", how="inner")
         )
 
         # sort on the d3m index if there, otherwise use the joined column
