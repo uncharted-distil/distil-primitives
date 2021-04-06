@@ -18,7 +18,7 @@ setup(
     description="Distil primitives as a single library",
     packages=find_packages(),
     keywords=["d3m_primitive"],
-    license='Apache-2.0',
+    license="Apache-2.0",
     install_requires=[
         "d3m",  # d3m best-practice moving forward is to remove the version (simplifies updates)
         # shared d3m versions - need to be aligned with core package
@@ -26,12 +26,12 @@ setup(
         "scipy==1.4.1",
         "numpy==1.18.2",
         "pandas==1.0.3",
-        "torch==1.7.0",
+        "torch>=1.4.0",  # validated up to 1.7.0
         "networkx==2.4",
         "pillow==7.1.2",
         # additional dependencies
         "joblib>=0.13.2",
-        "torchvision>=0.8",
+        "torchvision>=0.5.0",  # validated up to 0.8
         #'pytorch-pretrained-bert==0.4.0', has print statements on import that break d3m annotation validation
         #'sklearn_pandas==1.8.0', use fork to address bugs
         "sklearn_pandas @ git+https://github.com/cdbethune/sklearn-pandas.git@c009c3a5a26f883f759cf123c0f5a509b1df013b",
