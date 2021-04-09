@@ -218,125 +218,116 @@ class FuzzyJoinPrimitive(
         right_col = self.hyperparams["right_col"]
 
         if type(left_col) != type(right_col) or (
-            type(left_col) == list and len(left_col) != len(right_col)
+            type(left_col) == list
+            and len(left_col) != len(right_col)
+            and type(accuracy) != list
+            and len(accuracy) != len(left_col)
         ):
             raise exceptions.InvalidArgumentTypeError(
                 "both left_col and right_col need to have same data type and if they are lists, the same list lengths"
             )
         if type(left_col) == str:
-            # perform join based on semantic type
-            join_type = self._get_join_semantic_type(
-                left, left_resource_id, left_col, right, right_resource_id, right_col
+            left_col = [left_col]
+            right_col = [right_col]
+            accuracy = [accuracy]
+
+        join_types = [
+            self._get_join_semantic_type(
+                left,
+                left_resource_id,
+                left_col[i],
+                right,
+                right_resource_id,
+                right_col[i],
             )
-            joined: pd.Dataframe = None
-            if join_type in self._STRING_JOIN_TYPES:
-                joined = self._join_string_col(
-                    left_df, left_col, right_df, right_col, accuracy
+            for i in range(len(left_col))
+        ]
+
+        right_cols_to_drop = []
+        new_left_cols = []
+        new_right_cols = []
+        for col_index in range(len(left_col)):
+            # depending on the joining type, make a new dataframe that has columns we will want to merge on
+            # keep track of which columns we will want to drop later on
+            if join_types[col_index] in self._STRING_JOIN_TYPES:
+                new_left_df = self._create_string_merge_cols(
+                    left_df,
+                    left_col[col_index],
+                    right_df,
+                    right_col[col_index],
+                    accuracy[col_index],
+                    col_index,
                 )
-            elif join_type in self._NUMERIC_JOIN_TYPES:
-                joined = self._join_numeric_col(
-                    left_df, left_col, right_df, right_col, accuracy
+                left_df[new_left_df.columns] = new_left_df
+                right_name = "righty_string" + str(col_index)
+                right_df.rename(
+                    columns={right_col[col_index]: right_name}, inplace=True
                 )
-            elif join_type in self._VECTOR_JOIN_TYPES:
-                joined = self._join_vector_col(
-                    left_df, left_col, right_df, right_col, accuracy
+                new_left_cols += list(new_left_df.columns)
+                new_right_cols.append(right_name)
+            elif join_types[col_index] in self._NUMERIC_JOIN_TYPES:
+                new_left_df = self._create_numeric_merge_cols(
+                    left_df,
+                    left_col[col_index],
+                    right_df,
+                    right_col[col_index],
+                    accuracy[col_index],
+                    col_index,
                 )
-            elif join_type in self._DATETIME_JOIN_TYPES:
-                joined = self._join_datetime_col(
-                    left_df, left_col, right_df, right_col, accuracy
+                left_df[new_left_df.columns] = new_left_df
+                right_name = "righty_numeric" + str(col_index)
+                right_df.rename(
+                    columns={right_col[col_index]: right_name}, inplace=True
                 )
+                new_left_cols += list(new_left_df.columns)
+                new_right_cols.append(right_name)
+            elif join_types[col_index] in self._VECTOR_JOIN_TYPES:
+                new_left_df, new_right_df = self._create_vector_merging_cols(
+                    left_df,
+                    left_col[col_index],
+                    right_df,
+                    right_col[col_index],
+                    accuracy[col_index],
+                    col_index,
+                )
+                left_df[new_left_df.columns] = new_left_df
+                right_df[new_right_df.columns] = new_right_df
+                new_left_cols += list(new_left_df.columns)
+                new_right_cols += list(new_right_df.columns)
+                right_cols_to_drop.append(right_col[col_index])
+            elif join_types[col_index] in self._DATETIME_JOIN_TYPES:
+                new_left_df, new_right_df = self._create_datetime_merge_cols(
+                    left_df,
+                    left_col[col_index],
+                    right_df,
+                    right_col[col_index],
+                    accuracy[col_index],
+                    col_index,
+                )
+                left_df[new_left_df.columns] = new_left_df
+                right_df[new_right_df.columns] = new_right_df
+                new_left_cols += list(new_left_df.columns)
+                new_right_cols += list(new_right_df.columns)
+                right_cols_to_drop.append(right_col[col_index])
             else:
                 raise exceptions.InvalidArgumentValueError(
                     "join not surpported on type " + str(join_type)
                 )
-        else:
-            join_types = [
-                self._get_join_semantic_type(
-                    left,
-                    left_resource_id,
-                    left_col[i],
-                    right,
-                    right_resource_id,
-                    right_col[i],
-                )
-                for i in range(len(left_col))
-            ]
-            # if self._VECTOR_JOIN_TYPES[0] in join_types:
-            #     column = join_types.index(self._VECTOR_JOIN_TYPES[0])
-            #     left_df = self._join_vector_col(
-            #         left_df, left_col[column], right_df, right_col[column], accuracy
-            #     )
-            #     del left_col[column]
-            #     del right_col[column]
-            #     del join_types[column]
-            joined = left_df
-            column_intersection = set(left_df.columns).intersection(right_df.columns)
-            for col_index in range(len(left_col)):
-                excess_columns = set(joined.columns).difference(left_df.columns)
-                # ensure columns with the same name from left df column doesn't get removed
-                for col_inter in column_intersection:
-                    # if (
-                    #     col_inter in left_col
-                    #     and col_inter in right_col
-                    #     and col_inter + "_left" in joined.columns
-                    # ):
-                    #     joined.drop(columns=[col_inter + "_right"], inplace=True)
-                    #     joined.rename(
-                    #         columns={col_inter + "_left": col_inter}, inplace=True
-                    #     )
-                    # for the case where a column is not being joined, but same column name is in both df
-                    if (
-                        col_inter + "_left" in excess_columns
-                        and col_inter + "_right" in excess_columns
-                    ):
-                        excess_columns.remove(col_inter + "_left")
-                        excess_columns.remove(col_inter + "_right")
-                        joined.drop(columns=[col_inter + "_right"], inplace=True)
-                        joined.rename(
-                            columns={col_inter + "_left": col_inter}, inplace=True
-                        )
 
-                # get rid of columns that will be added again from right df
-                if len(excess_columns) > 0:
-                    joined.drop(columns=excess_columns, inplace=True)
-                if join_types[col_index] in self._STRING_JOIN_TYPES:
-                    joined = self._join_string_col(
-                        joined,
-                        left_col[col_index],
-                        right_df,
-                        right_col[col_index],
-                        accuracy[col_index],
-                    )
-                elif join_types[col_index] in self._NUMERIC_JOIN_TYPES:
-                    joined = self._join_numeric_col(
-                        joined,
-                        left_col[col_index],
-                        right_df,
-                        right_col[col_index],
-                        accuracy[col_index],
-                    )
-                elif join_types[col_index] in self._VECTOR_JOIN_TYPES:
-                    joined = self._join_vector_col(
-                        joined,
-                        left_col[col_index],
-                        right_df,
-                        right_col[col_index],
-                        accuracy[col_index],
-                    )
-                elif join_types[col_index] in self._DATETIME_JOIN_TYPES:
-                    joined = self._join_datetime_col(
-                        joined,
-                        left_col[col_index],
-                        right_df,
-                        right_col[col_index],
-                        accuracy[col_index],
-                    )
-                else:
-                    raise exceptions.InvalidArgumentValueError(
-                        "join not surpported on type " + str(join_type)
-                    )
-                if right_col[col_index] in right_df.columns:
-                    right_df.drop(columns=[right_col[col_index]], inplace=True)
+        if "d3mIndex" in right_df.columns:
+            right_cols_to_drop.append("d3mIndex")
+        right_df.drop(columns=right_cols_to_drop, inplace=True)
+        joined = pd.merge(
+            left_df,
+            right_df,
+            how="inner",
+            left_on=new_left_cols,
+            right_on=new_right_cols,
+            suffixes=["_left", "_right"],
+        )
+        # don't want to keep columns that were created specifically for merging
+        # also, inner merge keeps the right column we merge on, we want to remove it
+        joined.drop(columns=np.unique(new_left_cols + new_right_cols), inplace=True)
 
         # create a new dataset to hold the joined data
         resource_map = {}
@@ -466,18 +457,16 @@ class FuzzyJoinPrimitive(
         return val
 
     @classmethod
-    def _join_string_col(
+    def _create_string_merge_cols(
         cls,
         left_df: container.DataFrame,
         left_col: str,
         right_df: container.DataFrame,
         right_col: str,
         accuracy: float,
+        index: int,
     ) -> pd.DataFrame:
-        # use d3mIndex from left col if present
-        right_df = right_df.drop(columns="d3mIndex")
 
-        # pre-compute fuzzy matches
         left_keys = left_df[left_col].unique()
         right_keys = right_df[right_col].unique()
         matches: typing.Dict[str, typing.Optional[str]] = {}
@@ -485,26 +474,13 @@ class FuzzyJoinPrimitive(
             matches[left_key] = cls._string_fuzzy_match(
                 left_key, right_keys, accuracy * 100
             )
-
-        # look up pre-computed fuzzy match for each element in the left column
-        left_df.index = left_df[left_col].map(lambda key: matches[key])
-
-        # make the right col the right dataframe index
-        right_df = right_df.set_index(right_col)
-
-        # inner join on the left / right indices
-        joined = container.DataFrame(
-            left_df.join(right_df, lsuffix="_left", rsuffix="_right", how="inner")
+        new_left_df = container.DataFrame(
+            {
+                "lefty_string"
+                + str(index): left_df[left_col].map(lambda key: matches[key])
+            }
         )
-
-        # sort on the d3m index if there, otherwise use the joined column
-        if "d3mIndex" in joined:
-            joined = joined.sort_values(by=["d3mIndex"])
-        else:
-            joined = joined.sort_values(by=[left_col])
-        joined = joined.reset_index(drop=True)
-
-        return joined
+        return new_left_df
 
     def _numeric_fuzzy_match(match, choices, accuracy):
         # not sure if this is faster than applying a lambda against the sequence - probably is
@@ -520,42 +496,25 @@ class FuzzyJoinPrimitive(
         return min_val
 
     @classmethod
-    def _join_numeric_col(
+    def _create_numeric_merge_cols(
         cls,
         left_df: container.DataFrame,
         left_col: str,
         right_df: container.DataFrame,
         right_col: str,
         accuracy: float,
+        index: int,
     ) -> pd.DataFrame:
-        # use d3mIndex from left col if present
-        right_df = right_df.drop(columns="d3mIndex")
-
-        # fuzzy match each of the left join col against the right join col value and save the results as the left
-        # dataframe index
-        right_df[right_col] = pd.to_numeric(right_df[right_col])
         choices = right_df[right_col].unique()
-        left_df[left_col] = pd.to_numeric(left_df[left_col])
-        left_df.index = left_df[left_col].map(
-            lambda x: cls._numeric_fuzzy_match(x, choices, accuracy)
+        new_left_df = container.DataFrame(
+            {
+                "lefty_numeric"
+                + str(index): pd.to_numeric(left_df[left_col]).map(
+                    lambda x: cls._numeric_fuzzy_match(x, choices, accuracy)
+                )
+            }
         )
-
-        # make the right col the right dataframe index
-        right_df = right_df.set_index(right_col)
-
-        # inner join on the left / right indices
-        joined = container.DataFrame(
-            left_df.join(right_df, lsuffix="_left", rsuffix="_right", how="inner")
-        )
-
-        # sort on the d3m index if there, otherwise use the joined column
-        if "d3mIndex" in joined:
-            joined = joined.sort_values(by=["d3mIndex"])
-        else:
-            joined = joined.sort_values(by=[left_col])
-        joined = joined.reset_index(drop=True)
-
-        return joined
+        return new_left_df
 
     @classmethod
     def _vector_fuzzy_match(cls, match, choices, accuracy):
@@ -571,94 +530,76 @@ class FuzzyJoinPrimitive(
         return min_val
 
     @classmethod
-    def _join_vector_col(
+    def _create_vector_merging_cols(
         cls,
         left_df: container.DataFrame,
         left_col: str,
         right_df: container.DataFrame,
         right_col: str,
         accuracy: float,
+        index: int,
     ) -> pd.DataFrame:
-        new_left_cols = ["lefty" + str(i) for i in range(left_df[left_col][0].shape[0])]
-        new_right_cols = [
-            "righty" + str(i) for i in range(right_df[right_col][0].shape[0])
+        new_left_cols = [
+            "lefty_vector" + str(index) + "_" + str(i)
+            for i in range(left_df[left_col][0].shape[0])
         ]
-        left_df[new_left_cols] = container.DataFrame(
+        new_right_cols = [
+            "righty_vector" + str(index) + "_" + str(i)
+            for i in range(right_df[right_col][0].shape[0])
+        ]
+        new_left_df = container.DataFrame(
             left_df[left_col].values.tolist(), columns=new_left_cols
         )
-        # new_left_df["d3mIndex"] = left_df["d3mIndex"]
-        right_df[new_right_cols] = container.DataFrame(
+        new_right_df = container.DataFrame(
             right_df[right_col].values.tolist(), columns=new_right_cols
         )
-        right_df.drop(columns=right_col, inplace=True)
-        # new_right_df["d3mIndex"] = right_df["d3mIndex"]
-        joined = left_df
-        column_intersection = set(left_df.columns).intersection(right_df.columns)
         for i in range(len(new_left_cols)):
-            excess_columns = set(joined.columns).difference(left_df.columns)
-            # ensure columns with the same name from left df column doesn't get removed
-            for col_inter in column_intersection:
-                if col_inter + "_left" in excess_columns:
-                    excess_columns.remove(col_inter + "_left")
-            # get rid of columns that will be added again from right df
-            if len(excess_columns) > 0:
-                joined.drop(columns=excess_columns, inplace=True)
-            joined = cls._join_numeric_col(
-                left_df,
-                new_left_cols[i],
-                right_df,
-                new_right_cols[i],
-                accuracy,
+            new_left_df[new_left_cols[i]] = new_left_df[new_left_cols[i]].map(
+                lambda x: cls._numeric_fuzzy_match(
+                    x, new_right_df[new_right_cols[i]], accuracy
+                )
             )
-            # these columns have no use anymore
-            joined.drop(columns=new_left_cols[i], inplace=True)
-            left_df.drop(columns=new_left_cols[i], inplace=True)
-            right_df.drop(columns=new_right_cols[i], inplace=True)
-
-        return joined
+        return (new_left_df, new_right_df)
 
     @classmethod
-    def _join_datetime_col(
+    def _create_datetime_merge_cols(
         cls,
         left_df: container.DataFrame,
         left_col: str,
         right_df: container.DataFrame,
         right_col: str,
         accuracy: float,
+        index: int,
     ) -> pd.DataFrame:
         # use d3mIndex from left col if present
-        right_df = right_df.drop(columns="d3mIndex")
-
         # compute a tolerance delta for time matching based on a percentage of the minimum left/right time
         # range
-        choices = np.array(
-            [np.datetime64(parser.parse(dt)) for dt in right_df[right_col].unique()]
+        left_name = "lefty_datetime" + str(index)
+        right_name = "righty_datetime" + str(index)
+        new_right_df = container.DataFrame(
+            {
+                right_name: np.array(
+                    [np.datetime64(parser.parse(dt)) for dt in right_df[right_col]]
+                )
+            }
         )
+        choices = np.unique(new_right_df[right_name])
         left_keys = np.array(
             [np.datetime64(parser.parse(dt)) for dt in left_df[left_col].values]
         )
         time_tolerance = (1.0 - accuracy) * cls._compute_time_range(left_keys, choices)
 
-        left_df.index = np.array(
-            [cls._datetime_fuzzy_match(dt, choices, time_tolerance) for dt in left_keys]
+        new_left_df = container.DataFrame(
+            {
+                left_name: np.array(
+                    [
+                        cls._datetime_fuzzy_match(dt, choices, time_tolerance)
+                        for dt in left_keys
+                    ]
+                )
+            }
         )
-
-        # make the right col the right dataframe index
-        right_df = right_df.set_index(right_col)
-
-        # inner join on the left / right indices
-        joined = container.DataFrame(
-            left_df.join(right_df, lsuffix="_left", rsuffix="_right", how="inner")
-        )
-
-        # sort on the d3m index if there, otherwise use the joined column
-        if "d3mIndex" in joined:
-            joined = joined.sort_values(by=["d3mIndex"])
-        else:
-            joined = joined.sort_values(by=[left_col])
-        joined = joined.reset_index(drop=True)
-
-        return joined
+        return new_left_df, new_right_df
 
     @classmethod
     def _datetime_fuzzy_match(

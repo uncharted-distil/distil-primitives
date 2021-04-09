@@ -272,17 +272,15 @@ class FuzzyJoinPrimitiveTestCase(unittest.TestCase):
                 "gamma_right",
             ],
         )
-        self.assertListEqual(list(result_dataframe["d3mIndex"]), [1, 2, 3, 4, 5])
+        self.assertListEqual(list(result_dataframe["d3mIndex"]), [1, 2, 3])
         self.assertListEqual(
             list(result_dataframe["alpha"]),
-            ["yankee", "yankeee", "yank", "Hotel", "hotel"],
+            ["yankee", "yankeee", "yank"],
         )
-        self.assertListEqual(
-            list(result_dataframe["whiskey"]), [10.0, 10.0, 10.0, 10.0, 20.0]
-        )
+        self.assertListEqual(list(result_dataframe["whiskey"]), [10.0, 10.0, 10.0])
         self.assertListEqual(
             list(result_dataframe["charlie"]),
-            [100.0, 100.0, 100.0, 100.0, 300.0],
+            [100.0, 100.0, 100.0],
         )
 
     def test_date_vector_join(self) -> None:
@@ -319,24 +317,23 @@ class FuzzyJoinPrimitiveTestCase(unittest.TestCase):
                 "xray",
             ],
         )
-        self.assertListEqual(list(result_dataframe["d3mIndex"]), [1, 5, 6])
+        self.assertListEqual(list(result_dataframe["d3mIndex"]), [1, 6])
         self.assertListEqual(
             list(result_dataframe["alpha_left"]),
-            ["yankee", "hotel", "otel"],
+            ["yankee", "otel"],
         )
         self.assertListEqual(
             list(result_dataframe["alpha_right"]),
-            ["yankee", "yankee", "foxtrot"],
+            ["yankee", "foxtrot"],
         )
-        self.assertListEqual(list(result_dataframe["whiskey"]), [10.0, 20.0, 20.0])
+        self.assertListEqual(list(result_dataframe["whiskey"]), [10.0, 20.0])
         self.assertListEqual(
             list(result_dataframe["charlie"]),
-            [100.0, 100.0, 300.0],
+            [100.0, 300.0],
         )
         self.assertListEqual(
             [row.tolist() for row in result_dataframe["gamma"]],
             [
-                [10.0, 20.0],
                 [10.0, 20.0],
                 [13.0, 13.0],
             ],
