@@ -28,7 +28,7 @@ from distil.primitives.satellite_image_loader import (
 import utils as test_utils
 import pathlib
 import os
-import lzo
+import lz4
 import imageio
 
 
@@ -170,7 +170,7 @@ class DataFrameSatelliteImageLoaderPrimitiveTestCase(unittest.TestCase):
 
         # decompress
         compressed_bytes = result_dataframe.iloc[0, 7].tobytes()
-        decompressed_bytes = lzo.decompress(compressed_bytes)
+        decompressed_bytes = lz4.frame.decompress(compressed_bytes)
         storage_type, shape_0, shape_1, shape_2 = struct.unpack(
             "cIII", decompressed_bytes[:16]
         )
@@ -186,7 +186,7 @@ class DataFrameSatelliteImageLoaderPrimitiveTestCase(unittest.TestCase):
         self.assertEqual(original_image.tobytes(), loaded_image.tobytes())
 
         compressed_bytes = result_dataframe.iloc[1, 7].tobytes()
-        decompressed_bytes = lzo.decompress(compressed_bytes)
+        decompressed_bytes = lz4.frame.decompress(compressed_bytes)
         storage_type, shape_0, shape_1, shape_2 = struct.unpack(
             "cIII", decompressed_bytes[:16]
         )

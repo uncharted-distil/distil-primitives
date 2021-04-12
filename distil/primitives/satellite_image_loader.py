@@ -21,7 +21,7 @@ from d3m.primitive_interfaces import transformer
 from distil.primitives import utils as distil_utils
 from distil.utils import CYTHON_DEP
 import version
-import lzo
+import lz4
 import struct
 
 from joblib import Parallel, delayed
@@ -149,21 +149,6 @@ class DataFrameSatelliteImageLoaderPrimitive(
                     "package_uri": "git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=distil-primitives".format(
                         git_commit=utils.current_git_commit(os.path.dirname(__file__)),
                     ),
-                },
-                {
-                    "type": metadata_base.PrimitiveInstallationType.UBUNTU,
-                    "package": "zlib1g-dev",
-                    "version": "1:1.2.11.dfsg-0ubuntu2",
-                },
-                {
-                    "type": metadata_base.PrimitiveInstallationType.UBUNTU,
-                    "package": "liblzo2-dev",
-                    "version": "2.08-1.2",
-                },
-                {
-                    "type": metadata_base.PrimitiveInstallationType.PIP,
-                    "package": "python-lzo",
-                    "version": "1.12",
                 },
             ],
             "algorithm_types": [
@@ -419,7 +404,7 @@ class DataFrameSatelliteImageLoaderPrimitive(
                 output_bytes.extend(
                     self._bilinear_resample(image, max_dimension).tobytes()
                 )
-            output_compressed_bytes = lzo.compress(bytes(output_bytes))
+            output_compressed_bytes = lz4.frame.compress(bytes(output_bytes))
             output = np.frombuffer(
                 output_compressed_bytes,
                 dtype="uint8",
