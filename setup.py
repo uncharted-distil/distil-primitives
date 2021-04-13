@@ -26,12 +26,12 @@ setup(
         "scipy==1.4.1",
         "numpy==1.18.2",
         "pandas==1.0.3",
-        "torch>=1.4.0",  # validated up to 1.7.0
+        "torch>=1.4.0,<=1.7.0",  # validated up to 1.7.0
         "networkx==2.4",
         "pillow==7.1.2",
         # additional dependencies
         "joblib>=0.13.2",
-        "torchvision>=0.5.0",  # validated up to 0.8
+        "torchvision>=0.5.0,<=0.8.0",  # validated up to 0.8
         #'pytorch-pretrained-bert==0.4.0', has print statements on import that break d3m annotation validation
         #'sklearn_pandas==1.8.0', use fork to address bugs
         "sklearn_pandas @ git+https://github.com/cdbethune/sklearn-pandas.git@c009c3a5a26f883f759cf123c0f5a509b1df013b",
@@ -52,7 +52,7 @@ setup(
         # Can cause errors with pretrained-bert: https://github.com/NVIDIA/apex/issues/156
         #'apex @ git+https://github.com/NVIDIA/apex.git@47e3367fcd6636db6cd549bbb385a6e06a3861d0',
         "torchvggish @ git+https://github.com/harritaylor/torchvggish.git@f5ec66cb05029ddfdb9971f343d79408fac44c70#egg=torchvggish",
-        "lz4==3.1.3",
+        #'python-lzo==1.12', Needs to be installed in the DistilSatelliteLoader primitive install section
     ],
     extras_require={
         "cpu": ["tensorflow==2.2.0"],
