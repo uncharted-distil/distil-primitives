@@ -591,14 +591,6 @@ class FuzzyJoinPrimitive(
                 columns=new_right_cols,
             )
 
-        # new_left_cols = [
-        #     "lefty_vector" + str(index) + "_" + str(i)
-        #     for i in range(left_vector_length)
-        # ]
-        # new_right_cols = [
-        #     "righty_vector" + str(index) + "_" + str(i)
-        #     for i in range(right_vector_length)
-        # ]
         for i in range(len(new_left_cols)):
             new_left_df[new_left_cols[i]] = new_left_df[new_left_cols[i]].map(
                 lambda x: cls._numeric_fuzzy_match(
