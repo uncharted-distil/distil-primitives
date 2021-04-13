@@ -539,20 +539,66 @@ class FuzzyJoinPrimitive(
         accuracy: float,
         index: int,
     ) -> pd.DataFrame:
-        new_left_cols = [
-            "lefty_vector" + str(index) + "_" + str(i)
-            for i in range(left_df[left_col][0].shape[0])
-        ]
-        new_right_cols = [
-            "righty_vector" + str(index) + "_" + str(i)
-            for i in range(right_df[right_col][0].shape[0])
-        ]
-        new_left_df = container.DataFrame(
-            left_df[left_col].values.tolist(), columns=new_left_cols
-        )
-        new_right_df = container.DataFrame(
-            right_df[right_col].values.tolist(), columns=new_right_cols
-        )
+        def fromstring(x: str) -> np.ndarray:
+            return np.fromstring(x, dtype=float, sep=",")
+
+        if type(left_df[left_col][0]) == str:
+            left_vector_length = np.fromstring(
+                left_df[left_col][0], dtype=float, sep=","
+            ).shape[0]
+            new_left_cols = [
+                "lefty_vector" + str(index) + "_" + str(i)
+                for i in range(left_vector_length)
+            ]
+            new_left_df = container.DataFrame(
+                left_df[left_col]
+                .apply(fromstring, convert_dtype=False)
+                .values.tolist(),
+                columns=new_left_cols,
+            )
+        else:
+            left_vector_length = left_df[left_col][0].shape[0]
+            new_left_cols = [
+                "lefty_vector" + str(index) + "_" + str(i)
+                for i in range(left_vector_length)
+            ]
+            new_left_df = container.DataFrame(
+                left_df[left_col].values.tolist(),
+                columns=new_left_cols,
+            )
+        if type(right_df[right_col][0]) == str:
+            right_vector_length = np.fromstring(
+                right_df[right_col][0], dtype=float, sep=","
+            ).shape[0]
+            new_right_cols = [
+                "righty_vector" + str(index) + "_" + str(i)
+                for i in range(right_vector_length)
+            ]
+            new_right_df = container.DataFrame(
+                right_df[right_col]
+                .apply(fromstring, convert_dtype=False)
+                .values.tolist(),
+                columns=new_right_cols,
+            )
+        else:
+            right_vector_length = right_df[right_col][0].shape[0]
+            new_right_cols = [
+                "righty_vector" + str(index) + "_" + str(i)
+                for i in range(right_vector_length)
+            ]
+            new_right_df = container.DataFrame(
+                right_df[right_col].values.tolist(),
+                columns=new_right_cols,
+            )
+
+        # new_left_cols = [
+        #     "lefty_vector" + str(index) + "_" + str(i)
+        #     for i in range(left_vector_length)
+        # ]
+        # new_right_cols = [
+        #     "righty_vector" + str(index) + "_" + str(i)
+        #     for i in range(right_vector_length)
+        # ]
         for i in range(len(new_left_cols)):
             new_left_df[new_left_cols[i]] = new_left_df[new_left_cols[i]].map(
                 lambda x: cls._numeric_fuzzy_match(
