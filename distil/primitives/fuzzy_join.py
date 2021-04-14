@@ -486,7 +486,7 @@ class FuzzyJoinPrimitive(
         # not sure if this is faster than applying a lambda against the sequence - probably is
         inv_accuracy = 1.0 - accuracy
         min_distance = float("inf")
-        min_val = None
+        min_val = float("nan")
         tolerance = float(match) * inv_accuracy
         for i, num in enumerate(choices):
             distance = abs(match - num)
