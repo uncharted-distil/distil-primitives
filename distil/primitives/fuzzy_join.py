@@ -85,22 +85,15 @@ class Hyperparams(hyperparams.Hyperparams):
         ],
         description="Columns to join on from right dataframe",
     )
-    accuracy = hyperparams.Hyperparameter[float](
-        default=0.0,
-        semantic_types=[
-            "https://metadata.datadrivendiscovery.org/types/ControlParameter"
-        ],
-        description="Requierd accuracy of join ranging from 0.0 to 1.0, where 1.0 is an exact match.",
-    )
     accuracy = hyperparams.Union[typing.Union[float, typing.Sequence[float]]](
         configuration=collections.OrderedDict(
-            set=hyperparams.Set(
+            set=hyperparams.List(
                 elements=hyperparams.Hyperparameter[float](-1),
                 default=(),
                 semantic_types=[
                     "https://metadata.datadrivendiscovery.org/types/ControlParameter"
                 ],
-                description="A set of minimum values, corresponding to the vector values to filter on",
+                description="A list of accuracies, corresponding respectively to the columns to join on.",
             ),
             float=hyperparams.Hyperparameter[float](0),
         ),
