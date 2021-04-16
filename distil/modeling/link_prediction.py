@@ -4,7 +4,7 @@ import networkx as nx
 from scipy import sparse
 from sklearn.model_selection import KFold
 
-from rescal import rescal_als
+from nonneg_rescal.nonneg_rescal import nonneg_rescal
 
 from .base import DistilBaseModel
 from .metrics import metrics
@@ -36,7 +36,7 @@ def rescal_link_prediction(
     num_nodes = adj[0].shape[0]
     num_edge_types = len(adj)
 
-    A, R, _, _, _ = rescal_als(
+    A, R, _, _, _ = nonneg_rescal(
         X=adj,
         rank=rank,
         lambda_A=lambda_A,
