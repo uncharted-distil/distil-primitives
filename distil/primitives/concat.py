@@ -91,14 +91,8 @@ class VerticalConcatenationPrimitive(
                 )
             concated = pd.concat(inputs, ignore_index=True)
         elif self.hyperparams["column_overlap"] == "union":
-            # columns_to_handle = set()
-            # for df in inputs:
-            #     columns_to_handle = columns_to_handle.union(set(df.columns))
             concated = pd.concat(inputs, ignore_index=True)
         elif self.hyperparams["column_overlap"] == "intersection":
-            # columns_to_handle = set(inputs[0].columns)
-            # for df in inputs:
-            #     columns_to_handle = columns_to_handle.intersection(set(df.columns))
             concated = pd.concat(inputs, join="inner", ignore_index=True)
 
         if self.hyperparams["remove_duplicate_rows"]:
