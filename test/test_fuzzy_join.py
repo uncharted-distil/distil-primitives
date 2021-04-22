@@ -23,7 +23,6 @@ class FuzzyJoinPrimitiveTestCase(unittest.TestCase):
         hyperparams_class = FuzzyJoin.metadata.query()["primitive_code"][
             "class_type_arguments"
         ]["Hyperparams"]
-        hyperparams = hyperparams_class.defaults()
         hyperparams = hyperparams_class.defaults().replace(
             {
                 "left_col": "alpha",
@@ -71,7 +70,6 @@ class FuzzyJoinPrimitiveTestCase(unittest.TestCase):
         hyperparams_class = FuzzyJoin.metadata.query()["primitive_code"][
             "class_type_arguments"
         ]["Hyperparams"]
-        hyperparams = hyperparams_class.defaults()
         hyperparams = hyperparams_class.defaults().replace(
             {
                 "left_col": "whiskey",
@@ -193,7 +191,6 @@ class FuzzyJoinPrimitiveTestCase(unittest.TestCase):
         hyperparams_class = FuzzyJoin.metadata.query()["primitive_code"][
             "class_type_arguments"
         ]["Hyperparams"]
-        hyperparams = hyperparams_class.defaults()
         hyperparams = hyperparams_class.defaults().replace(
             {
                 "left_col": "sierra",
@@ -245,7 +242,6 @@ class FuzzyJoinPrimitiveTestCase(unittest.TestCase):
         hyperparams_class = FuzzyJoin.metadata.query()["primitive_code"][
             "class_type_arguments"
         ]["Hyperparams"]
-        hyperparams = hyperparams_class.defaults()
         hyperparams = hyperparams_class.defaults().replace(
             {
                 "left_col": ["alpha", "sierra"],
@@ -290,7 +286,6 @@ class FuzzyJoinPrimitiveTestCase(unittest.TestCase):
         hyperparams_class = FuzzyJoin.metadata.query()["primitive_code"][
             "class_type_arguments"
         ]["Hyperparams"]
-        hyperparams = hyperparams_class.defaults()
         hyperparams = hyperparams_class.defaults().replace(
             {
                 "left_col": ["sierra", "gamma"],
