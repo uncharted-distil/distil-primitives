@@ -2,6 +2,7 @@ import unittest
 from os import path
 import csv
 import typing
+import math
 import pandas as pd
 import numpy as np
 
@@ -50,18 +51,36 @@ class FuzzyJoinPrimitiveTestCase(unittest.TestCase):
                 "gamma_right",
             ],
         )
-        self.assertListEqual(list(result_dataframe["d3mIndex"]), [1, 2, 3, 4, 5, 7, 8])
+        self.assertListEqual(
+            list(result_dataframe["d3mIndex"]), [1, 2, 3, 4, 5, 6, 7, 8]
+        )
         self.assertListEqual(
             list(result_dataframe["alpha"]),
-            ["yankee", "yankeee", "yank", "Hotel", "hotel", "foxtrot aa", "foxtrot"],
+            [
+                "yankee",
+                "yankeee",
+                "yank",
+                "Hotel",
+                "hotel",
+                "otel",
+                "foxtrot aa",
+                "foxtrot",
+            ],
         )
         self.assertListEqual(
-            list(result_dataframe["bravo"]), [1.0, 2.0, 3.0, 4.0, 5.0, 7.0, 8.0]
+            list(result_dataframe["bravo"]), [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0]
         )
-        self.assertListEqual(
+        self.assertNumpyListEqual(
             list(result_dataframe["charlie"]),
-            [100.0, 100.0, 100.0, 200.0, 200.0, 300.0, 300.0],
+            [100.0, 100.0, 100.0, 200.0, 200.0, np.nan, 300.0, 300.0],
         )
+
+    def assertNumpyListEqual(self, result, expected):
+        try:
+            np.testing.assert_equal(result, expected)
+        except AssertionError:
+            return False
+        return True
 
     def test_numeric_join(self) -> None:
         dataframe_1 = self._load_data(self._dataset_path_1)
@@ -97,18 +116,41 @@ class FuzzyJoinPrimitiveTestCase(unittest.TestCase):
                 "gamma_right",
             ],
         )
-        self.assertListEqual(list(result_dataframe["d3mIndex"]), [1, 2, 3, 4])
         self.assertListEqual(
-            list(result_dataframe["alpha_left"]), ["yankee", "yankeee", "yank", "Hotel"]
+            list(result_dataframe["d3mIndex"]), [1, 2, 3, 4, 5, 6, 7, 8]
         )
         self.assertListEqual(
-            list(result_dataframe["alpha_right"]), ["hotel", "hotel", "hotel", "hotel"]
+            list(result_dataframe["alpha_left"]),
+            [
+                "yankee",
+                "yankeee",
+                "yank",
+                "Hotel",
+                "hotel",
+                "otel",
+                "foxtrot aa",
+                "foxtrot",
+            ],
+        )
+        self.assertNumpyListEqual(
+            list(result_dataframe["alpha_right"]),
+            [
+                "hotel",
+                "hotel",
+                "hotel",
+                "hotel",
+                np.nan,
+                np.nan,
+                np.nan,
+            ],
         )
         self.assertListEqual(
-            list(result_dataframe["whiskey"]), [10.0, 10.0, 10.0, 10.0]
+            list(result_dataframe["whiskey"]),
+            [10.0, 10.0, 10.0, 10.0, 20.0, 20.0, 20.0, 20.0],
         )
-        self.assertListEqual(
-            list(result_dataframe["charlie"]), [200.0, 200.0, 200.0, 200.0]
+        self.assertNumpyListEqual(
+            list(result_dataframe["charlie"]),
+            [200.0, 200.0, 200.0, 200.0, np.nan, np.nan, np.nan, np.nan],
         )
 
     def test_vector_join(self) -> None:
@@ -147,6 +189,9 @@ class FuzzyJoinPrimitiveTestCase(unittest.TestCase):
             list(result_dataframe["d3mIndex"]),
             [
                 1,
+                2,
+                3,
+                4,
                 5,
                 6,
                 7,
@@ -157,6 +202,9 @@ class FuzzyJoinPrimitiveTestCase(unittest.TestCase):
             list(result_dataframe["alpha_left"]),
             [
                 "yankee",
+                "yankeee",
+                "yank",
+                "Hotel",
                 "hotel",
                 "otel",
                 "foxtrot aa",
@@ -167,6 +215,9 @@ class FuzzyJoinPrimitiveTestCase(unittest.TestCase):
             list(result_dataframe["bravo"]),
             [
                 1.0,
+                2.0,
+                3.0,
+                4.0,
                 5.0,
                 6.0,
                 7.0,
@@ -177,6 +228,9 @@ class FuzzyJoinPrimitiveTestCase(unittest.TestCase):
             [row.tolist() for row in result_dataframe["gamma"]],
             [
                 [10.0, 20.0],
+                [5.0, 3.0],
+                [30.0, 52.0],
+                [5.0, 3.0],
                 [10.0, 20.0],
                 [13.0, 13.0],
                 [13.0, 13.0],
@@ -218,21 +272,42 @@ class FuzzyJoinPrimitiveTestCase(unittest.TestCase):
                 "gamma_right",
             ],
         )
-        self.assertListEqual(list(result_dataframe["d3mIndex"]), [1, 2, 3, 4, 5, 6])
+        self.assertListEqual(
+            list(result_dataframe["d3mIndex"]), [1, 2, 3, 4, 5, 6, 7, 8]
+        )
         self.assertListEqual(
             list(result_dataframe["alpha_left"]),
-            ["yankee", "yankeee", "yank", "Hotel", "hotel", "otel"],
+            [
+                "yankee",
+                "yankeee",
+                "yank",
+                "Hotel",
+                "hotel",
+                "otel",
+                "foxtrot aa",
+                "foxtrot",
+            ],
         )
-        self.assertListEqual(
+        self.assertNumpyListEqual(
             list(result_dataframe["alpha_right"]),
-            ["yankee", "yankee", "yankee", "yankee", "foxtrot", "foxtrot"],
+            [
+                "yankee",
+                "yankee",
+                "yankee",
+                "yankee",
+                "foxtrot",
+                "foxtrot",
+                np.nan,
+                np.nan,
+            ],
         )
         self.assertListEqual(
-            list(result_dataframe["whiskey"]), [10.0, 10.0, 10.0, 10.0, 20.0, 20.0]
+            list(result_dataframe["whiskey"]),
+            [10.0, 10.0, 10.0, 10.0, 20.0, 20.0, 20.0, 20.0],
         )
-        self.assertListEqual(
+        self.assertNumpyListEqual(
             list(result_dataframe["charlie"]),
-            [100.0, 100.0, 100.0, 100.0, 300.0, 300.0],
+            [100.0, 100.0, 100.0, 100.0, 300.0, 300.0, np.nan, np.nan],
         )
 
     def test_date_string_join(self) -> None:
@@ -268,15 +343,29 @@ class FuzzyJoinPrimitiveTestCase(unittest.TestCase):
                 "gamma_right",
             ],
         )
-        self.assertListEqual(list(result_dataframe["d3mIndex"]), [1, 2, 3])
+        self.assertListEqual(
+            list(result_dataframe["d3mIndex"]), [1, 2, 3, 4, 5, 6, 7, 8]
+        )
         self.assertListEqual(
             list(result_dataframe["alpha"]),
-            ["yankee", "yankeee", "yank"],
+            [
+                "yankee",
+                "yankeee",
+                "yank",
+                "Hotel",
+                "hotel",
+                "otel",
+                "foxtrot aa",
+                "foxtrot",
+            ],
         )
-        self.assertListEqual(list(result_dataframe["whiskey"]), [10.0, 10.0, 10.0])
         self.assertListEqual(
+            list(result_dataframe["whiskey"]),
+            [10.0, 10.0, 10.0, 10.0, 20.0, 20.0, 20.0, 20.0],
+        )
+        self.assertNumpyListEqual(
             list(result_dataframe["charlie"]),
-            [100.0, 100.0, 100.0],
+            [100.0, 100.0, 100.0, np.nan, np.nan, np.nan, np.nan, np.nan],
         )
 
     def test_date_vector_join(self) -> None:
@@ -312,25 +401,54 @@ class FuzzyJoinPrimitiveTestCase(unittest.TestCase):
                 "xray",
             ],
         )
-        self.assertListEqual(list(result_dataframe["d3mIndex"]), [1, 6])
+        self.assertListEqual(
+            list(result_dataframe["d3mIndex"]), [1, 2, 3, 4, 5, 6, 7, 8]
+        )
         self.assertListEqual(
             list(result_dataframe["alpha_left"]),
-            ["yankee", "otel"],
+            [
+                "yankee",
+                "yankeee",
+                "yank",
+                "Hotel",
+                "hotel",
+                "otel",
+                "foxtrot aa",
+                "foxtrot",
+            ],
         )
-        self.assertListEqual(
+        self.assertNumpyListEqual(
             list(result_dataframe["alpha_right"]),
-            ["yankee", "foxtrot"],
+            ["yankee", np.nan, np.nan, np.nan, np.nan, "foxtrot", np.nan, np.nan],
         )
-        self.assertListEqual(list(result_dataframe["whiskey"]), [10.0, 20.0])
         self.assertListEqual(
+            list(result_dataframe["whiskey"]),
+            [10.0, 10.0, 10.0, 10.0, 20.0, 20.0, 20.0, 20.0],
+        )
+        self.assertNumpyListEqual(
             list(result_dataframe["charlie"]),
-            [100.0, 300.0],
+            [
+                100.0,
+                np.nan,
+                np.nan,
+                np.nan,
+                np.nan,
+                300.0,
+                np.nan,
+                np.nan,
+            ],
         )
         self.assertListEqual(
             [row.tolist() for row in result_dataframe["gamma"]],
             [
                 [10.0, 20.0],
+                [5.0, 3.0],
+                [30.0, 52.0],
+                [5.0, 3.0],
+                [10.0, 20.0],
                 [13.0, 13.0],
+                [13.0, 13.0],
+                [3.0, 5.0],
             ],
         )
 
