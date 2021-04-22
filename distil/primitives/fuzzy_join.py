@@ -103,6 +103,14 @@ class Hyperparams(hyperparams.Hyperparams):
         ],
         description="Required accuracy of join ranging from 0.0 to 1.0, where 1.0 is an exact match.",
     )
+    join_type = hyperparams.Enumeration[str](
+        default="left",
+        values=("left", "right", "outer", "inner", "cross"),
+        semantic_types=[
+            "https://metadata.datadrivendiscovery.org/types/ControlParameter"
+        ],
+        description="The type of join between two dataframes.",
+    )
 
 
 class FuzzyJoinPrimitive(
@@ -313,7 +321,7 @@ class FuzzyJoinPrimitive(
         joined = pd.merge(
             left_df,
             right_df,
-            how="inner",
+            how=self.hyperparams["join_type"],
             left_on=new_left_cols,
             right_on=new_right_cols,
             suffixes=["_left", "_right"],
