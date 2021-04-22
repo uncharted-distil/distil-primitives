@@ -81,7 +81,7 @@ setup(
             "data_transformation.satellite_image_loader.DistilSatelliteImageLoader = distil.primitives.satellite_image_loader:DataFrameSatelliteImageLoaderPrimitive",
             "data_transformation.time_series_formatter.DistilTimeSeriesFormatter = distil.primitives.time_series_formatter:TimeSeriesFormatterPrimitive",
             "data_transformation.vector_bounds_filter.DistilVectorBoundsFilter = distil.primitives.vector_filter:VectorBoundsFilterPrimitive",
-            "data_transformation.concat.VerticalConcatenationPrimitive = distil.primitives.concat:VerticalConcatenationPrimitive",
+            "data_transformation.concat.DistilVerticalConcat = distil.primitives.concat:VerticalConcatenationPrimitive",
             "classification.text_classifier.DistilTextClassifier = distil.primitives.text_classifier:TextClassifierPrimitive",
             "feature_extraction.image_transfer.DistilImageTransfer = distil.primitives.image_transfer:ImageTransferPrimitive",
             "feature_extraction.audio_transfer.DistilAudioTransfer = distil.primitives.audio_transfer:AudioTransferPrimitive",

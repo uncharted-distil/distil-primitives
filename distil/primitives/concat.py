@@ -51,8 +51,8 @@ class VerticalConcatenationPrimitive(
         {
             "id": "b93e3e85-c462-4290-8131-abc51d76a6dd",
             "version": version.__version__,
-            "name": "DistilRankedLinearSVC",
-            "python_path": "d3m.primitives.data_transformation.concat.VerticalConcatenationPrimitive",
+            "name": "DistilVerticalConcat",
+            "python_path": "d3m.primitives.data_transformation.concat.DistilVerticalConcat",
             "source": {
                 "name": "Distil",
                 "contact": "mailto:vkorapaty@uncharted.software",
