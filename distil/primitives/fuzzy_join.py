@@ -1,19 +1,15 @@
 import typing
 import os
-import csv
 import collections
-import sys
 
-import frozendict  # type: ignore
 import pandas as pd  # type: ignore
 import numpy as np
-import math
 
 from d3m import container, exceptions, utils as d3m_utils
 from d3m.base import utils as d3m_base_utils
 from d3m.metadata import base as metadata_base, hyperparams
 from d3m.primitive_interfaces import base, transformer
-from fuzzywuzzy import fuzz, process
+from fuzzywuzzy import process
 from dateutil import parser
 from distil.utils import CYTHON_DEP
 import version
@@ -182,7 +178,7 @@ class FuzzyJoinPrimitive(
         left: Inputs,  # type: ignore
         right: Inputs,  # type: ignore
         timeout: float = None,
-        iterations: int = None
+        iterations: int = None,
     ) -> base.CallResult[Outputs]:
 
         # attempt to extract the main table
@@ -318,6 +314,7 @@ class FuzzyJoinPrimitive(
         if "d3mIndex" in right_df.columns:
             right_cols_to_drop.append("d3mIndex")
         right_df.drop(columns=right_cols_to_drop, inplace=True)
+
         joined = pd.merge(
             left_df,
             right_df,
@@ -326,6 +323,7 @@ class FuzzyJoinPrimitive(
             right_on=new_right_cols,
             suffixes=["_left", "_right"],
         )
+
         # don't want to keep columns that were created specifically for merging
         # also, inner merge keeps the right column we merge on, we want to remove it
         joined.drop(columns=np.unique(new_left_cols + new_right_cols), inplace=True)
@@ -343,7 +341,16 @@ class FuzzyJoinPrimitive(
                 resource_map[resource_id] = joined
             else:
                 resource_map[resource_id] = resource
-        result_dataset = container.Dataset(resource_map, generate_metadata=True)
+
+        # Generate metadata for the dataset using only the first row of the resource for speed -
+        # metadata generation runs over each cell in the dataframe, but we only care about column
+        # level generation.  Once that's done, set the actual dataframe value.
+        result_dataset = container.Dataset(
+            {k: v.head(1) for k, v in resource_map.items()}, generate_metadata=True
+        )
+        for k, v in resource_map.items():
+            result_dataset[k] = v
+
         for key in float_vector_columns.keys():
             df = result_dataset["0"]
             df[key] = float_vector_columns[key]
@@ -366,7 +373,7 @@ class FuzzyJoinPrimitive(
         left: Inputs,
         right: Inputs,  # type: ignore
         timeout: float = None,
-        iterations: int = None
+        iterations: int = None,
     ) -> base.MultiCallResult:  # type: ignore
         return self._multi_produce(
             produce_methods=produce_methods,
@@ -383,7 +390,7 @@ class FuzzyJoinPrimitive(
         left: Inputs,
         right: Inputs,  # type: ignore
         timeout: float = None,
-        iterations: int = None
+        iterations: int = None,
     ) -> base.MultiCallResult:  # type: ignore
         return self._fit_multi_produce(
             produce_methods=produce_methods,
