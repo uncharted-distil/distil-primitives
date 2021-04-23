@@ -1,6 +1,7 @@
 import typing
 import os
 import collections
+from frozendict import FrozenOrderedDict
 
 import pandas as pd  # type: ignore
 import numpy as np
@@ -350,6 +351,9 @@ class FuzzyJoinPrimitive(
         )
         for k, v in resource_map.items():
             result_dataset[k] = v
+            result_dataset.metadata = result_dataset.metadata.update(
+                (k,), {"dimension": {"length": 8}}
+            )
 
         for key in float_vector_columns.keys():
             df = result_dataset["0"]
