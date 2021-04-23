@@ -352,7 +352,7 @@ class FuzzyJoinPrimitive(
         for k, v in resource_map.items():
             result_dataset[k] = v
             result_dataset.metadata = result_dataset.metadata.update(
-                (k,), {"dimension": {"length": 8}}
+                (k,), {"dimension": {"length": v.shape[0]}}
             )
 
         for key in float_vector_columns.keys():
