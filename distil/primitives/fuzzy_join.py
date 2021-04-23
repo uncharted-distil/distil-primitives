@@ -312,7 +312,7 @@ class FuzzyJoinPrimitive(
                 right_cols_to_drop.append(right_col[col_index])
             else:
                 raise exceptions.InvalidArgumentValueError(
-                    "join not surpported on type " + str(join_type)
+                    "join not surpported on type " + str(join_types[col_index])
                 )
 
         if "d3mIndex" in right_df.columns:
