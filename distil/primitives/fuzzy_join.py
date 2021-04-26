@@ -356,7 +356,7 @@ class FuzzyJoinPrimitive(
             )
 
         for key in float_vector_columns.keys():
-            df = result_dataset["0"]
+            df = result_dataset[left_resource_id]
             df[key] = float_vector_columns[key]
             float_vec_loc = df.columns.get_loc(key)
             float_vec_col_indices = df.metadata.list_columns_with_semantic_types(
