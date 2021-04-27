@@ -126,7 +126,6 @@ class PrefeaturisedPoolingPrimitive(
         all_img_features = np.vstack(all_img_features)
         col_names = [f"feat_{i}" for i in range(0, all_img_features.shape[1])]
         feature_df = pd.DataFrame(all_img_features, columns=col_names)
-        # feature_df = container.DataFrame(feature_df, generate_metadata=True)
 
         outputs = container.DataFrame(feature_df.head(1), generate_metadata=True)
         outputs.metadata = outputs.metadata.update(
