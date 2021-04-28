@@ -98,4 +98,9 @@ class VerticalConcatenationPrimitive(
         if self.hyperparams["remove_duplicate_rows"]:
             concated.drop_duplicates(subset="d3mIndex", keep="first", inplace=True)
 
-        return base.CallResult(container.DataFrame(concated, generate_metadata=True))
+        outputs = container.DataFrame(concated.head(1), generate_metadata=True)
+        outputs.metadata = outputs.metadata.update(
+            (metadata_base.ALL_ELEMENTS,), {"dimension": {"length": concated.shape[0]}}
+        )
+
+        return base.CallResult(outputs.append(concated.iloc[1:]))
