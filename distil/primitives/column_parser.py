@@ -11,6 +11,7 @@ from d3m.base import utils as base_utils
 from d3m.metadata import base as metadata_base, hyperparams
 from d3m.primitive_interfaces import base, transformer
 from distil.utils import CYTHON_DEP
+from common_primitives import utils
 
 import version
 
@@ -25,6 +26,7 @@ class Hyperparams(hyperparams.Hyperparams):
                 "http://schema.org/Integer",
                 "http://schema.org/Float",
                 "https://metadata.datadrivendiscovery.org/types/FloatVector",
+                "http://schema.org/DateTime",
             ],
             default="http://schema.org/Float",
         ),
@@ -61,6 +63,13 @@ class Hyperparams(hyperparams.Hyperparams):
             "https://metadata.datadrivendiscovery.org/types/ControlParameter"
         ],
         description="Setting to deal with error when converting a column to numeric value.",
+    )
+    fuzzy_time_parsing = hyperparams.UniformBool(
+        default=True,
+        semantic_types=[
+            "https://metadata.datadrivendiscovery.org/types/ControlParameter"
+        ],
+        description="Use fuzzy time parsing.",
     )
 
 
@@ -146,6 +155,15 @@ class ColumnParserPrimitive(
                             inputs.metadata = inputs.metadata.update_column(
                                 col_index,
                                 {"structural_type": type(outputs[col_index][0])},
+                            )
+                    elif "http://schema.org/DateTime" in desired_semantics:
+                        is_fuzzy = self.hyperparams["fuzzy_time_parsing"]
+                        outputs[col_index] = inputs[inputs.columns[col_index]].apply(
+                            utils.parse_datetime_to_float, fuzzy=is_fuzzy
+                        )
+                        if outputs[col_index].shape[0] > 0:
+                            inputs.metadata = inputs.metadata.update_column(
+                                col_index, {"structural_type": float}
                             )
                     else:
                         outputs[col_index] = pd.to_numeric(

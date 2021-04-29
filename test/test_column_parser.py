@@ -9,17 +9,21 @@ from d3m.metadata import base as metadata_base
 from distil.primitives.column_parser import ColumnParserPrimitive
 from distil.primitives import utils
 import utils as test_utils
+from common_primitives import utils as common_utils
 
 
 class ColumnParserPrimitiveTestCase(unittest.TestCase):
 
-    _dataset_path = path.abspath(path.join(path.dirname(__file__), "tabular_dataset_2"))
+    _tabular_dataset_path = path.abspath(
+        path.join(path.dirname(__file__), "tabular_dataset_2")
+    )
     _image_dataset_path = path.abspath(
         path.join(path.dirname(__file__), "satellite_image_dataset")
     )
+    _dataset_path = path.abspath(path.join(path.dirname(__file__), "dataset_1"))
 
     def test_basic(self) -> None:
-        dataset = test_utils.load_dataset(self._dataset_path)
+        dataset = test_utils.load_dataset(self._tabular_dataset_path)
         df = test_utils.get_dataframe(dataset, "learningData")
         df.metadata = df.metadata.add_semantic_type(
             (metadata_base.ALL_ELEMENTS, 1), "http://schema.org/Integer"
@@ -38,7 +42,7 @@ class ColumnParserPrimitiveTestCase(unittest.TestCase):
         self.assertEqual(result_df["echo"].dtype, np.dtype("float64"))
 
     def test_hyperparams(self) -> None:
-        dataset = test_utils.load_dataset(self._dataset_path)
+        dataset = test_utils.load_dataset(self._tabular_dataset_path)
         df = test_utils.get_dataframe(dataset, "learningData")
         df.metadata = df.metadata.add_semantic_type(
             (metadata_base.ALL_ELEMENTS, 1), "http://schema.org/Integer"
@@ -61,7 +65,7 @@ class ColumnParserPrimitiveTestCase(unittest.TestCase):
         self.assertEqual(result_df["echo"].dtype, np.dtype("object"))
 
     def test_hyperparams_exclude(self) -> None:
-        dataset = test_utils.load_dataset(self._dataset_path)
+        dataset = test_utils.load_dataset(self._tabular_dataset_path)
         df = test_utils.get_dataframe(dataset, "learningData")
         df.metadata = df.metadata.add_semantic_type(
             (metadata_base.ALL_ELEMENTS, 1), "http://schema.org/Integer"
@@ -84,7 +88,7 @@ class ColumnParserPrimitiveTestCase(unittest.TestCase):
         self.assertEqual(result_df["echo"].dtype, np.dtype("float64"))
 
     def test_hyperparams_structural_type(self) -> None:
-        dataset = test_utils.load_dataset(self._dataset_path)
+        dataset = test_utils.load_dataset(self._tabular_dataset_path)
         df = test_utils.get_dataframe(dataset, "learningData")
         df.metadata = df.metadata.add_semantic_type(
             (metadata_base.ALL_ELEMENTS, 1), "http://schema.org/Integer"
@@ -198,6 +202,31 @@ class ColumnParserPrimitiveTestCase(unittest.TestCase):
         self.assertEquals(len(result_2_coords), len(target_coords))
         for a, b in zip(target_coords, result_2_coords):
             self.assertAlmostEqual(a, b, 5)
+
+    def test_datetime(self) -> None:
+        dataset = test_utils.load_dataset(self._dataset_path)
+        df = test_utils.get_dataframe(dataset, "0")
+        df.metadata = df.metadata.add_semantic_type(
+            (metadata_base.ALL_ELEMENTS, 4), "http://schema.org/DateTime"
+        )
+        hyperparams_class = ColumnParserPrimitive.metadata.get_hyperparams()
+        cpp = ColumnParserPrimitive(
+            hyperparams=hyperparams_class.defaults().replace(
+                {
+                    "parsing_semantics": [
+                        "http://schema.org/DateTime",
+                    ]
+                }
+            )
+        )
+        result_df = cpp.produce(inputs=df).value
+        self.assertListEqual(
+            list(result_df["sierra"]),
+            [
+                common_utils.parse_datetime_to_float(date, fuzzy=True)
+                for date in df["sierra"]
+            ],
+        )
 
 
 if __name__ == "__main__":
