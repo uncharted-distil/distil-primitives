@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 
 from d3m import container, utils, exceptions
+from d3m.base import utils as d3m_base_utils
 from d3m.metadata import base as metadata_base, hyperparams
 from d3m.primitive_interfaces import base, transformer
 from distil.utils import CYTHON_DEP
@@ -40,7 +41,7 @@ class Hyperparams(hyperparams.Hyperparams):
 
 class VerticalConcatenationPrimitive(
     transformer.TransformerPrimitiveBase[
-        container.List, container.DataFrame, Hyperparams
+        container.List, container.Dataset, Hyperparams
     ]
 ):
     """
@@ -79,28 +80,44 @@ class VerticalConcatenationPrimitive(
 
     def produce(
         self, *, inputs: container.List, timeout: float = None, iterations: int = None
-    ) -> base.CallResult[container.DataFrame]:
+    ) -> base.CallResult[container.Dataset]:
+        # build the list of dataframes from the list of inputs
+        dataframes = []
+        metadata = None
+        for input in inputs:
+            if isinstance(input, container.DataFrame):
+                dataframes.append(input)
+            try:
+                _, main_dr = d3m_base_utils.get_tabular_resource(input, None)
+                dataframes.append(main_dr)
+                metadata = input.metadata
+            except ValueError as error:
+                raise exceptions.InvalidArgumentValueError(
+                    "Failure to find tabular resource in dataset"
+                ) from error
 
         if self.hyperparams["column_overlap"] == "exact":
-            columns_to_handle = inputs[0].columns
+            columns_to_handle = dataframes[0].columns
             if np.sum(
-                np.array([np.all(df.columns == columns_to_handle) for df in inputs])
-            ) != len(inputs):
+                np.array([np.all(df.columns == columns_to_handle) for df in dataframes])
+            ) != len(dataframes):
                 raise exceptions.InvalidArgumentValueError(
                     "Dataframes don't have same columns, cannot exact concat"
                 )
-            concated = pd.concat(inputs, ignore_index=True)
+            concated = pd.concat(dataframes, ignore_index=True)
         elif self.hyperparams["column_overlap"] == "union":
-            concated = pd.concat(inputs, ignore_index=True)
+            concated = pd.concat(dataframes, ignore_index=True)
         elif self.hyperparams["column_overlap"] == "intersection":
-            concated = pd.concat(inputs, join="inner", ignore_index=True)
+            concated = pd.concat(dataframes, join="inner", ignore_index=True)
 
         if self.hyperparams["remove_duplicate_rows"]:
             concated.drop_duplicates(subset="d3mIndex", keep="first", inplace=True)
 
-        outputs = container.DataFrame(concated.head(1), generate_metadata=True)
+        if metadata is None:
+            metadata = container.Dataset({'learningData': concated.head(1)}, generate_metadata=True).metadata
+        outputs = container.Dataset({'learningData': concated}, metadata)
         outputs.metadata = outputs.metadata.update(
             (metadata_base.ALL_ELEMENTS,), {"dimension": {"length": concated.shape[0]}}
         )
 
-        return base.CallResult(outputs.append(concated.iloc[1:]))
+        return base.CallResult(outputs)
