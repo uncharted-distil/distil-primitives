@@ -161,10 +161,9 @@ class ColumnParserPrimitive(
                         outputs[col_index] = inputs[inputs.columns[col_index]].apply(
                             utils.parse_datetime_to_float, fuzzy=is_fuzzy
                         )
-                        if outputs[col_index].shape[0] > 0:
-                            inputs.metadata = inputs.metadata.update_column(
-                                col_index, {"structural_type": float}
-                            )
+                        inputs.metadata = inputs.metadata.update_column(
+                            col_index, {"structural_type": float}
+                        )
                     else:
                         outputs[col_index] = pd.to_numeric(
                             inputs.iloc[:, col_index],
