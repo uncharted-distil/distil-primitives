@@ -112,6 +112,10 @@ class VerticalConcatenationPrimitive(
 
         if self.hyperparams["remove_duplicate_rows"]:
             concated.drop_duplicates(subset="d3mIndex", keep="first", inplace=True)
+            # need to reset index to account for dropped duplicates otherwise
+            # there will be gaps in the index which causes downstream primitives
+            # to no longer function as expected
+            concated.reset_index(drop=True, inplace=True)
 
         if metadata is None:
             metadata = container.Dataset({'learningData': concated.head(1)}, generate_metadata=True).metadata
