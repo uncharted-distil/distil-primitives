@@ -71,6 +71,64 @@ class FuzzyJoinPrimitiveTestCase(unittest.TestCase):
             [100.0, 100.0, 100.0, 200.0, 200.0, np.nan, 300.0, 300.0],
         )
 
+    def test_exact_string_join(self) -> None:
+        dataframe_1 = self._load_data(self._dataset_path_1)
+        dataframe_2 = self._load_data(self._dataset_path_2)
+
+        hyperparams_class = FuzzyJoin.metadata.query()["primitive_code"][
+            "class_type_arguments"
+        ]["Hyperparams"]
+        hyperparams = hyperparams_class.defaults().replace(
+            {
+                "left_col": "alpha",
+                "right_col": "alpha",
+                "accuracy": 1.0,
+            }
+        )
+        fuzzy_join = FuzzyJoin(hyperparams=hyperparams)
+        result_dataset = fuzzy_join.produce(left=dataframe_1, right=dataframe_2).value
+        result_dataframe = result_dataset["0"]
+
+        # verify the output
+        self.assertListEqual(
+            list(result_dataframe),
+            [
+                "d3mIndex",
+                "alpha",
+                "bravo",
+                "whiskey",
+                "sierra",
+                "gamma_left",
+                "charlie",
+                "xray",
+                "tango",
+                "gamma_right",
+            ],
+        )
+        self.assertListEqual(
+            list(result_dataframe["d3mIndex"]), [1, 2, 3, 4, 5, 6, 7, 8]
+        )
+        self.assertListEqual(
+            list(result_dataframe["alpha"]),
+            [
+                "yankee",
+                "yankeee",
+                "yank",
+                "Hotel",
+                "hotel",
+                "otel",
+                "foxtrot aa",
+                "foxtrot",
+            ],
+        )
+        self.assertListEqual(
+            list(result_dataframe["bravo"]), [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0]
+        )
+        self.assertNumpyListEqual(
+            list(result_dataframe["charlie"]),
+            [100.0, 100.0, 100.0, 200.0, 200.0, np.nan, 300.0, 300.0],
+        )
+
     def assertNumpyListEqual(self, result, expected):
         try:
             np.testing.assert_equal(result, expected)

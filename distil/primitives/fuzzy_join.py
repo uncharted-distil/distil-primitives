@@ -244,6 +244,7 @@ class FuzzyJoinPrimitive(
         right_cols_to_drop = []
         new_left_cols = []
         new_right_cols = []
+        cols_to_keep = []
         for col_index in range(len(left_col)):
             # depending on the joining type, make a new dataframe that has columns we will want to merge on
             # keep track of which columns we will want to drop later on
@@ -327,7 +328,12 @@ class FuzzyJoinPrimitive(
 
         # don't want to keep columns that were created specifically for merging
         # also, inner merge keeps the right column we merge on, we want to remove it
-        joined.drop(columns=np.unique(new_left_cols + new_right_cols), inplace=True)
+        # cols_to_drop = set(new_left_cols + new_right_cols)
+        joined.drop(
+            # columns=list(cols_to_drop.difference(set(cols_to_keep))),
+            columns=new_left_cols + new_right_cols,
+            inplace=True,
+        )
 
         # create a new dataset to hold the joined data
         resource_map = {}
@@ -479,19 +485,24 @@ class FuzzyJoinPrimitive(
         index: int,
     ) -> pd.DataFrame:
 
-        left_keys = left_df[left_col].unique()
-        right_keys = right_df[right_col].unique()
-        matches: typing.Dict[str, typing.Optional[str]] = {}
-        for left_key in left_keys:
-            matches[left_key] = cls._string_fuzzy_match(
-                left_key, right_keys, accuracy * 100
+        if accuracy < 1:
+            left_keys = left_df[left_col].unique()
+            right_keys = right_df[right_col].unique()
+            matches: typing.Dict[str, typing.Optional[str]] = {}
+            for left_key in left_keys:
+                matches[left_key] = cls._string_fuzzy_match(
+                    left_key, right_keys, accuracy * 100
+                )
+            new_left_df = container.DataFrame(
+                {
+                    "lefty_string"
+                    + str(index): left_df[left_col].map(lambda key: matches[key])
+                }
             )
-        new_left_df = container.DataFrame(
-            {
-                "lefty_string"
-                + str(index): left_df[left_col].map(lambda key: matches[key])
-            }
-        )
+        else:
+            new_left_df = container.DataFrame(
+                {"lefty_string" + str(index): left_df[left_col]}
+            )
         return new_left_df
 
     def _numeric_fuzzy_match(match, choices, accuracy):
