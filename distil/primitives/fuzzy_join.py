@@ -244,7 +244,6 @@ class FuzzyJoinPrimitive(
         right_cols_to_drop = []
         new_left_cols = []
         new_right_cols = []
-        cols_to_keep = []
         for col_index in range(len(left_col)):
             # depending on the joining type, make a new dataframe that has columns we will want to merge on
             # keep track of which columns we will want to drop later on
@@ -328,12 +327,7 @@ class FuzzyJoinPrimitive(
 
         # don't want to keep columns that were created specifically for merging
         # also, inner merge keeps the right column we merge on, we want to remove it
-        # cols_to_drop = set(new_left_cols + new_right_cols)
-        joined.drop(
-            # columns=list(cols_to_drop.difference(set(cols_to_keep))),
-            columns=new_left_cols + new_right_cols,
-            inplace=True,
-        )
+        joined.drop(columns=new_left_cols + new_right_cols, inplace=True)
 
         # create a new dataset to hold the joined data
         resource_map = {}
