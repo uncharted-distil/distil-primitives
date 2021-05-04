@@ -66,9 +66,11 @@ class FuzzyJoinPrimitiveTestCase(unittest.TestCase):
         self.assertListEqual(
             list(result_dataframe["bravo"]), [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0]
         )
-        self.assertNumpyListEqual(
-            list(result_dataframe["charlie"]),
-            [100.0, 100.0, 100.0, 200.0, 200.0, np.nan, 300.0, 300.0],
+        self.assertTrue(
+            self.assertNumpyListEqual(
+                list(result_dataframe["charlie"]),
+                [100.0, 100.0, 100.0, 200.0, 200.0, np.nan, 300.0, 300.0],
+            )
         )
 
     def test_exact_string_join(self) -> None:
@@ -124,9 +126,11 @@ class FuzzyJoinPrimitiveTestCase(unittest.TestCase):
         self.assertListEqual(
             list(result_dataframe["bravo"]), [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0]
         )
-        self.assertNumpyListEqual(
-            list(result_dataframe["charlie"]),
-            [100.0, 100.0, 100.0, 200.0, 200.0, np.nan, 300.0, 300.0],
+        self.assertTrue(
+            self.assertNumpyListEqual(
+                list(result_dataframe["charlie"]),
+                [100.0, np.nan, np.nan, np.nan, 200.0, np.nan, np.nan, 300.0],
+            )
         )
 
     def assertNumpyListEqual(self, result, expected):
@@ -186,25 +190,30 @@ class FuzzyJoinPrimitiveTestCase(unittest.TestCase):
                 "foxtrot",
             ],
         )
-        self.assertNumpyListEqual(
-            list(result_dataframe["alpha_right"]),
-            [
-                "hotel",
-                "hotel",
-                "hotel",
-                "hotel",
-                np.nan,
-                np.nan,
-                np.nan,
-            ],
+        self.assertTrue(
+            self.assertNumpyListEqual(
+                list(result_dataframe["alpha_right"]),
+                [
+                    "hotel",
+                    "hotel",
+                    "hotel",
+                    "hotel",
+                    np.nan,
+                    np.nan,
+                    np.nan,
+                    np.nan
+                ],
+            )
         )
         self.assertListEqual(
             list(result_dataframe["whiskey"]),
             [10.0, 10.0, 10.0, 10.0, 20.0, 20.0, 20.0, 20.0],
         )
-        self.assertNumpyListEqual(
-            list(result_dataframe["charlie"]),
-            [200.0, 200.0, 200.0, 200.0, np.nan, np.nan, np.nan, np.nan],
+        self.assertTrue(
+            self.assertNumpyListEqual(
+                list(result_dataframe["charlie"]),
+                [200.0, 200.0, 200.0, 200.0, np.nan, np.nan, np.nan, np.nan],
+            )
         )
 
     def test_vector_join(self) -> None:
@@ -342,26 +351,30 @@ class FuzzyJoinPrimitiveTestCase(unittest.TestCase):
                 "foxtrot",
             ],
         )
-        self.assertNumpyListEqual(
-            list(result_dataframe["alpha_right"]),
-            [
-                "yankee",
-                "yankee",
-                "yankee",
-                "yankee",
-                "foxtrot",
-                "foxtrot",
-                np.nan,
-                np.nan,
-            ],
+        self.assertTrue(
+            self.assertNumpyListEqual(
+                list(result_dataframe["alpha_right"]),
+                [
+                    "yankee",
+                    "yankee",
+                    "yankee",
+                    "yankee",
+                    "foxtrot",
+                    "foxtrot",
+                    np.nan,
+                    np.nan,
+                ],
+            )
         )
         self.assertListEqual(
             list(result_dataframe["whiskey"]),
             [10.0, 10.0, 10.0, 10.0, 20.0, 20.0, 20.0, 20.0],
         )
-        self.assertNumpyListEqual(
-            list(result_dataframe["charlie"]),
-            [100.0, 100.0, 100.0, 100.0, 300.0, 300.0, np.nan, np.nan],
+        self.assertTrue(
+            self.assertNumpyListEqual(
+                list(result_dataframe["charlie"]),
+                [100.0, 100.0, 100.0, 100.0, 300.0, 300.0, np.nan, np.nan],
+            )
         )
 
     def test_date_string_join(self) -> None:
@@ -417,9 +430,11 @@ class FuzzyJoinPrimitiveTestCase(unittest.TestCase):
             list(result_dataframe["whiskey"]),
             [10.0, 10.0, 10.0, 10.0, 20.0, 20.0, 20.0, 20.0],
         )
-        self.assertNumpyListEqual(
-            list(result_dataframe["charlie"]),
-            [100.0, 100.0, 100.0, np.nan, np.nan, np.nan, np.nan, np.nan],
+        self.assertTrue(
+            self.assertNumpyListEqual(
+                list(result_dataframe["charlie"]),
+                [100.0, 100.0, 100.0, np.nan, np.nan, np.nan, np.nan, np.nan],
+            )
         )
 
     def test_date_vector_join(self) -> None:
@@ -471,26 +486,30 @@ class FuzzyJoinPrimitiveTestCase(unittest.TestCase):
                 "foxtrot",
             ],
         )
-        self.assertNumpyListEqual(
-            list(result_dataframe["alpha_right"]),
-            ["yankee", np.nan, np.nan, np.nan, np.nan, "foxtrot", np.nan, np.nan],
+        self.assertTrue(
+            self.assertNumpyListEqual(
+                list(result_dataframe["alpha_right"]),
+                ["yankee", np.nan, np.nan, np.nan, np.nan, "foxtrot", np.nan, np.nan],
+            )
         )
         self.assertListEqual(
             list(result_dataframe["whiskey"]),
             [10.0, 10.0, 10.0, 10.0, 20.0, 20.0, 20.0, 20.0],
         )
-        self.assertNumpyListEqual(
-            list(result_dataframe["charlie"]),
-            [
-                100.0,
-                np.nan,
-                np.nan,
-                np.nan,
-                np.nan,
-                300.0,
-                np.nan,
-                np.nan,
-            ],
+        self.assertTrue(
+            self.assertNumpyListEqual(
+                list(result_dataframe["charlie"]),
+                [
+                    100.0,
+                    np.nan,
+                    np.nan,
+                    np.nan,
+                    np.nan,
+                    300.0,
+                    np.nan,
+                    np.nan,
+                ],
+            )
         )
         self.assertListEqual(
             [row.tolist() for row in result_dataframe["gamma"]],
