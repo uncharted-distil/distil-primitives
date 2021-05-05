@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import List, Optional
+from typing import List, Dict, Optional
 
 import numpy as np
 import pandas as pd
@@ -76,6 +76,13 @@ class Hyperparams(hyperparams.Hyperparams):
         ],
         description="Whether or not to calculate confidences.",
     )
+    pos_label = hyperparams.Hyperparameter[Optional[str]](
+        default=None,
+        semantic_types=[
+            "https://metadata.datadrivendiscovery.org/types/ControlParameter"
+        ],
+        description="Name of the positive label in the binary case. If none is provided, second column is assumed to be positive",
+    )
 
 
 class Params(params.Params):
@@ -84,6 +91,7 @@ class Params(params.Params):
     needs_fit: bool
     binary: bool
     standard_scaler: Optional[StandardScaler]
+    label_map: Dict[int, str]
 
 
 class RankedLinearSVCPrimitive(
@@ -110,7 +118,7 @@ class RankedLinearSVCPrimitive(
                 "name": "Distil",
                 "contact": "mailto:cbethune@uncharted.software",
                 "uris": [
-                    "https://github.com/uncharted-distil/distil-primitives/distil/primitives/ranked_linear_svc.py",
+                    "https://github.com/uncharted-distil/distil-primitives/blob/main/distil/primitives/ranked_linear_svc.py",
                     "https://github.com/uncharted-distil/distil-primitives",
                 ],
             },
@@ -142,6 +150,7 @@ class RankedLinearSVCPrimitive(
         self._needs_fit = True
         self._binary = False
         self._standard_scaler: StandardScaler = None
+        self._label_map: Dict[int, str] = {}
 
     def set_training_data(
         self, *, inputs: container.DataFrame, outputs: container.DataFrame
@@ -158,12 +167,24 @@ class RankedLinearSVCPrimitive(
         self._needs_fit = True
         self._target_cols: List[str] = []
         self._binary = self._outputs.iloc[:, 0].nunique(dropna=True) <= 2
+        if self._binary:
+            pos_label = self.hyperparams["pos_label"]
+            labels = self._outputs.values.ravel()
+            unique_labels = np.unique(labels)
+            # needed to get decision values or confidences of correct column, in binary case
+            if pos_label == unique_labels[0]:
+                self._label_map[1] = unique_labels[0]
+                self._label_map[0] = unique_labels[1]
+                self._outputs[self._outputs.columns[0]] = np.array(
+                    [1 if l == pos_label else 0 for l in labels]
+                )
 
     def fit(self, *, timeout: float = None, iterations: int = None) -> CallResult[None]:
         logger.debug(f"Fitting {__name__}")
 
         if self._needs_fit:
-            self._model.fit(self._inputs, self._outputs.values.ravel())
+            labels = self._outputs.values.ravel()
+            self._model.fit(self._inputs, labels)
             self._needs_fit = False
         return CallResult(None)
 
@@ -199,18 +220,20 @@ class RankedLinearSVCPrimitive(
                 # to probabilities, or just return the raw decision function values.
                 if self.hyperparams["calibrate"]:
                     cccv = CalibratedClassifierCV(self._model, cv="prefit")
-                    cccv.fit(inputs, result)
-                    confidences = cccv.predict_proba(inputs)[:, 1]
+                    try:
+                        cccv.fit(inputs, result)
+                        confidences = cccv.predict_proba(inputs)[:, 1]
+                    except:
+                        # calibration can fail for a variety of reasons - we'll just fall back on
+                        # simpler methods when it does
+                        confidences = self._get_confidence(inputs)
                 else:
                     confidences = self._model.decision_function(inputs)
 
                 # Generate ranks if required, otherwise we just include the confidence / decision
                 # function values.
                 if self.hyperparams["rank_confidences"]:
-                    ranks = rankdata(confidences)
-                    # ranks = 1.0 - (
-                    #     (ranks - np.min(ranks)) / (np.max(ranks) - np.min(ranks))
-                    # )
+                    ranks = rankdata(self._model.decision_function(inputs))
                     result_df = container.DataFrame(
                         {
                             self._target_cols[0]: result,
@@ -231,6 +254,15 @@ class RankedLinearSVCPrimitive(
                 result_df = container.DataFrame(
                     {self._target_cols[0]: result},
                     generate_metadata=True,
+                )
+            pos_label = self.hyperparams["pos_label"]
+            # need to map labels back if we mapped to a different label set
+            if len(self._label_map) > 0:
+                result_df[self._target_cols[0]] = np.array(
+                    [
+                        self._label_map[1] if l == 1 else self._label_map[0]
+                        for l in result
+                    ]
                 )
         else:
             if self.hyperparams["confidences"]:
@@ -301,6 +333,11 @@ class RankedLinearSVCPrimitive(
 
     def _get_confidence(self, X):
         decisions = self._model.decision_function(X)
+        if self._binary:
+            # in the binary case we'll just apply a sigmoid function to get everything into a [0,1]
+            # interval
+            return 1 / (1 + np.exp(-decisions))
+
         exp_decisions = np.exp(decisions - np.max(decisions, axis=1).reshape(-1, 1))
         exp_sum = np.sum(exp_decisions, axis=1)
         return exp_decisions / exp_sum.reshape((-1, 1))
@@ -312,6 +349,7 @@ class RankedLinearSVCPrimitive(
             target_cols=self._target_cols,
             binary=self._binary,
             standard_scaler=self._standard_scaler,
+            label_map=self._label_map,
         )
 
     def set_params(self, *, params: Params) -> None:
@@ -320,4 +358,5 @@ class RankedLinearSVCPrimitive(
         self._target_cols = params["target_cols"]
         self._binary = params["binary"]
         self._standard_scaler = params["standard_scaler"]
+        self._label_map = params["label_map"]
         return

@@ -127,6 +127,13 @@ class Hyperparams(hyperparams.Hyperparams):
         ],
         description="The value of the n_jobs parameter for the joblib library",
     )
+    pos_label = hyperparams.Hyperparameter[Optional[str]](
+        default=None,
+        semantic_types=[
+            "https://metadata.datadrivendiscovery.org/types/ControlParameter"
+        ],
+        description="Name of the positive label in the binary case. If none is provided, second column is assumed to be positive",
+    )
 
 
 class Params(params.Params):
@@ -134,6 +141,7 @@ class Params(params.Params):
     target_cols: List[str]
     label_map: Dict[int, str]
     needs_fit: bool
+    binary: bool
     input_hash: pd.Series
 
 
@@ -156,7 +164,7 @@ class EnsembleForestPrimitive(
                 "name": "Distil",
                 "contact": "mailto:cbethune@uncharted.software",
                 "uris": [
-                    "https://github.com/uncharted-distil/distil-primitives/distil/primitives/ensemble_forest.py",
+                    "https://github.com/uncharted-distil/distil-primitives/blob/main/distil/primitives/ensemble_forest.py",
                     "https://github.com/uncharted-distil/distil-primitives",
                 ],
             },
@@ -213,6 +221,7 @@ class EnsembleForestPrimitive(
         self._needs_fit = True
         self._label_map: Dict[int, str] = {}
         self._target_cols: List[str] = []
+        self._binary = False
 
     def _get_component_columns(
         self, output_df: container.DataFrame, source_col_index: int
@@ -255,6 +264,7 @@ class EnsembleForestPrimitive(
         self._outputs = outputs[
             outputs[col] != ""
         ].dropna()  # not in place because we don't want to modify passed input
+        self._binary = self._outputs.iloc[:, 0].nunique(dropna=True) <= 2
         row_diff = outputs.shape[0] - self._outputs.shape[0]
         if row_diff != 0:
             logger.warn(f"Removed {row_diff} rows due to NaN values in target data.")
@@ -347,30 +357,48 @@ class EnsembleForestPrimitive(
             self._model.mode == "classification"
             and self.hyperparams["compute_confidences"]
         ):
-            # add confidence scores as some metrics require them.
             confidence = self._model.predict_proba(inputs.values)
-            confidence = pd.Series(confidence.tolist(), name="confidence")
-            result_df = pd.concat([result_df, confidence], axis=1)
+            if self._binary:
+                pos_column = (
+                    0 if self.hyperparams["pos_label"] == self._label_map[0] else 1
+                )
+                result_df.insert(
+                    result_df.shape[1], "confidence", confidence[:, pos_column]
+                )
+                result_df.metadata = result_df.metadata.add_semantic_type(
+                    (metadata_base.ALL_ELEMENTS, len(result_df.columns) - 1),
+                    "http://schema.org/Float",
+                )
+            else:
+                # add confidence scores as some metrics require them.
+                confidence = pd.Series(confidence.tolist(), name="confidence")
+                result_df = pd.concat([result_df, confidence], axis=1)
 
-            confidences = [
-                item
-                for sublist in result_df["confidence"].values.tolist()
-                for item in sublist
-            ]
-            labels = np.array(list(self._label_map.values()) * len(result_df))
+                confidences = [
+                    item
+                    for sublist in result_df["confidence"].values.tolist()
+                    for item in sublist
+                ]
+                labels = np.array(list(self._label_map.values()) * len(result_df))
 
-            index = [
-                item
-                for sublist in [[i] * len(np.unique(labels)) for i in result_df.index]
-                for item in sublist
-            ]
-            result_df_temp = container.DataFrame()
-            result_df_temp["Class"] = labels
-            result_df_temp["confidence"] = confidences
-            result_df_temp.metadata = result_df.metadata
-            result_df_temp["index_temp"] = index
-            result_df_temp = result_df_temp.set_index("index_temp")
-            result_df = result_df_temp
+                index = [
+                    item
+                    for sublist in [
+                        [i] * len(np.unique(labels)) for i in result_df.index
+                    ]
+                    for item in sublist
+                ]
+                result_df_temp = container.DataFrame()
+                result_df_temp["Class"] = labels
+                result_df_temp["confidence"] = confidences
+                result_df_temp.metadata = result_df.metadata
+                result_df_temp["index_temp"] = index
+                result_df_temp = result_df_temp.set_index("index_temp")
+                result_df = result_df_temp
+                result_df.metadata = result_df.metadata.add_semantic_type(
+                    (metadata_base.ALL_ELEMENTS, len(result_df.columns) - 1),
+                    "https://metadata.datadrivendiscovery.org/types/FloatVector",
+                )
 
             result_df.metadata = result_df.metadata.add_semantic_type(
                 (metadata_base.ALL_ELEMENTS, len(result_df.columns) - 1),
@@ -379,10 +407,6 @@ class EnsembleForestPrimitive(
             result_df.metadata = result_df.metadata.add_semantic_type(
                 (metadata_base.ALL_ELEMENTS, len(result_df.columns) - 1),
                 "https://metadata.datadrivendiscovery.org/types/PredictedTarget",
-            )
-            result_df.metadata = result_df.metadata.add_semantic_type(
-                (metadata_base.ALL_ELEMENTS, len(result_df.columns) - 1),
-                "https://metadata.datadrivendiscovery.org/types/FloatVector",
             )
 
         logger.debug(f"\n{result_df}")
@@ -561,6 +585,7 @@ class EnsembleForestPrimitive(
             label_map=self._label_map,
             needs_fit=self._needs_fit,
             input_hash=self._input_hash,
+            binary=self._binary,
         )
 
     def set_params(self, *, params: Params) -> None:
@@ -569,4 +594,5 @@ class EnsembleForestPrimitive(
         self._label_map = params["label_map"]
         self._needs_fit = params["needs_fit"]
         self._input_hash = params["input_hash"]
+        self._binary = params["binary"]
         return

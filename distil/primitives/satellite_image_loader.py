@@ -21,7 +21,7 @@ from d3m.primitive_interfaces import transformer
 from distil.primitives import utils as distil_utils
 from distil.utils import CYTHON_DEP
 import version
-import lzo
+import lz4
 import struct
 
 from joblib import Parallel, delayed
@@ -78,6 +78,13 @@ class Hyperparams(hyperparams.Hyperparams):
         ],
         description="The value of the n_jobs parameter for the joblib library",
     )
+    band_column = hyperparams.Hyperparameter[str](
+        default="band",
+        semantic_types=[
+            "https://metadata.datadrivendiscovery.org/types/ControlParameter"
+        ],
+        description="Name of the band column used if no band semantic type is present.",
+    )
 
 
 class DataFrameSatelliteImageLoaderPrimitive(
@@ -103,6 +110,7 @@ class DataFrameSatelliteImageLoaderPrimitive(
     _supported_media_types = ("image/tiff",)
     _file_structural_type = container.ndarray
     _file_semantic_types = ("http://schema.org/ImageObject",)
+    _band_semantic_types = ("https://metadata.datadrivendiscovery.org/types/Band",)
 
     _BAND_ORDER = {
         "1": 0,
@@ -130,7 +138,7 @@ class DataFrameSatelliteImageLoaderPrimitive(
                 "name": "Distil",
                 "contact": "mailto:cbethune@uncharted.software",
                 "uris": [
-                    "https://github.com/uncharted-distil/distil-primitives/distil/primitives/satellite_image_loader.py",
+                    "https://github.com/uncharted-distil/distil-primitives/blob/main/distil/primitives/satellite_image_loader.py",
                     "https://github.com/uncharted-distil/distil-primitives",
                 ],
             },
@@ -141,21 +149,6 @@ class DataFrameSatelliteImageLoaderPrimitive(
                     "package_uri": "git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=distil-primitives".format(
                         git_commit=utils.current_git_commit(os.path.dirname(__file__)),
                     ),
-                },
-                {
-                    "type": metadata_base.PrimitiveInstallationType.UBUNTU,
-                    "package": "zlib1g-dev",
-                    "version": "1:1.2.11.dfsg-0ubuntu2",
-                },
-                {
-                    "type": metadata_base.PrimitiveInstallationType.UBUNTU,
-                    "package": "liblzo2-dev",
-                    "version": "2.08-1.2",
-                },
-                {
-                    "type": metadata_base.PrimitiveInstallationType.PIP,
-                    "package": "python-lzo",
-                    "version": "1.12",
                 },
             ],
             "algorithm_types": [
@@ -221,6 +214,11 @@ class DataFrameSatelliteImageLoaderPrimitive(
 
         return columns_to_use
 
+    def _get_band_column(self, inputs_metadata: metadata_base.DataMetadata):
+        return inputs_metadata.list_columns_with_semantic_types(
+            self._band_semantic_types
+        )
+
     def produce(
         self,
         *,
@@ -236,6 +234,12 @@ class DataFrameSatelliteImageLoaderPrimitive(
             return base_prim.CallResult(inputs_clone)
         column_index = columns_to_use[0]
 
+        band_column_indices = self._get_band_column(inputs.metadata)
+        if len(band_column_indices) == 0:
+            band_column_name = self.hyperparams["band_column"]
+        else:
+            band_column_name = inputs.columns[band_column_indices[0]]
+
         # need to flatten the dataframe, creating a list of files per tile
         grouping_column = self._get_grouping_key_column(inputs_clone)
         if grouping_column < 0:
@@ -249,7 +253,6 @@ class DataFrameSatelliteImageLoaderPrimitive(
         )["location_base_uris"][0]
         grouping_name = inputs_clone.columns[grouping_column]
         file_column_name = inputs_clone.columns[column_index]
-        band_column_name = "band"
 
         start = time.time()
         logger.debug("Loading images")
@@ -320,6 +323,18 @@ class DataFrameSatelliteImageLoaderPrimitive(
             (), {"dimension": {"length": outputs.shape[0]}}
         )
 
+        polygon_columns = outputs.metadata.list_columns_with_semantic_types(
+            ("https://metadata.datadrivendiscovery.org/types/LocationPolygon",)
+        )
+        vector_columns = outputs.metadata.list_columns_with_semantic_types(
+            ("https://metadata.datadrivendiscovery.org/types/FloatVector",)
+        )
+        if len(vector_columns) > 0 and len(polygon_columns) == 0:
+            outputs.metadata = outputs.metadata.add_semantic_type(
+                (metadata_base.ALL_ELEMENTS, vector_columns[0]),
+                "https://metadata.datadrivendiscovery.org/types/LocationPolygon",
+            )
+
         return base_prim.CallResult(outputs)
 
     def _reassign_boundaries(
@@ -389,7 +404,7 @@ class DataFrameSatelliteImageLoaderPrimitive(
                 output_bytes.extend(
                     self._bilinear_resample(image, max_dimension).tobytes()
                 )
-            output_compressed_bytes = lzo.compress(bytes(output_bytes))
+            output_compressed_bytes = lz4.frame.compress(bytes(output_bytes))
             output = np.frombuffer(
                 output_compressed_bytes,
                 dtype="uint8",

@@ -64,7 +64,7 @@ class IsolationForestPrimitive(
                 "name": "Distil",
                 "contact": "mailto:vkorapaty@uncharted.software",
                 "uris": [
-                    "https://github.com/uncharted-distil/distil-primitives/primitives/isolation_forest.py",
+                    "https://github.com/uncharted-distil/distil-primitives/blob/main/distil/primitives/isolation_forest.py",
                     "https://github.com/uncharted-distil/distil-primitives",
                 ],
             },
@@ -118,28 +118,16 @@ class IsolationForestPrimitive(
         if self._needs_fit:
             self.fit()
 
-        index = inputs.index
         result = self._model.predict(inputs)
 
         result_df = container.DataFrame(
             {
-                "d3mIndex": index,
                 "outlier_label": result,
             },
             generate_metadata=True,
         )
-        result_df.set_index(index, inplace=True)
-
         result_df.metadata = result_df.metadata.add_semantic_type(
             (metadata_base.ALL_ELEMENTS, 0),
-            "https://metadata.datadrivendiscovery.org/types/PrimaryKey",
-        )
-        result_df.metadata = result_df.metadata.add_semantic_type(
-            (metadata_base.ALL_ELEMENTS, 0),
-            "https://schema.org/Integer",
-        )
-        result_df.metadata = result_df.metadata.add_semantic_type(
-            (metadata_base.ALL_ELEMENTS, 1),
             "https://metadata.datadrivendiscovery.org/types/PredictedTarget",
         )
 

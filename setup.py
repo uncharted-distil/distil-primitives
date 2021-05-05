@@ -18,6 +18,7 @@ setup(
     description="Distil primitives as a single library",
     packages=find_packages(),
     keywords=["d3m_primitive"],
+    license="Apache-2.0",
     install_requires=[
         "d3m",  # d3m best-practice moving forward is to remove the version (simplifies updates)
         # shared d3m versions - need to be aligned with core package
@@ -25,12 +26,12 @@ setup(
         "scipy==1.4.1",
         "numpy==1.18.2",
         "pandas==1.0.3",
-        "torch==1.4.0",
+        "torch>=1.4.0,<=1.7.0",  # validated up to 1.7.0
         "networkx==2.4",
         "pillow==7.1.2",
         # additional dependencies
         "joblib>=0.13.2",
-        "torchvision>=0.4.2",
+        "torchvision>=0.5.0,<=0.8.0",  # validated up to 0.8
         #'pytorch-pretrained-bert==0.4.0', has print statements on import that break d3m annotation validation
         #'sklearn_pandas==1.8.0', use fork to address bugs
         "sklearn_pandas @ git+https://github.com/cdbethune/sklearn-pandas.git@c009c3a5a26f883f759cf123c0f5a509b1df013b",
@@ -46,10 +47,12 @@ setup(
         "pytorch-pretrained-bert @ git+https://github.com/cdbethune/pytorch-pretrained-BERT.git@fb5a42d9de9385b146ba585d6d47ec36d27dcbca#egg=pytorch-pretrained-bert",
         "scikit-image<=0.17.2",
         "shap>=0.29",
+        "fuzzywuzzy>=0.17.0",
+        "python-Levenshtein>=0.12.0",
         # Can cause errors with pretrained-bert: https://github.com/NVIDIA/apex/issues/156
         #'apex @ git+https://github.com/NVIDIA/apex.git@47e3367fcd6636db6cd549bbb385a6e06a3861d0',
         "torchvggish @ git+https://github.com/harritaylor/torchvggish.git@f5ec66cb05029ddfdb9971f343d79408fac44c70#egg=torchvggish",
-        #'python-lzo==1.12', Needs to be installed in the DistilSatelliteLoader primitive install section
+        "nonneg_rescal @ git+https://github.com/bkj/nonneg_rescal",
     ],
     extras_require={
         "cpu": ["tensorflow==2.2.0"],
@@ -78,6 +81,7 @@ setup(
             "data_transformation.satellite_image_loader.DistilSatelliteImageLoader = distil.primitives.satellite_image_loader:DataFrameSatelliteImageLoaderPrimitive",
             "data_transformation.time_series_formatter.DistilTimeSeriesFormatter = distil.primitives.time_series_formatter:TimeSeriesFormatterPrimitive",
             "data_transformation.vector_bounds_filter.DistilVectorBoundsFilter = distil.primitives.vector_filter:VectorBoundsFilterPrimitive",
+            "data_transformation.concat.DistilVerticalConcat = distil.primitives.concat:VerticalConcatenationPrimitive",
             "classification.text_classifier.DistilTextClassifier = distil.primitives.text_classifier:TextClassifierPrimitive",
             "feature_extraction.image_transfer.DistilImageTransfer = distil.primitives.image_transfer:ImageTransferPrimitive",
             "feature_extraction.audio_transfer.DistilAudioTransfer = distil.primitives.audio_transfer:AudioTransferPrimitive",
@@ -88,6 +92,7 @@ setup(
             "data_transformation.time_series_binner.DistilTimeSeriesBinner = distil.primitives.time_series_binner:TimeSeriesBinnerPrimitive",
             "data_transformation.column_parser.DistilColumnParser = distil.primitives.column_parser:ColumnParserPrimitive",
             "remote_sensing.remote_sensing_pretrained.PrefeaturisedPooler = distil.primitives.prefeaturised_pooler:PrefeaturisedPoolingPrimitive",
+            "data_transformation.fuzzy_join.DistilFuzzyJoin = distil.primitives.fuzzy_join:FuzzyJoinPrimitive",
         ],
     },
 )

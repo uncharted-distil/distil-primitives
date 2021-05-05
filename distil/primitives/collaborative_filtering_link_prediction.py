@@ -66,7 +66,7 @@ class CollaborativeFilteringPrimitive(
                 "name": "Distil",
                 "contact": "mailto:cbethune@uncharted.software",
                 "uris": [
-                    "https://github.com/uncharted-distil/distil-primitives/distil/primitives/collaborative_filtering.py",
+                    "https://github.com/uncharted-distil/distil-primitives/blob/main/distil/primitives/collaborative_filtering_link_prediction.py",
                     "https://github.com/uncharted-distil/distil-primitives",
                 ],
             },

@@ -11,6 +11,7 @@ from d3m.base import utils as base_utils
 from d3m.metadata import base as metadata_base, hyperparams
 from d3m.primitive_interfaces import base, transformer
 from distil.utils import CYTHON_DEP
+from common_primitives import utils
 
 from common_primitives import utils
 
@@ -29,7 +30,7 @@ class Hyperparams(hyperparams.Hyperparams):
                 "https://metadata.datadrivendiscovery.org/types/FloatVector",
                 "http://schema.org/DateTime",
                 "https://metadata.datadrivendiscovery.org/types/CategoricalData",
-            ],
+            ],a
             default="http://schema.org/Float",
         ),
         default=(
@@ -93,7 +94,10 @@ class ColumnParserPrimitive(
             "source": {
                 "name": "Distil",
                 "contact": "mailto:vkorapaty@uncharted.software",
-                "uris": ["https://gitlab.com/uncharted-distil/distil-primitives"],
+                "uris": [
+                    "https://github.com/uncharted-distil/distil-primitives/blob/main/distil/primitives/column_parser.py",
+                    "https://gitlab.com/uncharted-distil/distil-primitives",
+                ],
             },
             "installation": [
                 CYTHON_DEP,
@@ -161,11 +165,9 @@ class ColumnParserPrimitive(
                             fuzzy=self.hyperparams["fuzzy_time_parsing"],
                             convert_dtype=False,
                         )
-                        if outputs[col_index].shape[0] > 0:
-                            inputs.metadata = inputs.metadata.update_column(
-                                col_index,
-                                {"structural_type": type(outputs[col_index][0])},
-                            )
+                        inputs.metadata = inputs.metadata.update_column(
+                            col_index, {"structural_type": float}
+                        )
                     elif (
                         "https://metadata.datadrivendiscovery.org/types/CategoricalData"
                         in desired_semantics

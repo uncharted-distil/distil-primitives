@@ -28,7 +28,7 @@ from distil.primitives.satellite_image_loader import (
 import utils as test_utils
 import pathlib
 import os
-import lzo
+import lz4
 import imageio
 
 
@@ -70,7 +70,7 @@ class DataFrameSatelliteImageLoaderPrimitiveTestCase(unittest.TestCase):
         hyperparams_class = DataFrameSatelliteImageLoaderPrimitive.metadata.query()[
             "primitive_code"
         ]["class_type_arguments"]["Hyperparams"]
-        hyperparams = hyperparams_class.defaults()
+        hyperparams = hyperparams_class.defaults().replace({"n_jobs": -1})
         loader = DataFrameSatelliteImageLoaderPrimitive(hyperparams=hyperparams)
         result_dataframe = loader.produce(inputs=dataframe).value
 
@@ -94,6 +94,10 @@ class DataFrameSatelliteImageLoaderPrimitiveTestCase(unittest.TestCase):
             ("learningData", metadata_base.ALL_ELEMENTS, 1),
             "https://metadata.datadrivendiscovery.org/types/FileName",
         )
+        dataset.metadata = dataset.metadata.add_semantic_type(
+            ("learningData", metadata_base.ALL_ELEMENTS, 5),
+            "https://metadata.datadrivendiscovery.org/types/FloatVector",
+        )
         dataset.metadata = dataset.metadata.update(
             ("0",), {"location_base_uris": self._media_path}
         )
@@ -106,7 +110,9 @@ class DataFrameSatelliteImageLoaderPrimitiveTestCase(unittest.TestCase):
         hyperparams_class = DataFrameSatelliteImageLoaderPrimitive.metadata.query()[
             "primitive_code"
         ]["class_type_arguments"]["Hyperparams"]
-        hyperparams = hyperparams_class.defaults().replace({"return_result": "replace"})
+        hyperparams = hyperparams_class.defaults().replace(
+            {"return_result": "replace", "n_jobs": -1}
+        )
         loader = DataFrameSatelliteImageLoaderPrimitive(hyperparams=hyperparams)
         result_dataframe = loader.produce(inputs=dataframe).value
 
@@ -121,6 +127,12 @@ class DataFrameSatelliteImageLoaderPrimitiveTestCase(unittest.TestCase):
         )
         self.assertEqual(result_dataframe["d3mIndex"][1], "2")
         self.assertEqual(result_dataframe["group_id"][1], "2")
+        self.assertEqual(
+            result_dataframe.metadata.list_columns_with_semantic_types(
+                ("https://metadata.datadrivendiscovery.org/types/LocationPolygon",)
+            ),
+            [5],
+        )
 
     def test_band_mapping_compressed(self) -> None:
         dataset = test_utils.load_dataset(self._dataset_path)
@@ -131,6 +143,11 @@ class DataFrameSatelliteImageLoaderPrimitiveTestCase(unittest.TestCase):
         dataset.metadata = dataset.metadata.add_semantic_type(
             ("learningData", metadata_base.ALL_ELEMENTS, 1),
             "https://metadata.datadrivendiscovery.org/types/FileName",
+        )
+        # test band column
+        dataset.metadata = dataset.metadata.add_semantic_type(
+            ("learningData", metadata_base.ALL_ELEMENTS, 3),
+            "https://metadata.datadrivendiscovery.org/types/Band",
         )
         dataset.metadata = dataset.metadata.update(
             ("0",), {"location_base_uris": self._media_path}
@@ -144,13 +161,16 @@ class DataFrameSatelliteImageLoaderPrimitiveTestCase(unittest.TestCase):
         hyperparams_class = DataFrameSatelliteImageLoaderPrimitive.metadata.query()[
             "primitive_code"
         ]["class_type_arguments"]["Hyperparams"]
-        hyperparams = hyperparams_class.defaults().replace({"compress_data": True})
+        # included bad column name for testing band column purposes
+        hyperparams = hyperparams_class.defaults().replace(
+            {"compress_data": True, "n_jobs": -1, "band_column": "bleh"}
+        )
         loader = DataFrameSatelliteImageLoaderPrimitive(hyperparams=hyperparams)
         result_dataframe = loader.produce(inputs=dataframe).value
 
         # decompress
         compressed_bytes = result_dataframe.iloc[0, 7].tobytes()
-        decompressed_bytes = lzo.decompress(compressed_bytes)
+        decompressed_bytes = lz4.frame.decompress(compressed_bytes)
         storage_type, shape_0, shape_1, shape_2 = struct.unpack(
             "cIII", decompressed_bytes[:16]
         )
@@ -160,13 +180,13 @@ class DataFrameSatelliteImageLoaderPrimitiveTestCase(unittest.TestCase):
 
         # load a test image
         original_image = image_array = imageio.imread(
-            "satellite_image_dataset/media/S2A_MSIL2A_20170613T101031_0_49_B02.tif"
+            "test/satellite_image_dataset/media/S2A_MSIL2A_20170613T101031_0_49_B02.tif"
         )
         loaded_image = result_array[1]
         self.assertEqual(original_image.tobytes(), loaded_image.tobytes())
 
         compressed_bytes = result_dataframe.iloc[1, 7].tobytes()
-        decompressed_bytes = lzo.decompress(compressed_bytes)
+        decompressed_bytes = lz4.frame.decompress(compressed_bytes)
         storage_type, shape_0, shape_1, shape_2 = struct.unpack(
             "cIII", decompressed_bytes[:16]
         )

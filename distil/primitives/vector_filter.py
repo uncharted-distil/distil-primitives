@@ -23,42 +23,8 @@ logger = logging.getLogger(__name__)
 
 
 class Hyperparams(hyperparams.Hyperparams):
-    row_indices_list = hyperparams.Set(
-        elements=hyperparams.Set(
-            elements=hyperparams.Hyperparameter[int](-1),
-            default=(),
-            semantic_types=[
-                "https://metadata.datadrivendiscovery.org/types/ControlParameter"
-            ],
-            description="A set of column indices to filter on",
-        ),
-        default=(),
-        semantic_types=[
-            "https://metadata.datadrivendiscovery.org/types/ControlParameter"
-        ],
-        description="A set with sets to specify rows to apply filters on.",
-    )
-    mins = hyperparams.Union[
-        typing.Union[
-            float, typing.Sequence[float], typing.Sequence[typing.Sequence[float]]
-        ]
-    ](
+    mins = hyperparams.Union[typing.Union[float, typing.Sequence[float]]](
         configuration=collections.OrderedDict(
-            sets=hyperparams.List(
-                elements=hyperparams.List(
-                    elements=hyperparams.Hyperparameter[float](-1),
-                    default=(),
-                    semantic_types=[
-                        "https://metadata.datadrivendiscovery.org/types/ControlParameter"
-                    ],
-                    description="A set of minimum values, corresponding to the vector values to filter on",
-                ),
-                default=(),
-                semantic_types=[
-                    "https://metadata.datadrivendiscovery.org/types/ControlParameter"
-                ],
-                description="A set of minimum values, corresponding to the vector values to filter on",
-            ),
             set=hyperparams.List(
                 elements=hyperparams.Hyperparameter[float](-1),
                 default=(),
@@ -75,27 +41,8 @@ class Hyperparams(hyperparams.Hyperparams):
         ],
         description="A set of column indices to filter on",
     )
-    maxs = hyperparams.Union[
-        typing.Union[
-            float, typing.Sequence[float], typing.Sequence[typing.Sequence[float]]
-        ]
-    ](
+    maxs = hyperparams.Union[typing.Union[float, typing.Sequence[float]]](
         configuration=collections.OrderedDict(
-            sets=hyperparams.List(
-                elements=hyperparams.List(
-                    elements=hyperparams.Hyperparameter[float](-1),
-                    default=(),
-                    semantic_types=[
-                        "https://metadata.datadrivendiscovery.org/types/ControlParameter"
-                    ],
-                    description="A set of minimum values, corresponding to the vector values to filter on",
-                ),
-                default=(),
-                semantic_types=[
-                    "https://metadata.datadrivendiscovery.org/types/ControlParameter"
-                ],
-                description="A set of minimum values, corresponding to the vector values to filter on",
-            ),
             set=hyperparams.List(
                 elements=hyperparams.Hyperparameter[float](-1),
                 default=(),
@@ -124,7 +71,7 @@ class Hyperparams(hyperparams.Hyperparams):
         semantic_types=[
             "https://metadata.datadrivendiscovery.org/types/ControlParameter"
         ],
-        description="True when values outside the range are removed, False when values within the range are removed.",
+        description="True when values outside the range are removed; False gives the complement.",
     )
     strict = hyperparams.Hyperparameter[bool](
         default=False,
@@ -177,7 +124,7 @@ class VectorBoundsFilterPrimitive(
                 "name": "Distil",
                 "contact": "mailto:vkorapaty@uncharted.software",
                 "uris": [
-                    "https://github.com/uncharted-distil/distil-primitives/distil/primitives/vector_filter.py",
+                    "https://github.com/uncharted-distil/distil-primitives/blob/main/distil/primitives/vector_filter.py",
                     "https://github.com/uncharted-distil/distil-primitives",
                 ],
             },
@@ -203,22 +150,13 @@ class VectorBoundsFilterPrimitive(
 
     def __init__(self, *, hyperparams: Hyperparams, random_seed: int = 0) -> None:
         super().__init__(hyperparams=hyperparams, random_seed=random_seed)
-        if self.hyperparams["inclusive"]:
-            self._logical_op = np.logical_and
-            if self.hyperparams["strict"]:
-                self._min_comparison_op = lambda x, y: x > y
-                self._max_comparision_op = lambda x, y: x < y
-            else:
-                self._min_comparison_op = lambda x, y: x >= y
-                self._max_comparision_op = lambda x, y: x <= y
+
+        if self.hyperparams["strict"]:
+            self._min_comparison_op = lambda x, y: x > y
+            self._max_comparision_op = lambda x, y: x < y
         else:
-            self._logical_op = np.logical_or
-            if self.hyperparams["strict"]:
-                self._min_comparison_op = lambda x, y: x < y
-                self._max_comparision_op = lambda x, y: x > y
-            else:
-                self._min_comparison_op = lambda x, y: x <= y
-                self._max_comparision_op = lambda x, y: x >= y
+            self._min_comparison_op = lambda x, y: x >= y
+            self._max_comparision_op = lambda x, y: x <= y
 
     def produce(
         self,
@@ -234,144 +172,91 @@ class VectorBoundsFilterPrimitive(
 
         maxs = self.hyperparams["maxs"]
         mins = self.hyperparams["mins"]
-        indices = self.hyperparams["row_indices_list"]
 
         if type(mins) == float or type(mins) == int:
             return base.CallResult(self._scalar_filter(inputs, vector_column))
 
-        total_filters_to_apply = 0
+        indices = inputs.index.tolist()
 
-        if len(indices) == 0:
-            total_filters_to_apply = 1
-            if len(maxs) == 0 or len(mins) == 0:
-                return base.CallResult(inputs)
-            indices = [inputs.index.tolist()]
-        elif len(maxs) < len(mins):
-            logger.warning("excess min filters present and will be skipped")
-            if len(indices) > len(maxs):
-                logger.warning("excess indices to filter on will be skipped")
-                total_filters_to_apply = len(maxs)
-            else:
-                total_filters_to_apply = len(indices)
-        elif len(mins) < len(maxs):
-            logger.warning("excess max filters will be skipped")
-            if len(indices) > len(maxs):
-                logger.warning("excess indices to filter on will be skipped")
-                total_filters_to_apply = len(mins)
-            else:
-                total_filters_to_apply = len(indices)
-        else:
-            total_filters_to_apply = len(indices)
-
-        if type(mins[0]) == list:
-            mins = [
-                [
-                    float("-inf") if min_filter[i] == None else min_filter[i]
-                    for i in range(len(min_filter))
-                ]
-                for min_filter in mins
-            ]
-            maxs = [
-                [
-                    float("inf") if max_filter[i] == None else max_filter[i]
-                    for i in range(len(max_filter))
-                ]
-                for max_filter in maxs
-            ]
-        else:
-            mins = [float("-inf") if i == None else i for i in mins]
-            maxs = [float("inf") if i == None else i for i in maxs]
+        mins = [float("-inf") if i == None else i for i in mins]
+        maxs = [float("inf") if i == None else i for i in maxs]
 
         indices_to_keep = np.empty((inputs.shape[0],))
-        final_index = 0
 
-        for i in range(total_filters_to_apply):
-            try:
-                rows = np.stack(inputs.iloc[list(indices[i]), vector_column], axis=0)
-                if type(mins[i]) == list:
-                    filter_length = min(rows.shape[1], len(mins[i]), len(maxs[i]))
-                    mins_for_filter = np.array(mins[i][:filter_length])
-                    maxs_for_filter = np.array(maxs[i][:filter_length])
-                else:
-                    filter_length = rows.shape[1]
-                    mins_for_filter = mins[i]
-                    maxs_for_filter = maxs[i]
+        try:
+            rows = np.stack(inputs.iloc[:, vector_column], axis=0)
 
-                rows = self._logical_op(
-                    self._min_comparison_op(
-                        rows[:, :filter_length],
-                        mins_for_filter,
+            filter_length = rows.shape[1]
+
+            rows = np.logical_and(
+                self._min_comparison_op(
+                    rows[:, :filter_length],
+                    mins,
+                ),
+                self._max_comparision_op(rows[:, :filter_length], maxs),
+            )
+            rows_to_keep = rows.sum(axis=1) == filter_length
+        except ValueError as error:
+            # rows had uneven length
+            rows = inputs.iloc[:, vector_column]
+            # get length of each vector
+            vector_lengths = rows.apply(np.shape).apply(np.take, args=([0]))
+
+            filter_lengths = vector_lengths.values
+            # need this to loop over lengths array while keeping vectorised
+            # apply function over rows
+            count_for_ref = [0]
+
+            def _filter_r(row, filter_lengths, mins, maxs, counter):
+                # in case fewer filters than row length
+                filterable_range = min(filter_lengths[counter[0]], len(mins))
+
+                mins_for_filter = np.array(mins[:filterable_range])
+                maxs_for_filter = np.array(maxs[:filterable_range])
+
+                filtered_row = np.logical_and(
+                    self._min_comparison_op(row[:filterable_range], mins_for_filter),
+                    self._max_comparision_op(
+                        row[:filterable_range],
+                        maxs_for_filter,
                     ),
-                    self._max_comparision_op(rows[:, :filter_length], maxs_for_filter),
                 )
-                rows_to_keep = rows.sum(axis=1) == filter_length
-            except ValueError as error:
-                # rows had uneven length
-                rows = inputs.iloc[list(indices[i]), vector_column]
-                # get length of each vector
-                vector_lengths = rows.apply(np.shape).apply(np.take, args=([0]))
-                if type(mins[i]) == list:
-                    filter_lengths = vector_lengths.apply(
-                        min, args=(len(mins[i]), len(maxs[i]))
-                    )
-                else:
-                    filter_lengths = vector_lengths.values
-                # need this to loop over lengths array while keeping vectorised
-                # apply function over rows
-                count_for_ref = [0]
+                counter[0] += 1
+                return filtered_row
 
-                def _filter_r(row, filter_lengths, mins, maxs, counter):
-                    if type(mins) == list:
-                        mins_for_filter = np.array(mins[: filter_lengths[counter[0]]])
-                        maxs_for_filter = np.array(maxs[: filter_lengths[counter[0]]])
-                    else:
-                        mins_for_filter = mins
-                        maxs_for_filter = maxs
-                    filtered_row = self._logical_op(
-                        self._min_comparison_op(
-                            row[: filter_lengths[counter[0]]], mins_for_filter
-                        ),
-                        self._max_comparision_op(
-                            row[: filter_lengths[counter[0]]],
-                            maxs_for_filter,
-                        ),
-                    )
-                    counter[0] += 1
-                    return filtered_row
+            rows = rows.apply(
+                _filter_r,
+                args=(filter_lengths, mins, maxs, count_for_ref),
+            )
+            rows_to_keep = rows.apply(np.sum).values == filter_lengths
 
-                rows = rows.apply(
-                    _filter_r,
-                    args=(filter_lengths, mins[i], maxs[i], count_for_ref),
-                )
-                rows_to_keep = rows.apply(np.sum).values == filter_lengths
-
-            amount_of_kept_rows = rows_to_keep.sum()
-            indices_to_keep[final_index : final_index + amount_of_kept_rows] = [
-                indices[i][j] for j in range(len(indices[i])) if rows_to_keep[j]
+        if self.hyperparams["inclusive"]:
+            indices_to_keep = [
+                indices[j] for j in range(len(indices)) if rows_to_keep[j]
             ]
-            final_index += amount_of_kept_rows
+        else:
+            indices_to_keep = [
+                indices[j] for j in range(len(indices)) if not rows_to_keep[j]
+            ]
 
-        outputs = dataframe_utils.select_rows(inputs, indices_to_keep[0:final_index])
+        outputs = dataframe_utils.select_rows(inputs, indices_to_keep)
 
         return base.CallResult(outputs)
 
     def _scalar_filter(self, inputs, vector_column):
         max_value = self.hyperparams["maxs"]
         min_value = self.hyperparams["mins"]
-        indices = self.hyperparams["row_indices_list"]
-        if len(indices) == 0:
-            indices = inputs.index.tolist()
-        else:
-            indices = list(indices)
+        indices = inputs.index.tolist()
+
         if min_value == None:
             float("-inf")
         if max_value == None:
             float("inf")
 
         try:
-            rows = np.stack(inputs.iloc[indices, vector_column], axis=0)
+            rows = np.stack(inputs.iloc[:, vector_column], axis=0)
 
-            rows = self._logical_op(
+            rows = np.logical_and(
                 self._min_comparison_op(
                     rows,
                     min_value,
@@ -380,10 +265,10 @@ class VectorBoundsFilterPrimitive(
             )
             rows_to_keep = rows.sum(axis=1) == rows.shape[1]
         except ValueError as error:
-            rows = inputs.iloc[indices, vector_column]
+            rows = inputs.iloc[:, vector_column]
 
             def _filter_r(row, min_val, max_val):
-                return self._logical_op(
+                return np.logical_and(
                     self._min_comparison_op(
                         row,
                         min_val,
@@ -401,9 +286,13 @@ class VectorBoundsFilterPrimitive(
             rows_to_keep = rows.apply(np.sum) == rows.apply(np.shape).apply(
                 np.take, args=([0])
             )
-        return dataframe_utils.select_rows(
-            inputs, [indices[j] for j in range(len(indices)) if rows_to_keep[j]]
-        )
+        if self.hyperparams["inclusive"]:
+            rows_to_keep = [indices[j] for j in range(len(indices)) if rows_to_keep[j]]
+        else:
+            rows_to_keep = [
+                indices[j] for j in range(len(indices)) if not rows_to_keep[j]
+            ]
+        return dataframe_utils.select_rows(inputs, rows_to_keep)
 
     def _get_floatvector_column(self, inputs_metadata: metadata_base.DataMetadata):
         fv_column = self.hyperparams["column"]

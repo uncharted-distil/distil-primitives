@@ -51,7 +51,7 @@ class DistilEdgeListLoaderPrimitive(
                 "name": "Distil",
                 "contact": "mailto:cbethune@uncharted.software",
                 "uris": [
-                    "https://github.com/uncharted-distil/distil-primitives/distil/primitives/load_edge_list.py",
+                    "https://github.com/uncharted-distil/distil-primitives/blob/main/distil/primitives/load_edgelist.py",
                     "https://github.com/uncharted-distil/distil-primitives/",
                 ],
             },

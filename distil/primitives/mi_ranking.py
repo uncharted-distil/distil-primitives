@@ -119,7 +119,7 @@ class MIRankingPrimitive(
                 "name": "Distil",
                 "contact": "mailto:cbethune@uncharted.software",
                 "uris": [
-                    "https://github.com/uncharted-distil/distil-primitives/distil/primitives/mi_ranking.py",
+                    "https://github.com/uncharted-distil/distil-primitives/blob/main/distil/primitives/mi_ranking.py",
                     "https://github.com/uncharted-distil/distil-primitives/",
                 ],
             },
@@ -216,14 +216,12 @@ class MIRankingPrimitive(
             # make a copy of the inputs and clean out any missing data
             feature_df = inputs.copy()
         if self.hyperparams["sub_sample"]:
-            sub_sampel_size = (
+            sub_sample_size = (
                 self.hyperparams["sub_sample_size"]
                 if self.hyperparams["sub_sample_size"] < inputs.shape[0]
                 else inputs.shape[0]
             )
-            rows = random.sample_without_replacement(
-                inputs.shape[0], self.hyperparams["sub_sample_size"]
-            )
+            rows = random.sample_without_replacement(inputs.shape[0], sub_sample_size)
             feature_df = feature_df.iloc[rows, :]
         # makes sure that if an entire column is NA, we remove that column, so as to not remove ALL rows
         cols_to_drop = feature_df.columns[
@@ -233,7 +231,9 @@ class MIRankingPrimitive(
         feature_df.dropna(inplace=True)
 
         # split out the target feature
-        target_df = feature_df.iloc[:, target_idx]
+        target_df = feature_df.iloc[
+            :, feature_df.columns.get_loc(inputs.columns[target_idx])
+        ]
 
         # drop features that are not compatible with ranking
         feature_indices = set(
@@ -295,6 +295,10 @@ class MIRankingPrimitive(
         all_indices = set(range(0, inputs.shape[1]))
         skipped_indices = all_indices.difference(
             feature_indices.union(text_feature_indices)
+        )
+        # remove columns that were dropped
+        feature_indices = feature_indices - set(
+            [inputs.columns.get_loc(c) for c in cols_to_drop]
         )
         for i, v in enumerate(skipped_indices):
             feature_df.drop(inputs.columns[v], axis=1, inplace=True)

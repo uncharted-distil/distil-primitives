@@ -66,7 +66,7 @@ class PrefeaturisedPoolingPrimitive(
                 "name": "Distil",
                 "contact": "mailto:vkorapaty@uncharted.software",
                 "uris": [
-                    "https://github.com/uncharted-distil/distil-primitives/primitives/prefeaturised_pooler.py",
+                    "https://github.com/uncharted-distil/distil-primitives/blob/main/distil/primitives/prefeaturised_pooler.py",
                     "https://github.com/uncharted-distil/distil-primitives",
                 ],
             },
@@ -126,14 +126,16 @@ class PrefeaturisedPoolingPrimitive(
         all_img_features = np.vstack(all_img_features)
         col_names = [f"feat_{i}" for i in range(0, all_img_features.shape[1])]
         feature_df = pd.DataFrame(all_img_features, columns=col_names)
-        feature_df = container.DataFrame(feature_df, generate_metadata=True)
 
-        for idx in range(feature_df.shape[1]):
-            feature_df.metadata = feature_df.metadata.add_semantic_type(
+        outputs = container.DataFrame(feature_df.head(1), generate_metadata=True)
+        outputs.metadata = outputs.metadata.update(
+            (metadata_base.ALL_ELEMENTS,),
+            {"dimension": {"length": feature_df.shape[0]}},
+        )
+        outputs = outputs.append(feature_df.iloc[1:])
+        for idx in range(outputs.shape[1]):
+            outputs.metadata = outputs.metadata.add_semantic_type(
                 (metadata_base.ALL_ELEMENTS, idx), "http://schema.org/Float"
             )
 
-        # if inputs.shape[1] > 1:
-        #     input_df = inputs.remove_columns(image_cols)
-        #     feature_df = input_df.append_columns(feature_df)
-        return base.CallResult(feature_df)
+        return base.CallResult(outputs)
