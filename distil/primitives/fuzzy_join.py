@@ -509,15 +509,6 @@ class FuzzyJoinPrimitive(
         return new_left_df
 
     def _numeric_fuzzy_match(match, choices, accuracy, is_absolute):
-        # if self.hyperparams["absolute_accuracy"]:
-        #     min_distance = float("inf")
-        #     min_val = float("nan")
-        #     for num in choices:
-        #         distance = abs(match - num)
-        #         if distance <= accuracy and distance <= min_distance:
-        #             min_val = num
-        #             min_distance = distance
-        # else:
         # not sure if this is faster than applying a lambda against the sequence - probably is
         min_distance = float("inf")
         min_val = float("nan")
