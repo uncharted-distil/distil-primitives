@@ -195,26 +195,8 @@ class MIRankingPrimitive(
         semantic_types = inputs.metadata.query_column(target_idx)["semantic_types"]
         discrete = len(set(semantic_types).intersection(self._discrete_types)) > 0
 
-        if (
-            len(
-                inputs.metadata.list_columns_with_semantic_types(
-                    ("http://schema.org/DateTime",)
-                )
-            )
-            > 0
-        ):
-            hyperparams_class = (
-                EnrichDatesPrimitive.metadata.query()["primitive_code"][
-                    "class_type_arguments"
-                ]["Hyperparams"]
-                .defaults()
-                .replace({"replace": True})
-            )
-            date_enricher = EnrichDatesPrimitive(hyperparams=hyperparams_class)
-            feature_df = date_enricher.produce(inputs=inputs.copy()).value
-        else:
-            # make a copy of the inputs and clean out any missing data
-            feature_df = inputs.copy()
+        # make a copy of the inputs and clean out any missing data
+        feature_df = inputs.copy()
         if self.hyperparams["sub_sample"]:
             sub_sample_size = (
                 self.hyperparams["sub_sample_size"]
