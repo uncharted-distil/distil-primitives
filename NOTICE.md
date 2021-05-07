@@ -21,6 +21,6 @@ vggish
 
 ## References
 
-<a id="1">[1]></a>
+<a id="1">[1]</a>
 S. Hershey et al., ‘CNN Architectures for Large-Scale Audio Classification’,\ in International Conference on 
 Acoustics, Speech and Signal Processing (ICASSP),2017\ Available: https://arxiv.org/abs/1609.09430, https://ai.google/research/pubs/pub45611
