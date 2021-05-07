@@ -120,6 +120,8 @@ class TextEncoderPrimitive(base.PrimitiveBase[Inputs, Outputs, Params, Hyperpara
             outputs = outputs.values.reshape(
                 outputs.shape[0],
             )
+        else:
+            outputs = outputs.iloc[:, 0].values
         self._outputs = pd.Series(outputs)
 
     def fit(
