@@ -30,7 +30,7 @@ class Hyperparams(hyperparams.Hyperparams):
                 "https://metadata.datadrivendiscovery.org/types/FloatVector",
                 "http://schema.org/DateTime",
                 "https://metadata.datadrivendiscovery.org/types/CategoricalData",
-            ],a
+            ],
             default="http://schema.org/Float",
         ),
         default=(
