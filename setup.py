@@ -52,7 +52,8 @@ setup(
         # Can cause errors with pretrained-bert: https://github.com/NVIDIA/apex/issues/156
         #'apex @ git+https://github.com/NVIDIA/apex.git@47e3367fcd6636db6cd549bbb385a6e06a3861d0',
         "torchvggish @ git+https://github.com/harritaylor/torchvggish.git@f5ec66cb05029ddfdb9971f343d79408fac44c70#egg=torchvggish",
-        "nonneg_rescal @ git+https://github.com/bkj/nonneg_rescal",
+        "nonneg_rescal @ git+https://github.com/bkj/nonneg_rescal.git@7c07617aa025b6417286aba766c6c7b0a3eb6c24#egg=nonneg_rescal",
+        "lz4>=3.1.0",
     ],
     extras_require={
         "cpu": ["tensorflow==2.2.0"],
