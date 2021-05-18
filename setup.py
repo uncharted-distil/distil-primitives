@@ -47,8 +47,6 @@ setup(
         "pytorch-pretrained-bert @ git+https://github.com/cdbethune/pytorch-pretrained-BERT.git@fb5a42d9de9385b146ba585d6d47ec36d27dcbca#egg=pytorch-pretrained-bert",
         "scikit-image<=0.17.2",
         "shap>=0.29",
-        "fuzzywuzzy>=0.17.0",
-        "python-Levenshtein>=0.12.0",
         # Can cause errors with pretrained-bert: https://github.com/NVIDIA/apex/issues/156
         #'apex @ git+https://github.com/NVIDIA/apex.git@47e3367fcd6636db6cd549bbb385a6e06a3861d0',
         "torchvggish @ git+https://github.com/harritaylor/torchvggish.git@f5ec66cb05029ddfdb9971f343d79408fac44c70#egg=torchvggish",
