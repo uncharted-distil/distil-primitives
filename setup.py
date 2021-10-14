@@ -25,7 +25,7 @@ setup(
         "scikit-learn==0.22.2.post1",
         "scipy==1.4.1",
         "numpy==1.18.2",
-        "pandas==1.0.3",
+        "pandas>=1.1.5",
         "torch>=1.4.0",  # validated up to 1.7.0
         "networkx==2.4",
         "pillow==7.1.2",
