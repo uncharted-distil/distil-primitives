@@ -9,7 +9,7 @@ from d3m.metadata import base as metadata_base
 CYTHON_DEP = {
     "type": metadata_base.PrimitiveInstallationType.PIP,
     "package": "Cython",
-    "version": "0.29.16",
+    "version": "0.29.24",
 }
 
 
