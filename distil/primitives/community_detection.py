@@ -9,6 +9,7 @@ from d3m.primitive_interfaces.supervised_learning import PrimitiveBase
 from distil.modeling.community_detection import (
     CommunityDetection as _CommunityDetection,
 )
+from distil.utils import CYTHON_DEP
 import version
 
 __all__ = ("CommunityDetection",)
@@ -47,6 +48,7 @@ class DistilCommunityDetectionPrimitive(
                 ],
             },
             "installation": [
+                CYTHON_DEP,
                 {
                     "type": metadata_base.PrimitiveInstallationType.PIP,
                     "package_uri": "git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=distil-primitives".format(

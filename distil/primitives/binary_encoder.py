@@ -8,6 +8,7 @@ from d3m.primitive_interfaces import base, unsupervised_learning
 from distil.preprocessing.transformers import BinaryEncoder
 from distil.primitives import utils as distil_utils
 from distil.primitives.utils import CATEGORICALS
+from distil.utils import CYTHON_DEP
 import version
 
 __all__ = ("BinaryEncoderPrimitive",)
@@ -67,6 +68,7 @@ class BinaryEncoderPrimitive(
                 ],
             },
             "installation": [
+                CYTHON_DEP,
                 {
                     "type": metadata_base.PrimitiveInstallationType.PIP,
                     "package_uri": "git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=distil-primitives".format(

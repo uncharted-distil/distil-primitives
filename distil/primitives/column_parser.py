@@ -10,6 +10,9 @@ from d3m import container, utils as d3m_utils
 from d3m.base import utils as base_utils
 from d3m.metadata import base as metadata_base, hyperparams
 from d3m.primitive_interfaces import base, transformer
+from distil.utils import CYTHON_DEP
+from common_primitives import utils
+
 from common_primitives import utils
 
 import version
@@ -97,6 +100,7 @@ class ColumnParserPrimitive(
                 ],
             },
             "installation": [
+                CYTHON_DEP,
                 {
                     "type": metadata_base.PrimitiveInstallationType.PIP,
                     "package_uri": "git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=distil-primitives".format(

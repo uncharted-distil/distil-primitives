@@ -10,6 +10,7 @@ from d3m import container, utils, exceptions
 from d3m.metadata import base as metadata_base, hyperparams, params
 from d3m.primitive_interfaces import base, transformer
 from d3m.primitive_interfaces.base import CallResult
+from distil.utils import CYTHON_DEP
 from distil.utils import Img2Vec
 import version
 
@@ -63,6 +64,7 @@ class ImageTransferPrimitive(
                 ],
             },
             "installation": [
+                CYTHON_DEP,
                 {
                     "type": metadata_base.PrimitiveInstallationType.PIP,
                     "package_uri": "git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=distil-primitives".format(
