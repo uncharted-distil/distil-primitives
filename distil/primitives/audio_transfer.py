@@ -9,7 +9,6 @@ from d3m.primitive_interfaces import base, transformer
 from d3m.primitive_interfaces.base import CallResult
 from d3m.primitive_interfaces.supervised_learning import PrimitiveBase
 from distil.primitives import utils as primitive_utils
-from distil.utils import CYTHON_DEP
 import version
 
 __all__ = ("AudioTransferPrimitive",)
@@ -84,7 +83,6 @@ class AudioTransferPrimitive(
                     "package": "python-prctl",
                     "version": "1.7",
                 },
-                CYTHON_DEP,
                 {
                     "type": metadata_base.PrimitiveInstallationType.PIP,
                     "package_uri": "git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=distil-primitives".format(

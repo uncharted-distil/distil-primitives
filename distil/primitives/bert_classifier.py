@@ -8,7 +8,6 @@ from d3m.metadata import base as metadata_base, hyperparams, params
 from d3m.primitive_interfaces import base
 from d3m.primitive_interfaces.supervised_learning import PrimitiveBase
 from distil.modeling.bert_models import BERTPairClassification
-from distil.utils import CYTHON_DEP
 import version
 
 _all__ = ("BertPairClassification",)
@@ -90,7 +89,6 @@ class BertPairClassificationPrimitive(
                 ],
             },
             "installation": [
-                CYTHON_DEP,
                 {
                     "type": metadata_base.PrimitiveInstallationType.PIP,
                     "package_uri": "git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=distil-primitives".format(

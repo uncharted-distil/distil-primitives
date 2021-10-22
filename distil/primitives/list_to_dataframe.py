@@ -7,7 +7,6 @@ import numpy as np
 from d3m import container, utils
 from d3m.metadata import base as metadata_base, hyperparams, params
 from d3m.primitive_interfaces import base, unsupervised_learning
-from distil.utils import CYTHON_DEP
 import version
 
 logger = logging.getLogger(__name__)
@@ -55,7 +54,6 @@ class ListEncoderPrimitive(
                 ],
             },
             "installation": [
-                CYTHON_DEP,
                 {
                     "type": metadata_base.PrimitiveInstallationType.PIP,
                     "package_uri": "git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=distil-primitives".format(

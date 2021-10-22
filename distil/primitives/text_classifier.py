@@ -9,7 +9,6 @@ from d3m.primitive_interfaces import base
 from d3m.primitive_interfaces.base import CallResult
 from distil.modeling.metrics import classification_metrics
 from distil.modeling.text_classification import TextClassifierCV
-from distil.utils import CYTHON_DEP
 import version
 
 __all__ = ("TextClassifierPrimitive",)
@@ -56,7 +55,6 @@ class TextClassifierPrimitive(
                 ],
             },
             "installation": [
-                CYTHON_DEP,
                 {
                     "type": metadata_base.PrimitiveInstallationType.PIP,
                     "package_uri": "git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=distil-primitives".format(

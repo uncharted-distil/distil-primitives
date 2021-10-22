@@ -9,7 +9,6 @@ from d3m.metadata import base as metadata_base, hyperparams, params
 from d3m.primitive_interfaces import base
 from d3m.primitive_interfaces.supervised_learning import PrimitiveBase
 from distil.modeling.collaborative_filtering import SGDCollaborativeFilter
-from distil.utils import CYTHON_DEP
 import version
 
 _all__ = ("CollaborativeFilteringPrimtive",)
@@ -71,7 +70,6 @@ class CollaborativeFilteringPrimitive(
                 ],
             },
             "installation": [
-                CYTHON_DEP,
                 {
                     "type": metadata_base.PrimitiveInstallationType.PIP,
                     "package_uri": "git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=distil-primitives".format(

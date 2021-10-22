@@ -9,7 +9,6 @@ from d3m.metadata import base as metadata_base, hyperparams, params
 from d3m.primitive_interfaces import base, unsupervised_learning
 from distil.primitives import utils as distil_utils
 from distil.primitives.utils import CATEGORICALS
-from distil.utils import CYTHON_DEP
 from sklearn import preprocessing
 import version
 
@@ -69,7 +68,6 @@ class OneHotEncoderPrimitive(
                 ],
             },
             "installation": [
-                CYTHON_DEP,
                 {
                     "type": metadata_base.PrimitiveInstallationType.PIP,
                     "package_uri": "git+https://github.com/uncharted-distil/distil-primitives.git@{git_commit}#egg=distil-primitives".format(
