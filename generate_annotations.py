@@ -4,12 +4,9 @@ Utility to get primitives .json files
 import os
 import json
 import importlib
-import inspect
 
 PRIMITIVES_DIR = "distil/primitives"
 OUTPUT_DIR = "annotations"
-
-ADDITIONAL_ENTRIES = set(["SKLabelEncoder"])
 
 if not os.path.exists(OUTPUT_DIR):
     os.makedirs(OUTPUT_DIR)
@@ -24,7 +21,7 @@ for primitive in primitives:
         continue
     for l in dir(lib):
         if (
-            ("Primitive" in l or l in ADDITIONAL_ENTRIES)
+            "Primitive" in l
             and l != "PrimitiveBase"
             and l != "UnsupervisedLearnerPrimitiveBase"
         ):

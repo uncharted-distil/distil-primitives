@@ -1,7 +1,0 @@
-version: "2"
-services:
-  distil-primitives:
-    build: .
-    volumes:
-      - ./annotations/:/annotations/
-      - ./static:/static
