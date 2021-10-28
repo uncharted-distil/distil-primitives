@@ -45,18 +45,12 @@
         },
         {
           "colIndex": 2,
-          "colName": "start",
+          "colName": "start-end-time-slice-of-recording",
           "colType": "real",
           "role": ["boundaryIndicator"]
         },
         {
           "colIndex": 3,
-          "colName": "end",
-          "colType": "real",
-          "role": ["boundaryIndicator"]
-        },
-        {
-          "colIndex": 4,
           "colName": "class",
           "colType": "categorical",
           "role": ["suggestedTarget"]

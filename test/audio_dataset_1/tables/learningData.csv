@@ -1,2 +1,2 @@
-d3mIndex,filename,start,end,class
-0,test_audio.mp3,0.007,0.008,test
+d3mIndex,filename,start-end-time-slice-of-recording,class
+0,test_audio.mp3,"0.007,0.008",test

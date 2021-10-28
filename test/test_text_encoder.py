@@ -43,7 +43,7 @@ class TextEncoderPrimitiveTestCase(unittest.TestCase):
         ]["Hyperparams"]
         encoder = TextEncoderPrimitive(hyperparams=hyperparams_class.defaults())
         encoder.set_training_data(
-            inputs=dataframe.iloc[:, [0, 1]], outputs=dataframe.iloc[:, 2]
+            inputs=dataframe.iloc[:, [0, 1]], outputs=dataframe[['bravo']]
         )
         encoder.fit()
         result = encoder.produce(inputs=dataframe).value
@@ -88,7 +88,7 @@ class TextEncoderPrimitiveTestCase(unittest.TestCase):
         ]["Hyperparams"]
         encoder = TextEncoderPrimitive(hyperparams=hyperparams_class.defaults())
         encoder.set_training_data(
-            inputs=dataframe.iloc[:, [0, 1]], outputs=dataframe.iloc[:, 2]
+            inputs=dataframe.iloc[:, [0, 1]], outputs=dataframe[['bravo']]
         )
         encoder.fit()
         result = encoder.produce(inputs=dataframe).value
@@ -118,7 +118,7 @@ class TextEncoderPrimitiveTestCase(unittest.TestCase):
         ]["Hyperparams"]
         encoder = TextEncoderPrimitive(hyperparams=hyperparams_class.defaults())
         encoder.set_training_data(
-            inputs=dataframe.iloc[:, [0, 1]], outputs=dataframe.iloc[:, 2]
+            inputs=dataframe.iloc[:, [0, 1]], outputs=dataframe[['bravo']]
         )
 
         # should fail in this case because we have a label with a cardinality of 1
