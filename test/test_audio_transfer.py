@@ -51,7 +51,7 @@ class AudioTransferPrimitiveTestCase(unittest.TestCase):
         dataframe_primitive = dataset_to_dataframe.DatasetToDataFramePrimitive(
             hyperparams=dataframe_hyperparams_class.defaults()
         )
-        df = dataframe_primitive.produce(inputs=dataset).value
+        audio_df = dataframe_primitive.produce(inputs=dataset).value
 
         audio_df.metadata = audio_df.metadata.add_semantic_type(
             (metadata_base.ALL_ELEMENTS, 0), "http://schema.org/AudioObject"
@@ -73,20 +73,14 @@ class AudioTransferPrimitiveTestCase(unittest.TestCase):
     def test_no_hyperparams_no_semantic_type(self):
         dataset = test_utils.load_dataset(self._dataset_path)
 
-        audio_loader_hyperparams = (
+        auto_loader_hyperparams_class = (
             AudioDatasetLoaderPrimitive.metadata.get_hyperparams()
         )
+        audio_loader_hyperparams = auto_loader_hyperparams_class.defaults()
         audio_loader_primitive = AudioDatasetLoaderPrimitive(
             hyperparams=audio_loader_hyperparams
         )
-        audio_df = audio_loader_primitive.produce(inputs=df).value
-        images.metadata = images.metadata.add_semantic_type(
-            (
-                metadata_base.ALL_ELEMENTS,
-                images.metadata.get_column_index_from_column_name("audio"),
-            ),
-            "http://schema.org/AudioObject",
-        )
+        audio_df = audio_loader_primitive.produce(inputs=dataset).value
 
         audio_transfer_hyperparams = AudioTransferPrimitive.metadata.get_hyperparams()
         primitive_volumes = AudioTransferPrimitive.metadata.get_volumes()
