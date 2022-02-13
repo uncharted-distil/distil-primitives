@@ -52,7 +52,7 @@ setup(
         "sklearn_pandas @ git+https://github.com/cdbethune/sklearn-pandas.git@c009c3a5a26f883f759cf123c0f5a509b1df013b",
         "frozendict>=1.2",
         # 'nose>=1.3.7', Needs to be installed in the primitive install section
-        #'python-prctl==1.7', Needs to be installed in the primitive install section
+        'pyprctl>=0.1,<0.2',
         "fastdtw>=0.3.2",
         "resampy>=0.2.1",
         "soundfile>=0.10.2",

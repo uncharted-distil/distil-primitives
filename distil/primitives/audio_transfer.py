@@ -81,24 +81,6 @@ class AudioTransferPrimitive(
                     "file_uri": "https://github.com/harritaylor/torchvggish/releases/download/v0.1/vggish-10086976.pth",
                     "file_digest": "10086976245803799d9194e9a73d9b6c1549c71d1b80106f5cade5608a561f4b",
                 },
-                {
-                    "type": metadata_base.PrimitiveInstallationType.UBUNTU,
-                    "package": "build-essential",
-                    "version": "12.4ubuntu1",
-                },
-                {
-                    "type": metadata_base.PrimitiveInstallationType.UBUNTU,
-                    "package": "libcap-dev",
-                    "version": "1:2.25-1.1",
-                },
-                {
-                    # "python-prctl" requires "build-essential" and "libcap-dev". We list it here instead of
-                    # "setup.py" to not have to list these system dependencies for every common primitive (because
-                    # we cannot assure this primitive annotation gets installed first).
-                    "type": metadata_base.PrimitiveInstallationType.PIP,
-                    "package": "python-prctl",
-                    "version": "1.7",
-                },
                 CYTHON_DEP,
                 {
                     "type": metadata_base.PrimitiveInstallationType.PIP,

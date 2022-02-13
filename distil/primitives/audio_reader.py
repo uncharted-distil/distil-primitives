@@ -22,7 +22,7 @@ from typing import List, Sequence, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
-import prctl
+import pyprctl
 import soundfile as sf
 from d3m import container, utils
 from d3m.base import utils as base_utils
@@ -94,7 +94,7 @@ def convert_load_file(fileuri, start, end):
                 # Setting "pdeathsig" will make the ffmpeg process be killed if our process dies for any reason.
                 encoding="utf8",
                 check=True,
-                preexec_fn=lambda: prctl.set_pdeathsig(signal.SIGKILL),
+                preexec_fn=lambda: pyprctl.set_pdeathsig(signal.SIGKILL),
             )
         except subprocess.CalledProcessError as error:
             logger.error("Error running ffmpeg: %(stderr)s", {"stderr": error.stderr})
